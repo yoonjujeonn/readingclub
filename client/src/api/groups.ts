@@ -6,7 +6,11 @@ export const groupsApi = {
     const res = await apiClient.get('/groups', { params });
     // 서버 응답: { items, total, page, limit, totalPages }
     const d = res.data;
-    return { data: { data: d.items || [], total: d.total, page: d.page, totalPages: d.totalPages } };
+    const items = (d.items || []).map((g: any) => ({
+      ...g,
+      currentMembers: g.currentMembers ?? g.memberCount ?? 0,
+    }));
+    return { data: { data: items, total: d.total, page: d.page, totalPages: d.totalPages } };
   },
 
   create: (data: CreateGroupRequest) =>

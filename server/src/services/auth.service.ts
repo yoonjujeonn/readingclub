@@ -49,6 +49,10 @@ export const authService = {
       throw new AppError(401, 'INVALID_CREDENTIALS', '이메일 또는 비밀번호가 올바르지 않습니다');
     }
 
+    if (!user.passwordHash) {
+      throw new AppError(401, 'INVALID_CREDENTIALS', '소셜 로그인으로 가입된 계정입니다. 카카오 로그인을 이용해주세요.');
+    }
+
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       throw new AppError(401, 'INVALID_CREDENTIALS', '이메일 또는 비밀번호가 올바르지 않습니다');
@@ -59,6 +63,46 @@ export const authService = {
     const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
 
     return { accessToken, refreshToken };
+  },
+
+  async kakaoLogin(kakaoAccessToken: string): Promise<{ accessToken: string; refreshToken: string; isNew: boolean }> {
+    // 카카오 사용자 정보 조회
+    const axios = (await import('axios')).default;
+    const { data: kakaoUser } = await axios.get('https://kapi.kakao.com/v2/user/me', {
+      headers: { Authorization: `Bearer ${kakaoAccessToken}` },
+    });
+
+    const kakaoId = String(kakaoUser.id);
+    const email = kakaoUser.kakao_account?.email || `kakao_${kakaoId}@kakao.local`;
+    const nickname = kakaoUser.kakao_account?.profile?.nickname || `카카오유저${kakaoId.slice(-4)}`;
+
+    // 기존 카카오 계정 찾기
+    let user = await prisma.user.findUnique({ where: { kakaoId } });
+    let isNew = false;
+
+    if (!user) {
+      // 같은 이메일로 가입된 계정이 있는지 확인
+      const existingByEmail = await prisma.user.findUnique({ where: { email } });
+      if (existingByEmail) {
+        // 기존 계정에 카카오 연동
+        user = await prisma.user.update({
+          where: { id: existingByEmail.id },
+          data: { kakaoId, provider: 'kakao' },
+        });
+      } else {
+        // 새 계정 생성
+        user = await prisma.user.create({
+          data: { email, nickname, kakaoId, provider: 'kakao' },
+        });
+        isNew = true;
+      }
+    }
+
+    const payload: TokenPayload = { userId: user.id, email: user.email };
+    const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES_IN });
+    const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
+
+    return { accessToken, refreshToken, isNew };
   },
 
   async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {

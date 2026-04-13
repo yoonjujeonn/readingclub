@@ -177,7 +177,7 @@ function MyPage() {
                 )}
               </div>
               <div style={styles.listItemMeta}>
-                👥 {g.currentMembers}/{g.maxMembers}명 · 📅 {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}
+                👥 {g.currentMembers || (g as any).memberCount || 0}/{g.maxMembers}명 · 📅 {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}
               </div>
             </div>
           ))

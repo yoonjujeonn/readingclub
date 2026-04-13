@@ -180,7 +180,7 @@ function HomePage() {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => { setSearch(''); setSearched(false); fetchGroups(); }}>
           <h1 style={styles.title}>📚 독서 토론</h1>
         </Link>
         <div style={styles.nav}>
