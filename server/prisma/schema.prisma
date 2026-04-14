@@ -84,9 +84,10 @@ model Memo {
   pageStart Int      @map("page_start")
   pageEnd   Int      @map("page_end")
   content   String   @db.Text
-  isPublic  Boolean  @default(false) @map("is_public")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  isPublic   Boolean  @default(false) @map("is_public")
+  visibility String   @default("private") @map("visibility") @db.VarChar(20)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
 
   group       Group        @relation(fields: [groupId], references: [id])
   user        User         @relation(fields: [userId], references: [id])
