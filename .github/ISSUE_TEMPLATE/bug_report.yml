@@ -1,0 +1,58 @@
+name: 버그 리포트 (Bug Report)
+description: 프로젝트의 버그나 오류를 제보해 주세요.
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: input
+    id: related-issues
+    attributes:
+      label: 🔗 관련 이슈
+      description: 이 버그와 관련된 다른 이슈 번호나 PR이 있다면 링크해 주세요.
+      placeholder: "예: Resolves #123"
+    validations:
+      required: false
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: 🐛 버그 설명
+      description: 발생한 버그에 대해 명확하고 간결하게 설명해 주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 🔄 재현 방법
+      description: 버그를 재현할 수 있는 구체적인 단계를 순서대로 적어주세요.
+      value: |
+        1. '...'로 이동합니다.
+        2. '...' 버튼을 클릭합니다.
+        3. '...' 화면으로 스크롤합니다.
+        4. 오류가 발생하는 것을 확인합니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 🎯 예상되는 정상적인 동작 (Expected behavior)
+      description: 원래 어떻게 동작해야 하는지 설명해 주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots-logs
+    attributes:
+      label: 📸 스크린샷 또는 에러 로그
+      description: 버그를 이해하는 데 도움이 되는 스크린샷이나 에러 로그가 있다면 이곳에 드래그 앤 드롭으로 첨부해 주세요.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📝 추가 정보
+      description: 버그와 관련된 추가적인 문맥이나 정보가 있다면 자유롭게 적어주세요.
+    validations:
+      required: false

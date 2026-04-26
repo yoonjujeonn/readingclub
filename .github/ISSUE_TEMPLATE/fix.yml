@@ -1,0 +1,45 @@
+name: 수정 제안 (Fix Request)
+description: 오타, 문서 오류 또는 간단한 수정을 제안해 주세요.
+title: "[FIX] "
+labels: ["fix"]
+body:
+  - type: input
+    id: related-issues
+    attributes:
+      label: 🔗 관련 이슈
+      description: 이 수정 요청과 관련된 다른 이슈 번호나 PR이 있다면 링크해 주세요.
+      placeholder: "예: #123"
+    validations:
+      required: false
+
+  - type: textarea
+    id: target-area
+    attributes:
+      label: 🎯 수정 대상
+      description: 수정을 원하는 파일명, 메뉴 위치, 또는 URL을 적어주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-state
+    attributes:
+      label: ❌ 현재 상태
+      description: 현재 어떻게 되어 있는지(오류 내용) 적어주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-state
+    attributes:
+      label: ✅ 올바른 상태 (수정 제안)
+      description: 어떻게 수정되어야 하는지 적어주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📝 추가 정보
+      description: 스크린샷이나 추가적인 문맥이 필요하다면 적어주세요.
+    validations:
+      required: false
