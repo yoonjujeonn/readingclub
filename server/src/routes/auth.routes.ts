@@ -107,4 +107,54 @@ router.post('/refresh', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/auth/kakao - 카카오 로그인 페이지로 리다이렉트
+router.get('/kakao', (_req: Request, res: Response) => {
+  const kakaoClientId = process.env.KAKAO_CLIENT_ID;
+  const redirectUri = process.env.KAKAO_REDIRECT_URI || 'http://localhost:3000/api/auth/kakao/callback';
+  const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
+  res.redirect(kakaoAuthUrl);
+});
+
+// GET /api/auth/kakao/callback - 카카오 콜백 처리
+router.get('/kakao/callback', async (req: Request, res: Response) => {
+  try {
+    const { code } = req.query;
+    if (!code || typeof code !== 'string') {
+      res.redirect('http://localhost:5173/login?error=kakao_failed');
+      return;
+    }
+
+    const axios = (await import('axios')).default;
+    const kakaoClientId = process.env.KAKAO_CLIENT_ID;
+    const redirectUri = process.env.KAKAO_REDIRECT_URI || 'http://localhost:3000/api/auth/kakao/callback';
+
+    // 인가 코드로 액세스 토큰 교환
+    const kakaoClientSecret = process.env.KAKAO_CLIENT_SECRET;
+    const tokenParams: Record<string, string> = {
+      grant_type: 'authorization_code',
+      client_id: kakaoClientId!,
+      redirect_uri: redirectUri,
+      code,
+    };
+    if (kakaoClientSecret) {
+      tokenParams.client_secret = kakaoClientSecret;
+    }
+    const tokenRes = await axios.post('https://kauth.kakao.com/oauth/token',
+      new URLSearchParams(tokenParams).toString(),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      },
+    );
+
+    const kakaoAccessToken = tokenRes.data.access_token;
+    const result = await authService.kakaoLogin(kakaoAccessToken);
+
+    // 프론트엔드로 토큰 전달 (URL 파라미터)
+    res.redirect(`http://localhost:5173/login?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}&isNew=${result.isNew}`);
+  } catch (err) {
+    console.error('Kakao login error:', err);
+    res.redirect('http://localhost:5173/login?error=kakao_failed');
+  }
+});
+
 export default router;

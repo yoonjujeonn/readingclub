@@ -1,88 +1,77 @@
-# 📚 Reading Club — 독서 토론 웹사이트
+[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/Lvs6kcL8)
+# Welcome to GitHub
 
-독서 모임을 만들고, 메모를 공유하고, 토론할 수 있는 웹 애플리케이션입니다.
+캡스톤 팀 생성을 축하합니다.
 
-## 기술 스택
+## 팀소개 및 페이지를 꾸며주세요.
 
-- **Frontend**: React 18, TypeScript, Vite, Zustand, React Router
-- **Backend**: Express, TypeScript, Prisma ORM, Zod
-- **Database**: MySQL
+- 프로젝트 소개
+  - 프로젝트 설치방법 및 데모, 사용방법, 프리뷰등을 readme.md에 작성.
+  - Api나 사용방법등 내용이 많을경우 wiki에 꾸미고 링크 추가.
 
-## 주요 기능
+- 팀페이지 꾸미기
+  - 프로젝트 소개 및 팀원 소개
+  - index.md 예시보고 수정.
 
-- 회원가입 / 로그인 (JWT 인증)
-- 책 검색 (카카오/네이버 API)
-- 독서 모임 생성 및 참여
-- 메모 작성 (비공개 / 공개 / 스포일러 보호)
-- 토론 주제 생성 및 댓글/답글
-- 독서 진행률 관리
-- 마이페이지
+- GitHub Pages 리파지토리 Settings > Options > GitHub Pages 
+  - Source를 marster branch
+  - Theme Chooser에서 태마선택
+  - 수정후 팀페이지 확인하여 점검.
 
-## 시작하기
+**팀페이지 주소** -> https://kookmin-sw.github.io/ '{{자신의 리파지토리 아이디}}'
 
-### 사전 요구사항
+**예시)** 2023년 0조  https://kookmin-sw.github.io/capstone-2023-00/
 
-- Node.js 18+
-- MySQL 8.0+
 
-### 서버 설정
+## 내용에 아래와 같은 내용들을 추가하세요.
 
-```bash
-cd server
-npm install
-cp .env.example .env
-# .env 파일을 본인 환경에 맞게 수정
+### 1. 프로잭트 소개
 
-npx prisma generate
-npx prisma db push
-npm run dev
+프로젝트
+
+### 2. 소개 영상
+
+프로젝트 소개하는 영상을 추가하세요
+
+### 3. 팀 소개
+
+팀을 소개하세요.
+
+팀원정보 및 담당이나 사진 및 SNS를 이용하여 소개하세요.
+
+### 4. 사용법
+
+소스코드제출시 설치법이나 사용법을 작성하세요.
+
+### 5. 기타
+
+추가적인 내용은 자유롭게 작성하세요.
+
+
+## Markdown을 사용하여 내용꾸미기
+
+Markdown은 작문을 스타일링하기위한 가볍고 사용하기 쉬운 구문입니다. 여기에는 다음을위한 규칙이 포함됩니다.
+
+```markdown
+Syntax highlighted code block
+
+# Header 1
+## Header 2
+### Header 3
+
+- Bulleted
+- List
+
+1. Numbered
+2. List
+
+**Bold** and _Italic_ and `Code` text
+
+[Link](url) and ![Image](src)
 ```
 
-서버: http://127.0.0.1:3000
+자세한 내용은 [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
 
-### 클라이언트 설정
+### Support or Contact
 
-```bash
-cd client
-npm install
-npm run dev
-```
-
-클라이언트: http://localhost:5173
-
-### 테스트
-
-```bash
-cd server
-npm test
-```
-
-## 프로젝트 구조
-
-```
-readingclub/
-├── client/          # React 프론트엔드
-│   └── src/
-│       ├── api/     # API 클라이언트
-│       ├── pages/   # 페이지 컴포넌트
-│       ├── stores/  # Zustand 상태 관리
-│       └── types/   # TypeScript 타입
-└── server/          # Express 백엔드
-    ├── prisma/      # Prisma 스키마
-    └── src/
-        ├── middleware/  # 인증, 에러 핸들링
-        ├── routes/      # API 라우트
-        ├── services/    # 비즈니스 로직
-        └── validators/  # Zod 스키마
-```
-
-## 환경 변수
-
-| 변수 | 설명 |
-|------|------|
-| `DATABASE_URL` | MySQL 연결 문자열 |
-| `JWT_SECRET` | JWT 서명 키 |
-| `PORT` | 서버 포트 (기본: 3000) |
-| `KAKAO_API_KEY` | 카카오 REST API 키 (선택) |
-| `NAVER_CLIENT_ID` | 네이버 클라이언트 ID (선택) |
-| `NAVER_CLIENT_SECRET` | 네이버 클라이언트 시크릿 (선택) |
+readme 파일 생성에 추가적인 도움이 필요하면 [도움말](https://help.github.com/articles/about-readmes/) 이나 [contact support](https://github.com/contact) 을 이용하세요.

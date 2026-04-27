@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, type FormEvent } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { authApi } from '../api/auth';
 import { useAuthStore } from '../stores/authStore';
 import type { ApiError } from '../types';
@@ -116,8 +116,23 @@ function validateForm(email: string, password: string): FormErrors {
 
 function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const setTokens = useAuthStore((s) => s.setTokens);
   const [email, setEmail] = useState('');
+
+  // 카카오 콜백 처리
+  useEffect(() => {
+    const accessToken = searchParams.get('accessToken');
+    const refreshToken = searchParams.get('refreshToken');
+    const error = searchParams.get('error');
+
+    if (accessToken && refreshToken) {
+      setTokens(accessToken, refreshToken);
+      navigate('/');
+    } else if (error) {
+      setServerError('카카오 로그인에 실패했습니다. 다시 시도해주세요.');
+    }
+  }, [searchParams]);
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
@@ -186,6 +201,28 @@ function LoginPage() {
             {loading ? '로그인 중...' : '로그인'}
           </button>
         </form>
+
+        <div style={{ margin: '16px 0', textAlign: 'center' as const, color: '#a0aec0', fontSize: 13 }}>또는</div>
+
+        <a
+          href="http://localhost:3000/api/auth/kakao"
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: '13px 0',
+            backgroundColor: '#FEE500',
+            color: '#191919',
+            border: 'none',
+            borderRadius: 10,
+            fontSize: 16,
+            fontWeight: 700,
+            textAlign: 'center' as const,
+            textDecoration: 'none',
+            boxSizing: 'border-box' as const,
+          }}
+        >
+          카카오로 시작하기
+        </a>
 
         <Link to="/signup" style={styles.link}>
           계정이 없으신가요? 회원가입
