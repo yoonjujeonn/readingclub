@@ -14,6 +14,10 @@ export const memoService = {
       throw new AppError(403, 'FORBIDDEN', '모임 참여자만 메모를 작성할 수 있습니다');
     }
 
+    if (data.pageEnd > member.readingProgress) {
+      throw new AppError(400, 'INVALID_PAGE_RANGE', `아직 읽지 않은 페이지입니다. 현재 읽은 페이지: ${member.readingProgress}`);
+    }
+
     const memo = await prisma.memo.create({
       data: {
         groupId,
