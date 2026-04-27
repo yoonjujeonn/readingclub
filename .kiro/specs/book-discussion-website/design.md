@@ -14,41 +14,92 @@
 
 ## 아키텍처
 
+### 배포 아키텍처: AWS EC2 단일 인스턴스
+
+모든 서비스(Nginx, Node.js, MySQL)를 하나의 EC2 인스턴스에서 운영하는 단일 서버 구조를 채택한다. MVP 단계에서 운영 복잡도를 최소화하고 비용을 절감하기 위한 선택이다.
+
+#### EC2 인스턴스 사양
+
+| 항목 | 권장 사양 |
+|------|----------|
+| 인스턴스 타입 | t3.small (2 vCPU, 2GB RAM) 이상 |
+| OS | Ubuntu 22.04 LTS |
+| 스토리지 | EBS gp3 30GB 이상 |
+| 리전 | ap-northeast-2 (서울) |
+
+#### 보안 그룹 설정
+
+| 규칙 | 프로토콜 | 포트 | 소스 | 설명 |
+|------|---------|------|------|------|
+| 인바운드 | TCP | 80 | 0.0.0.0/0 | HTTP |
+| 인바운드 | TCP | 443 | 0.0.0.0/0 | HTTPS (SSL 적용 시) |
+| 인바운드 | TCP | 22 | 관리자 IP | SSH 접속 |
+| 아웃바운드 | 전체 | 전체 | 0.0.0.0/0 | 외부 API 호출 등 |
+
+> MySQL(3306)은 외부에 노출하지 않으며, localhost에서만 접근 가능하도록 설정한다.
+
 ### 시스템 구성도
 
 ```mermaid
 graph TB
-    subgraph Client["프론트엔드 (React SPA)"]
-        Pages[페이지 컴포넌트]
-        Store[상태 관리]
-        API_Client[API 클라이언트]
-    end
+    User[사용자 브라우저]
 
-    subgraph Server["백엔드 (Node.js + Express)"]
-        Router[라우터]
-        Auth_MW[인증 미들웨어]
-        Controllers[컨트롤러]
-        Services[서비스 레이어]
-        Validators[입력 검증]
+    subgraph EC2["AWS EC2 인스턴스 (t3.small)"]
+        subgraph Nginx_Block["Nginx (리버스 프록시)"]
+            Nginx["포트 80/443<br/>정적 파일 캐싱<br/>gzip 압축"]
+        end
+
+        subgraph Node_Block["Node.js 앱 (PM2 관리)"]
+            Express["Express 서버<br/>포트 3000"]
+            StaticServe["React 빌드 정적 파일 서빙"]
+            Router[라우터]
+            Auth_MW[인증 미들웨어]
+            Services[서비스 레이어]
+            Validators[입력 검증]
+        end
+
+        subgraph DB_Block["MySQL"]
+            MySQL[("MySQL<br/>포트 3306<br/>localhost만 접근")]
+        end
     end
 
     subgraph External["외부 서비스"]
         BookAPI[책 검색 API<br/>카카오/네이버]
+        LetsEncrypt[Let's Encrypt<br/>SSL 인증서]
     end
 
-    subgraph DB["데이터베이스"]
-        MySQL[(MySQL)]
-    end
-
-    Pages --> Store
-    Store --> API_Client
-    API_Client -->|HTTP/REST| Router
+    User -->|HTTP/HTTPS| Nginx
+    Nginx -->|프록시 패스| Express
+    Express --> StaticServe
+    Express --> Router
     Router --> Auth_MW
-    Auth_MW --> Controllers
-    Controllers --> Services
+    Auth_MW --> Services
     Services --> Validators
     Services --> MySQL
     Services -->|책 검색| BookAPI
+    Nginx -.->|SSL 인증서| LetsEncrypt
+```
+
+### EC2 내부 서비스 흐름
+
+```mermaid
+sequenceDiagram
+    participant B as 브라우저
+    participant N as Nginx (:80/:443)
+    participant E as Express (:3000)
+    participant M as MySQL (:3306)
+
+    B->>N: GET / (페이지 요청)
+    N->>E: 프록시 패스
+    E-->>N: React 빌드 HTML/JS/CSS
+    N-->>B: 정적 파일 응답 (gzip)
+
+    B->>N: POST /api/auth/login
+    N->>E: 프록시 패스 /api/*
+    E->>M: 사용자 조회
+    M-->>E: 사용자 데이터
+    E-->>N: JWT 토큰 응답
+    N-->>B: 로그인 성공
 ```
 
 ### 기술 스택
@@ -60,11 +111,47 @@ graph TB
 | HTTP 클라이언트 | Axios | 인터셉터 기반 토큰 관리 |
 | 백엔드 | Node.js + Express + TypeScript | 빠른 개발, 프론트엔드와 언어 통일 |
 | ORM | Prisma | 타입 안전한 DB 접근, 마이그레이션 지원 |
-| 데이터베이스 | MySQL | 관계형 데이터 모델에 적합, 널리 사용되는 RDBMS |
+| 데이터베이스 | MySQL (EC2 내 직접 설치) | 관계형 데이터 모델에 적합, 단일 서버 운영 |
+| 웹서버 | Nginx | 리버스 프록시, 정적 파일 캐싱, gzip 압축 |
+| 프로세스 관리 | PM2 | Node.js 프로세스 자동 재시작, 로그 관리 |
+| SSL | Let's Encrypt (선택) | 무료 SSL 인증서, certbot 자동 갱신 |
 | 인증 | JWT (Access + Refresh Token) | 무상태 인증, 확장성 |
 | 비밀번호 해싱 | bcrypt | 업계 표준 |
 | 입력 검증 | Zod | TypeScript 네이티브 스키마 검증 |
 | 테스트 | Vitest + fast-check | 단위 테스트 + 속성 기반 테스트 |
+
+### 배포 절차 개요
+
+1. EC2 인스턴스 생성 및 보안 그룹 설정
+2. 서버 환경 구성: Node.js, MySQL, Nginx, PM2 설치
+3. MySQL 데이터베이스 및 사용자 생성
+4. 소스 코드 배포 (git clone 또는 scp)
+5. `client/` 디렉토리에서 React 빌드 (`npm run build`) → 빌드 결과물을 Express에서 정적 서빙
+6. `server/` 디렉토리에서 Prisma 마이그레이션 실행 (`npx prisma migrate deploy`)
+7. PM2로 Node.js 서버 시작 (`pm2 start server/dist/index.js`)
+8. Nginx 설정: 포트 80 → localhost:3000 프록시 패스
+9. (선택) certbot으로 Let's Encrypt SSL 인증서 발급 및 HTTPS 설정
+
+### Nginx 설정 예시
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
 
 ### 인증 흐름
 
