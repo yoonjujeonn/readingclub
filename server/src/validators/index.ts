@@ -28,12 +28,16 @@ export const CreateGroupSchema = z.object({
   discussionDate: z.string().date(),
 });
 
+// 메모 공개 타입
+export const VisibilityEnum = z.enum(['private', 'public', 'spoiler']);
+
 // 메모 작성
 export const CreateMemoSchema = z.object({
   pageStart: z.number().int().nonnegative(),
   pageEnd: z.number().int().nonnegative(),
   content: z.string().min(1, '메모 내용을 입력해주세요'),
   isPublic: z.boolean().default(false),
+  visibility: VisibilityEnum.default('private'),
 }).refine(data => data.pageEnd >= data.pageStart, {
   message: '끝 페이지는 시작 페이지 이상이어야 합니다',
 });
@@ -45,6 +49,7 @@ export const UpdateMemoSchema = z.object({
   pageEnd: z.number().int().nonnegative().optional(),
   content: z.string().min(1, '메모 내용을 입력해주세요').optional(),
   isPublic: z.boolean().optional(),
+  visibility: VisibilityEnum.optional(),
 }).refine(data => {
   if (data.pageStart !== undefined && data.pageEnd !== undefined) {
     return data.pageEnd >= data.pageStart;

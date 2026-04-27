@@ -6,13 +6,16 @@ const prisma = new PrismaClient();
 
 export const memoService = {
   async create(groupId: string, userId: string, data: CreateMemoInput) {
-    // Verify user is a member of the group
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
     });
     if (!member) {
       throw new AppError(403, 'FORBIDDEN', '모임 참여자만 메모를 작성할 수 있습니다');
     }
+
+    // visibility에서 isPublic 동기화
+    const visibility = data.visibility ?? 'private';
+    const isPublic = visibility === 'public';
 
     const memo = await prisma.memo.create({
       data: {
@@ -21,7 +24,8 @@ export const memoService = {
         pageStart: data.pageStart,
         pageEnd: data.pageEnd,
         content: data.content,
-        isPublic: data.isPublic ?? false,
+        isPublic,
+        visibility,
       },
       include: {
         user: { select: { id: true, nickname: true } },
@@ -40,14 +44,20 @@ export const memoService = {
       throw new AppError(403, 'FORBIDDEN', '본인의 메모만 수정할 수 있습니다');
     }
 
+    const updateData: any = {};
+    if (data.pageStart !== undefined) updateData.pageStart = data.pageStart;
+    if (data.pageEnd !== undefined) updateData.pageEnd = data.pageEnd;
+    if (data.content !== undefined) updateData.content = data.content;
+    if (data.visibility !== undefined) {
+      updateData.visibility = data.visibility;
+      updateData.isPublic = data.visibility === 'public';
+    } else if (data.isPublic !== undefined) {
+      updateData.isPublic = data.isPublic;
+    }
+
     const updated = await prisma.memo.update({
       where: { id: memoId },
-      data: {
-        ...(data.pageStart !== undefined && { pageStart: data.pageStart }),
-        ...(data.pageEnd !== undefined && { pageEnd: data.pageEnd }),
-        ...(data.content !== undefined && { content: data.content }),
-        ...(data.isPublic !== undefined && { isPublic: data.isPublic }),
-      },
+      data: updateData,
       include: {
         user: { select: { id: true, nickname: true } },
       },
@@ -68,7 +78,7 @@ export const memoService = {
     await prisma.memo.delete({ where: { id: memoId } });
   },
 
-  async updateVisibility(memoId: string, userId: string, isPublic: boolean) {
+  async updateVisibility(memoId: string, userId: string, visibility: string) {
     const memo = await prisma.memo.findUnique({ where: { id: memoId } });
     if (!memo) {
       throw new AppError(404, 'NOT_FOUND', '메모를 찾을 수 없습니다');
@@ -77,9 +87,24 @@ export const memoService = {
       throw new AppError(403, 'FORBIDDEN', '본인의 메모만 공개 여부를 변경할 수 있습니다');
     }
 
+    // 비공개/스포일러 → 공개 전환 시, 본인의 독서 진행도가 메모의 pageEnd 이상이어야 함
+    if (visibility === 'public' && memo.visibility !== 'public') {
+      const member = await prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId: memo.groupId, userId } },
+      });
+      if (!member) {
+        throw new AppError(403, 'FORBIDDEN', '모임 참여자만 공개 여부를 변경할 수 있습니다');
+      }
+      if (member.readingProgress < memo.pageEnd) {
+        throw new AppError(403, 'READING_PROGRESS_INSUFFICIENT', `메모를 공개하려면 ${memo.pageEnd}쪽 이상 읽어야 합니다 (현재 ${member.readingProgress}쪽)`);
+      }
+    }
+
+    const isPublic = visibility === 'public';
+
     const updated = await prisma.memo.update({
       where: { id: memoId },
-      data: { isPublic },
+      data: { visibility, isPublic },
       include: {
         user: { select: { id: true, nickname: true } },
       },
@@ -89,7 +114,6 @@ export const memoService = {
   },
 
   async listByGroup(groupId: string, userId: string) {
-    // Get user's reading progress in this group
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
     });
@@ -99,13 +123,14 @@ export const memoService = {
 
     const readingProgress = member.readingProgress;
 
-    // Fetch all memos: own memos (all) + others' public memos only
+    // 본인 메모 전부 + 타인의 public/spoiler 메모 (private 제외)
     const memos = await prisma.memo.findMany({
       where: {
         groupId,
         OR: [
           { userId },
-          { isPublic: true },
+          { visibility: 'public' },
+          { visibility: 'spoiler' },
         ],
       },
       orderBy: { createdAt: 'desc' },
@@ -114,12 +139,17 @@ export const memoService = {
       },
     });
 
-    // Apply reading progress-based content visibility
     const result = memos.map((memo: typeof memos[number]) => {
       const isOwn = memo.userId === userId;
-      // For own memos, always show full content
-      // For others' memos, hide content if user hasn't read up to page_end
-      const canView = isOwn || memo.pageEnd <= readingProgress;
+      // 본인 메모: 항상 열람 가능
+      // 타인 public: 항상 열람 가능
+      // 타인 spoiler: readingProgress >= pageEnd 일 때만 열람
+      let canView = true;
+      if (!isOwn) {
+        if (memo.visibility === 'spoiler') {
+          canView = readingProgress >= memo.pageEnd;
+        }
+      }
 
       return {
         id: memo.id,
@@ -129,6 +159,7 @@ export const memoService = {
         pageEnd: memo.pageEnd,
         content: canView ? memo.content : null,
         isPublic: memo.isPublic,
+        visibility: memo.visibility,
         createdAt: memo.createdAt,
         updatedAt: memo.updatedAt,
         isOwn,

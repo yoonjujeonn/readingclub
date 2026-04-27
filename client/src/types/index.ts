@@ -85,6 +85,8 @@ export interface GroupMember {
 }
 
 // ===== Memo =====
+export type MemoVisibility = 'private' | 'public' | 'spoiler';
+
 export interface Memo {
   id: string;
   groupId: string;
@@ -94,6 +96,7 @@ export interface Memo {
   pageEnd: number;
   content: string;
   isPublic: boolean;
+  visibility: MemoVisibility;
   createdAt: string;
   updatedAt: string;
   isContentHidden?: boolean;
@@ -104,6 +107,7 @@ export interface CreateMemoRequest {
   pageEnd: number;
   content: string;
   isPublic?: boolean;
+  visibility?: MemoVisibility;
 }
 
 // ===== Discussion =====
