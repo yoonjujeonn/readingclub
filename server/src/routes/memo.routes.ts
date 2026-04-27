@@ -103,18 +103,25 @@ router.delete('/memos/:id', authMiddleware, async (req: AuthRequest, res: Respon
 // PATCH /api/memos/:id/visibility
 router.patch('/memos/:id/visibility', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const { isPublic } = req.body;
-    if (typeof isPublic !== 'boolean') {
+    const { visibility, isPublic } = req.body;
+
+    // 새 visibility 필드 우선, 하위 호환을 위해 isPublic도 지원
+    let vis: string;
+    if (typeof visibility === 'string' && ['private', 'public', 'spoiler'].includes(visibility)) {
+      vis = visibility;
+    } else if (typeof isPublic === 'boolean') {
+      vis = isPublic ? 'public' : 'private';
+    } else {
       res.status(400).json({
         error: {
           code: 'VALIDATION_ERROR',
-          message: '공개 여부(isPublic)는 boolean 값이어야 합니다',
+          message: 'visibility는 private, public, spoiler 중 하나여야 합니다',
         },
       });
       return;
     }
 
-    const memo = await memoService.updateVisibility(req.params.id as string, req.user!.userId, isPublic);
+    const memo = await memoService.updateVisibility(req.params.id as string, req.user!.userId, vis);
     res.json(memo);
   } catch (err) {
     if (err instanceof AppError) {

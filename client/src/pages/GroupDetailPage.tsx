@@ -480,11 +480,21 @@ function GroupDetailPage() {
       {group.recentMemos && group.recentMemos.length > 0 && (
         <div style={styles.section}>
           <div style={styles.sectionTitle}>📝 최근 메모</div>
-          {group.recentMemos.map((memo) => (
-            <div key={memo.id} style={styles.summaryItem}>
-              <strong>{memo.authorNickname}</strong> — p.{memo.pageStart}~{memo.pageEnd}: {memo.content.slice(0, 80)}{memo.content.length > 80 ? '...' : ''}
-            </div>
-          ))}
+          {group.recentMemos.map((memo) => {
+            const myProgress = group.members.find((m) => m.userId === currentUserId)?.readingProgress ?? 0;
+            const isSpoiler = (memo as any).visibility === 'spoiler';
+            const canView = !isSpoiler || myProgress >= memo.pageEnd;
+            return (
+              <div key={memo.id} style={styles.summaryItem}>
+                <strong>{memo.authorNickname}</strong> — p.{memo.pageStart}~{memo.pageEnd}:{' '}
+                {canView
+                  ? <>{memo.content.slice(0, 80)}{memo.content.length > 80 ? '...' : ''}</>
+                  : <span style={{ color: '#92400e', fontSize: 12 }}>⚠️ p.{memo.pageEnd}까지 읽은 후 열람 가능</span>
+                }
+                {isSpoiler && <span style={{ marginLeft: 6, fontSize: 11, color: '#92400e', backgroundColor: '#fffbeb', padding: '1px 6px', borderRadius: 8 }}>스포일러</span>}
+              </div>
+            );
+          })}
         </div>
       )}
 
