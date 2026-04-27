@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 
+// 프로덕션에서는 같은 origin, 개발에서는 Vite proxy 사용 → 상대 경로로 통일
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:3000/api',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
