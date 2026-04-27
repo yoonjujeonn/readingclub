@@ -16,6 +16,9 @@ export const memoService = {
     // visibility에서 isPublic 동기화
     const visibility = data.visibility ?? 'private';
     const isPublic = visibility === 'public';
+    if (data.pageEnd > member.readingProgress) {
+      throw new AppError(400, 'INVALID_PAGE_RANGE', `아직 읽지 않은 페이지입니다. 현재 읽은 페이지: ${member.readingProgress}`);
+    }
 
     const memo = await prisma.memo.create({
       data: {

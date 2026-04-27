@@ -148,7 +148,14 @@ export const groupService = {
 
     if (isMember) {
       recentMemos = await prisma.memo.findMany({
-        where: { groupId, visibility: { not: 'private' } },
+where: {
+  groupId,
+  OR: [
+    { userId },
+    { visibility: { not: 'private' } },
+  ],
+},
+
         orderBy: { createdAt: 'desc' },
         take: 5,
         include: {
