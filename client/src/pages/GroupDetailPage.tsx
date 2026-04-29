@@ -198,7 +198,7 @@ function GroupDetailPage() {
   }
 
   const isMember = group?.members.some((m) => m.userId === currentUserId) ?? false;
-  const isFull = group ? (group.currentMembers || group.memberCount) >= group.maxMembers : false;
+  const isFull = group ? (group.currentMembers || group.memberCount || 0) >= group.maxMembers : false;
   const isOwner = group?.ownerId === currentUserId;
 
   const startEditing = () => {
