@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { CreateGroupRequest, GroupCard, GroupDetail, PaginatedResult } from '../types';
+import type { CreateGroupRequest, GroupDetail } from '../types';
 
 export const groupsApi = {
   list: async (params?: { search?: string; page?: number }) => {
