@@ -145,32 +145,38 @@ export const groupService = {
     // Get recent memos and discussions summary if user is a member
     let recentMemos: any[] = [];
     let recentDiscussions: any[] = [];
+    let announcements: any[] = [];
 
     if (isMember) {
-      recentMemos = await prisma.memo.findMany({
-where: {
-  groupId,
-  OR: [
-    { userId },
-    { visibility: { not: 'private' } },
-  ],
-},
-
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          user: { select: { id: true, nickname: true } },
-        },
-      });
-
-      recentDiscussions = await prisma.discussion.findMany({
-        where: { groupId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          author: { select: { id: true, nickname: true } },
-        },
-      });
+      [recentMemos, recentDiscussions, announcements] = await Promise.all([
+        prisma.memo.findMany({
+          where: {
+            groupId,
+            OR: [
+              { userId },
+              { visibility: { not: 'private' } },
+            ],
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          include: {
+            user: { select: { id: true, nickname: true } },
+          },
+        }),
+        prisma.discussion.findMany({
+          where: { groupId },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          include: {
+            author: { select: { id: true, nickname: true } },
+          },
+        }),
+        prisma.announcement.findMany({
+          where: { groupId },
+          orderBy: { createdAt: 'desc' },
+          take: 3,
+        }),
+      ]);
     }
 
     return {
@@ -217,6 +223,12 @@ where: {
         authorNickname: d.author.nickname,
         createdAt: d.createdAt,
       })),
+      announcements: announcements.map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        content: a.content,
+        createdAt: a.createdAt,
+      })),
     };
   },
 
@@ -228,6 +240,14 @@ where: {
 
     if (!group) {
       throw new AppError(404, 'NOT_FOUND', '모임을 찾을 수 없습니다');
+    }
+
+    // 차단 여부 확인
+    const banned = await prisma.groupBan.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (banned) {
+      throw new AppError(403, 'BANNED', '이 모임에서 강제 퇴장되어 참여할 수 없습니다');
     }
 
     // Check duplicate membership
