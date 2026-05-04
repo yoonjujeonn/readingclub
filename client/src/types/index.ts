@@ -52,6 +52,7 @@ export interface GroupCard {
   readingStartDate: string;
   readingEndDate: string;
   discussionDate: string;
+  isPrivate?: boolean;
 }
 
 export interface GroupDetail extends GroupCard {

@@ -2,7 +2,9 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { groupsApi } from '../api/groups';
 import { useAuthStore } from '../stores/authStore';
-import type { GroupCard } from '../types';
+import type { GroupCard, ApiError } from '../types';
+import { AxiosError } from 'axios';
+import GroupJoinModal from '../components/GroupJoinModal';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -150,6 +152,11 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
 
+  // Modal state
+  const [selectedGroup, setSelectedGroup] = useState<GroupCard | null>(null);
+  const [joining, setJoining] = useState(false);
+  const [joinMsg, setJoinMsg] = useState('');
+
   const fetchGroups = async (query?: string) => {
     setLoading(true);
     try {
@@ -173,6 +180,55 @@ function HomePage() {
     e.preventDefault();
     setSearched(!!search.trim());
     fetchGroups(search.trim() || undefined);
+  };
+
+  const handleCardClick = (group: GroupCard) => {
+    setSelectedGroup(group);
+    setJoinMsg('');
+    setJoining(false);
+  };
+
+  const handleModalClose = () => {
+    setSelectedGroup(null);
+    setJoinMsg('');
+  };
+
+  const handleJoin = async (password?: string) => {
+    if (!selectedGroup) return;
+    if (!accessToken) {
+      setSelectedGroup(null);
+      navigate('/login');
+      return;
+    }
+    setJoining(true);
+    setJoinMsg('');
+    try {
+      await groupsApi.join(selectedGroup.id, password);
+      setJoinMsg('모임에 참여했습니다!');
+      // 참여 성공 시 잠시 후 상세 페이지로 이동
+      setTimeout(() => {
+        setSelectedGroup(null);
+        navigate(`/groups/${selectedGroup.id}`);
+      }, 800);
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      const code = axiosErr.response?.data?.error?.code;
+      if (code === 'ALREADY_JOINED') {
+        setJoinMsg('이미 참여 중인 모임입니다');
+        setTimeout(() => {
+          setSelectedGroup(null);
+          navigate(`/groups/${selectedGroup.id}`);
+        }, 800);
+      } else if (code === 'GROUP_FULL') {
+        setJoinMsg('모집 인원이 마감되었습니다');
+      } else if (code === 'INVALID_PASSWORD') {
+        setJoinMsg('비밀번호가 올바르지 않습니다');
+      } else {
+        setJoinMsg(axiosErr.response?.data?.error?.message || '참여에 실패했습니다');
+      }
+    } finally {
+      setJoining(false);
+    }
   };
 
   const formatDate = (d: string) => d?.slice(0, 10) || '';
@@ -262,10 +318,10 @@ function HomePage() {
             <div
               key={g.id}
               style={styles.card}
-              onClick={() => navigate(`/groups/${g.id}`)}
+              onClick={() => handleCardClick(g)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate(`/groups/${g.id}`)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCardClick(g)}
             >
               <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                 {g.book?.coverImageUrl && (
@@ -290,6 +346,17 @@ function HomePage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Group Join Modal */}
+      {selectedGroup && (
+        <GroupJoinModal
+          group={selectedGroup}
+          onClose={handleModalClose}
+          onJoin={handleJoin}
+          joining={joining}
+          joinMsg={joinMsg}
+        />
       )}
     </div>
   );
