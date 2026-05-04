@@ -12,15 +12,21 @@ export const dashboardService = {
     if (group.ownerId !== userId) throw new AppError(403, 'FORBIDDEN', '방장만 초대 링크를 생성할 수 있습니다');
 
     const inviteCode = crypto.randomBytes(8).toString('hex');
-    await prisma.group.update({ where: { id: groupId }, data: { inviteCode } });
-    return inviteCode;
+    const inviteCodeExpiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30분 후 만료
+    await prisma.group.update({ where: { id: groupId }, data: { inviteCode, inviteCodeExpiresAt } });
+    return { inviteCode, expiresAt: inviteCodeExpiresAt };
   },
 
   async getInviteCode(groupId: string, userId: string) {
     const group = await prisma.group.findUnique({ where: { id: groupId } });
     if (!group) throw new AppError(404, 'NOT_FOUND', '모임을 찾을 수 없습니다');
     if (group.ownerId !== userId) throw new AppError(403, 'FORBIDDEN', '방장만 초대 링크를 조회할 수 있습니다');
-    return group.inviteCode;
+
+    // 만료된 코드는 null로 반환
+    if (group.inviteCode && group.inviteCodeExpiresAt && new Date() > group.inviteCodeExpiresAt) {
+      return { inviteCode: null, expiresAt: null };
+    }
+    return { inviteCode: group.inviteCode, expiresAt: group.inviteCodeExpiresAt };
   },
 
   async joinByInviteCode(inviteCode: string, userId: string) {
@@ -29,6 +35,11 @@ export const dashboardService = {
       include: { _count: { select: { members: true } } },
     });
     if (!group) throw new AppError(404, 'NOT_FOUND', '유효하지 않은 초대 링크입니다');
+
+    // 만료 확인
+    if (group.inviteCodeExpiresAt && new Date() > group.inviteCodeExpiresAt) {
+      throw new AppError(410, 'INVITE_EXPIRED', '초대 링크가 만료되었습니다. 방장에게 새 링크를 요청하세요.');
+    }
 
     // 차단 여부 확인
     const banned = await prisma.groupBan.findUnique({

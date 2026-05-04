@@ -23,10 +23,10 @@ export interface DiscussionSchedule {
 export const dashboardApi = {
   // 초대 링크
   getInviteCode: (groupId: string) =>
-    apiClient.get<{ inviteCode: string | null }>(`/groups/${groupId}/invite`),
+    apiClient.get<{ inviteCode: string | null; expiresAt: string | null }>(`/groups/${groupId}/invite`),
 
   generateInviteCode: (groupId: string) =>
-    apiClient.post<{ inviteCode: string }>(`/groups/${groupId}/invite`),
+    apiClient.post<{ inviteCode: string; expiresAt: string }>(`/groups/${groupId}/invite`),
 
   joinByInviteCode: (code: string) =>
     apiClient.post<{ groupId: string; groupName: string }>(`/groups/invite/${code}/join`),

@@ -10,8 +10,8 @@ const router = Router();
 // POST /api/groups/:id/invite - 초대 코드 생성/재생성
 router.post('/:id/invite', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const code = await dashboardService.generateInviteCode(req.params.id as string, req.user!.userId);
-    res.json({ inviteCode: code });
+    const result = await dashboardService.generateInviteCode(req.params.id as string, req.user!.userId);
+    res.json({ inviteCode: result.inviteCode, expiresAt: result.expiresAt });
   } catch (err) {
     if (err instanceof AppError) {
       res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
@@ -24,8 +24,8 @@ router.post('/:id/invite', authMiddleware, async (req: AuthRequest, res: Respons
 // GET /api/groups/:id/invite - 현재 초대 코드 조회
 router.get('/:id/invite', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const code = await dashboardService.getInviteCode(req.params.id as string, req.user!.userId);
-    res.json({ inviteCode: code });
+    const result = await dashboardService.getInviteCode(req.params.id as string, req.user!.userId);
+    res.json({ inviteCode: result.inviteCode, expiresAt: result.expiresAt });
   } catch (err) {
     if (err instanceof AppError) {
       res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });

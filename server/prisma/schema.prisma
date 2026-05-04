@@ -56,7 +56,8 @@ model Group {
   discussionDate   DateTime @map("discussion_date") @db.Date
   createdAt        DateTime @default(now()) @map("created_at")
 
-  inviteCode  String?  @unique @map("invite_code") @db.VarChar(20)
+  inviteCode          String?   @unique @map("invite_code") @db.VarChar(20)
+  inviteCodeExpiresAt DateTime? @map("invite_code_expires_at")
 
   book          Book           @relation(fields: [bookId], references: [id])
   owner         User           @relation("GroupOwner", fields: [ownerId], references: [id])
