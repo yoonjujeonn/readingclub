@@ -1,30 +1,27 @@
-# 변경사항: 카카오 소셜 로그인 추가
+# 변경사항: 독서 모임 참여 모달 UI
 
-커밋: `e01c335`
-이전 커밋: `e0e2264` (초기 커밋: 독서 토론 웹사이트 MVP)
+## 개요
+홈페이지에서 독서 모임 카드 클릭 시 바로 상세 페이지로 이동하던 동작을 모달로 변경.
+모임 소개를 확인한 후 참여 여부를 선택할 수 있도록 개선.
+이미 참여 중이거나 본인이 생성한 모임은 모달 없이 바로 상세 페이지로 이동.
 
-## 변경된 파일 (7개, +143줄)
-
-### 백엔드
-- `server/prisma/schema.prisma` — User 모델에 `kakaoId`, `provider` 필드 추가, `passwordHash` nullable로 변경
-- `server/src/services/auth.service.ts` — `kakaoLogin()` 메서드 추가 (카카오 사용자 정보 조회, 계정 생성/연동, JWT 발급)
-- `server/src/routes/auth.routes.ts` — `GET /api/auth/kakao` (카카오 로그인 리다이렉트), `GET /api/auth/kakao/callback` (콜백 처리, 토큰 교환) 엔드포인트 추가
+## 변경된 파일
 
 ### 프론트엔드
-- `client/src/pages/LoginPage.tsx` — "카카오로 시작하기" 버튼 추가, URL 파라미터로 전달된 토큰 자동 처리
-- `client/src/pages/HomePage.tsx` — 사이트명 클릭 시 검색 초기화
-- `client/src/pages/MyPage.tsx` — 로그아웃 시 메인페이지로 이동
-- `client/src/api/groups.ts` — memberCount → currentMembers 매핑 추가
+- `client/src/components/GroupJoinModal.tsx` — **신규 생성**. 모임 참여 모달 컴포넌트
+  - 모임 소개 (책 정보, 모임명, 설명, 일정, 인원) 표시
+  - 공개 모임: "참여하기" 버튼
+  - 비공개 모임: 비밀번호 입력 필드 + "참여하기" 버튼
+  - ✕ 버튼 / 오버레이 클릭 / ESC 키로 닫기
+- `client/src/pages/HomePage.tsx` — 카드 클릭 로직 변경
+  - `isMember` 또는 본인 생성 모임 → 바로 상세 페이지 이동
+  - 그 외 → 모달 표시, 참여 성공 시 상세 페이지로 이동
+- `client/src/types/index.ts` — `GroupCard` 타입에 `isPrivate`, `ownerId`, `isMember` 필드 추가
+- `client/src/api/groups.ts` — `join()` 메서드에 `password` 파라미터 추가
 
-## 환경변수 추가 (.env)
-```
-KAKAO_CLIENT_ID="카카오 REST API 키"
-KAKAO_CLIENT_SECRET="카카오 클라이언트 시크릿"
-KAKAO_REDIRECT_URI="http://localhost:3000/api/auth/kakao/callback"
-```
+### 백엔드
+- `server/src/services/group.service.ts` — `list()` 메서드에 `userId` 파라미터 추가, 응답에 `ownerId`와 `isMember` 포함
+- `server/src/routes/group.routes.ts` — 그룹 리스트 API에서 `req.user?.userId`를 서비스에 전달
 
-## DB 마이그레이션 필요
-```
-cd server
-npx prisma migrate dev --name add-kakao-login
-```
+## DB 마이그레이션
+없음
