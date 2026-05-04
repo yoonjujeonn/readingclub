@@ -95,6 +95,14 @@ function MyPage() {
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 닉네임 수정 상태
+  const [editingNickname, setEditingNickname] = useState(false);
+  const [newNickname, setNewNickname] = useState('');
+  const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(null);
+  const [nicknameChecking, setNicknameChecking] = useState(false);
+  const [nicknameError, setNicknameError] = useState('');
+  const [nicknameSaving, setNicknameSaving] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -121,6 +129,61 @@ function MyPage() {
     navigate('/');
   };
 
+  const handleCheckNickname = async () => {
+    if (!newNickname.trim()) {
+      setNicknameError('닉네임을 입력해주세요');
+      return;
+    }
+    if (newNickname === profile?.nickname) {
+      setNicknameError('현재 닉네임과 동일합니다');
+      return;
+    }
+    setNicknameChecking(true);
+    setNicknameError('');
+    setNicknameAvailable(null);
+    try {
+      const res = await mypageApi.checkNickname(newNickname);
+      setNicknameAvailable(res.data.available);
+      if (!res.data.available) {
+        setNicknameError('이미 사용 중인 닉네임입니다');
+      }
+    } catch {
+      setNicknameError('중복 확인 중 오류가 발생했습니다');
+    } finally {
+      setNicknameChecking(false);
+    }
+  };
+
+  const handleSaveNickname = async () => {
+    if (!nicknameAvailable) return;
+    setNicknameSaving(true);
+    try {
+      const res = await mypageApi.updateNickname(newNickname);
+      setProfile(res.data);
+      setEditingNickname(false);
+      setNicknameAvailable(null);
+      setNewNickname('');
+    } catch {
+      setNicknameError('닉네임 변경 중 오류가 발생했습니다');
+    } finally {
+      setNicknameSaving(false);
+    }
+  };
+
+  const handleStartEdit = () => {
+    setEditingNickname(true);
+    setNewNickname(profile?.nickname || '');
+    setNicknameAvailable(null);
+    setNicknameError('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingNickname(false);
+    setNewNickname('');
+    setNicknameAvailable(null);
+    setNicknameError('');
+  };
+
   const formatDate = (d: string) => d?.slice(0, 10) || '';
 
   if (loading) return <div style={styles.loading}>불러오는 중...</div>;
@@ -144,8 +207,78 @@ function MyPage() {
             }}>
               {profile.nickname.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#2d3748' }}>{profile.nickname}</div>
+            <div style={{ flex: 1 }}>
+              {!editingNickname ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: '#2d3748' }}>{profile.nickname}</div>
+                  <button
+                    onClick={handleStartEdit}
+                    style={{
+                      padding: '3px 10px', fontSize: 12, color: '#667eea', background: '#eef2ff',
+                      border: '1px solid #c7d2fe', borderRadius: 6, cursor: 'pointer', fontWeight: 500,
+                    }}
+                  >
+                    수정
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                    <input
+                      type="text"
+                      value={newNickname}
+                      onChange={(e) => {
+                        setNewNickname(e.target.value);
+                        setNicknameAvailable(null);
+                        setNicknameError('');
+                      }}
+                      maxLength={50}
+                      style={{
+                        padding: '6px 10px', fontSize: 14, border: '1px solid #d1d5db',
+                        borderRadius: 6, outline: 'none', width: 160,
+                      }}
+                      placeholder="새 닉네임"
+                    />
+                    <button
+                      onClick={handleCheckNickname}
+                      disabled={nicknameChecking}
+                      style={{
+                        padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#fff',
+                        background: nicknameChecking ? '#a0aec0' : '#667eea',
+                        border: 'none', borderRadius: 6, cursor: nicknameChecking ? 'default' : 'pointer',
+                      }}
+                    >
+                      {nicknameChecking ? '확인 중...' : '중복확인'}
+                    </button>
+                    <button
+                      onClick={handleSaveNickname}
+                      disabled={!nicknameAvailable || nicknameSaving}
+                      style={{
+                        padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#fff',
+                        background: nicknameAvailable && !nicknameSaving ? '#38a169' : '#a0aec0',
+                        border: 'none', borderRadius: 6, cursor: nicknameAvailable ? 'pointer' : 'default',
+                      }}
+                    >
+                      {nicknameSaving ? '저장 중...' : '저장'}
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      style={{
+                        padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#718096',
+                        background: '#f7fafc', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer',
+                      }}
+                    >
+                      취소
+                    </button>
+                  </div>
+                  {nicknameError && (
+                    <div style={{ fontSize: 12, color: '#e53e3e' }}>{nicknameError}</div>
+                  )}
+                  {nicknameAvailable && (
+                    <div style={{ fontSize: 12, color: '#38a169' }}>사용 가능한 닉네임입니다</div>
+                  )}
+                </div>
+              )}
               <div style={{ fontSize: 14, color: '#718096' }}>{profile.email}</div>
               <div style={{ fontSize: 12, color: '#a0aec0', marginTop: 4 }}>
                 가입일: {profile.createdAt?.slice(0, 10)}
