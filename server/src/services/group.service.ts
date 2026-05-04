@@ -67,7 +67,7 @@ export const groupService = {
     return group;
   },
 
-  async list(query?: { search?: string; page?: number; limit?: number }) {
+  async list(query?: { search?: string; page?: number; limit?: number }, userId?: string) {
     const page = query?.page ?? 1;
     const limit = query?.limit ?? 10;
     const skip = (page - 1) * limit;
@@ -88,6 +88,7 @@ export const groupService = {
         include: {
           book: true,
           _count: { select: { members: true } },
+          members: userId ? { where: { userId }, select: { userId: true } } : false,
         },
       }),
       prisma.group.count({ where }),
@@ -102,7 +103,9 @@ export const groupService = {
       readingEndDate: g.readingEndDate,
       discussionDate: g.discussionDate,
       createdAt: g.createdAt,
+      ownerId: g.ownerId,
       memberCount: g._count.members,
+      isMember: userId ? (g as any).members?.length > 0 : false,
       book: {
         id: g.book.id,
         title: g.book.title,

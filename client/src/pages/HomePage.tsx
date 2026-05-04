@@ -145,7 +145,17 @@ const styles: Record<string, React.CSSProperties> = {
 function HomePage() {
   const navigate = useNavigate();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const user = useAuthStore((s) => s.user);
   const isLoggedIn = !!accessToken;
+
+  // 현재 사용자 ID 추출
+  let currentUserId = user?.id || '';
+  if (!currentUserId && accessToken) {
+    try {
+      const payload = JSON.parse(atob(accessToken.split('.')[1] || ''));
+      currentUserId = payload.userId || '';
+    } catch { /* ignore */ }
+  }
   // 초기값을 반드시 빈 배열 []로 설정하여 map 에러 방지
   const [groups, setGroups] = useState<GroupCard[]>([]);
   const [search, setSearch] = useState('');
@@ -183,6 +193,11 @@ function HomePage() {
   };
 
   const handleCardClick = (group: GroupCard) => {
+    // 이미 참여 중이거나 본인이 생성한 모임이면 바로 상세 페이지로 이동
+    if (group.isMember || group.ownerId === currentUserId) {
+      navigate(`/groups/${group.id}`);
+      return;
+    }
     setSelectedGroup(group);
     setJoinMsg('');
     setJoining(false);

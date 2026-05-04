@@ -53,6 +53,8 @@ export interface GroupCard {
   readingEndDate: string;
   discussionDate: string;
   isPrivate?: boolean;
+  ownerId?: string;
+  isMember?: boolean;
 }
 
 export interface GroupDetail extends GroupCard {

@@ -13,7 +13,8 @@ router.get('/', optionalAuthMiddleware, async (req: AuthRequest, res: Response) 
     const page = typeof req.query.page === 'string' ? parseInt(req.query.page, 10) : 1;
     const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : 10;
 
-    const result = await groupService.list({ search, page, limit });
+    const userId = req.user?.userId;
+    const result = await groupService.list({ search, page, limit }, userId);
     res.json(result);
   } catch (err) {
     if (err instanceof AppError) {
