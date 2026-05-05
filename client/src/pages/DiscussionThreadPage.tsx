@@ -1,6 +1,8 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { discussionsApi } from '../api/discussions';
+import { aiApi } from '../api/ai';
+import { Markdown } from '../components/Markdown';
 import { timeAgo } from '../utils/timeAgo';
 import type { Comment as CommentType, Discussion } from '../types';
 
@@ -176,6 +178,10 @@ function DiscussionThreadPage() {
   const [replyContent, setReplyContent] = useState('');
   const [submittingReply, setSubmittingReply] = useState(false);
 
+  // AI summary
+  const [aiSummary, setAiSummary] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+
   const fetchData = async () => {
     if (!discussionId) return;
     setLoading(true);
@@ -224,6 +230,19 @@ function DiscussionThreadPage() {
     }
   };
 
+  const handleAiSummary = async () => {
+    if (!discussionId) return;
+    setAiLoading(true);
+    try {
+      const res = await aiApi.summarizeThread(discussionId);
+      setAiSummary(res.data.summary);
+    } catch {
+      alert('AI 요청이 많아 일시적으로 처리할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <div style={styles.container}>
       <Link to="/" style={styles.backLink}>← 홈으로</Link>
@@ -267,6 +286,37 @@ function DiscussionThreadPage() {
           </div>
         </form>
       </div>
+
+      {/* AI Summary */}
+      {comments.length > 0 && (
+        <div style={styles.section}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={styles.sectionTitle}>🤖 AI 토론 정리</div>
+            <button
+              onClick={handleAiSummary}
+              disabled={aiLoading}
+              style={{
+                padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                backgroundColor: aiLoading ? '#cbd5e0' : '#805ad5', color: '#fff',
+                border: 'none', borderRadius: 4,
+              }}
+            >
+              {aiLoading ? '정리 중...' : comments.length >= 10 ? '🤖 핵심 정리 보기' : '🤖 토론 정리 요청'}
+            </button>
+          </div>
+          <div style={{ fontSize: 13, color: '#718096', marginBottom: 12 }}>
+            AI가 토론 내용을 분석하여 핵심 논점, 주요 의견, 결론을 요약해줍니다.
+          </div>
+          {comments.length >= 10 && !aiSummary && !aiLoading && (
+            <div style={{ fontSize: 13, color: '#805ad5', backgroundColor: '#faf5ff', padding: '8px 12px', borderRadius: 4 }}>
+              의견이 10개 이상입니다. AI 정리를 확인해보세요!
+            </div>
+          )}
+          {aiSummary && (
+            <Markdown content={aiSummary} />
+          )}
+        </div>
+      )}
 
       {/* Comments List */}
       <div style={styles.section}>
