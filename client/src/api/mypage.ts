@@ -13,4 +13,7 @@ export const mypageApi = {
 
   getDiscussions: () =>
     apiClient.get<Discussion[]>('/me/discussions'),
+
+  getRecommendedGroups: () =>
+    apiClient.get<any[]>('/me/recommended-groups'),
 };

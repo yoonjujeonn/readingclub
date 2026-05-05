@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { mypageApi } from '../api/mypage';
+import { aiApi } from '../api/ai';
+import { Markdown } from '../components/Markdown';
 import { useAuthStore } from '../stores/authStore';
 import type { GroupCard, Memo, Discussion, User } from '../types';
 
@@ -93,22 +95,28 @@ function MyPage() {
   const [groups, setGroups] = useState<GroupCard[]>([]);
   const [memos, setMemos] = useState<Memo[]>([]);
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
+  const [recommendedGroups, setRecommendedGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [insightGroupId, setInsightGroupId] = useState<string | null>(null);
+  const [insight, setInsight] = useState('');
+  const [insightLoading, setInsightLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [pRes, gRes, mRes, dRes] = await Promise.all([
+        const [pRes, gRes, mRes, dRes, recRes] = await Promise.all([
           mypageApi.getProfile().catch(() => ({ data: null })),
           mypageApi.getGroups().catch(() => ({ data: [] })),
           mypageApi.getMemos().catch(() => ({ data: [] })),
           mypageApi.getDiscussions().catch(() => ({ data: [] })),
+          mypageApi.getRecommendedGroups().catch(() => ({ data: [] })),
         ]);
         setProfile(pRes.data);
         setGroups(gRes.data);
         setMemos(mRes.data);
         setDiscussions(dRes.data);
+        setRecommendedGroups(recRes.data);
       } finally {
         setLoading(false);
       }
@@ -119,6 +127,21 @@ function MyPage() {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleGenerateInsight = async (groupId: string) => {
+    setInsightGroupId(groupId);
+    setInsight('');
+    setInsightLoading(true);
+    try {
+      const res = await aiApi.generateInsight(groupId);
+      setInsight(res.data.insight);
+    } catch {
+      alert('AI 요청이 많아 일시적으로 처리할 수 없습니다. 잠시 후 다시 시도해주세요.');
+      setInsightGroupId(null);
+    } finally {
+      setInsightLoading(false);
+    }
   };
 
   const formatDate = (d: string) => d?.slice(0, 10) || '';
@@ -162,23 +185,51 @@ function MyPage() {
           <div style={styles.emptyState}>참여 중인 모임이 없습니다</div>
         ) : (
           groups.map((g) => (
-            <div
-              key={g.id}
-              style={styles.listItem}
-              onClick={() => navigate(`/groups/${g.id}`)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate(`/groups/${g.id}`)}
-            >
-              <div style={styles.listItemTitle}>
-                {g.book.title} — {g.name}
-                {(g as any).role === 'owner' && (
-                  <span style={{ display: 'inline-block', backgroundColor: '#fefcbf', color: '#975a16', padding: '1px 8px', borderRadius: 12, fontSize: 11, fontWeight: 500, marginLeft: 8 }}>방장</span>
-                )}
+            <div key={g.id}>
+              <div
+                style={styles.listItem}
+                onClick={() => navigate(`/groups/${g.id}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && navigate(`/groups/${g.id}`)}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={styles.listItemTitle}>
+                      {g.book.title} — {g.name}
+                      {(g as any).role === 'owner' && (
+                        <span style={{ display: 'inline-block', backgroundColor: '#fefcbf', color: '#975a16', padding: '1px 8px', borderRadius: 12, fontSize: 11, fontWeight: 500, marginLeft: 8 }}>방장</span>
+                      )}
+                    </div>
+                    <div style={styles.listItemMeta}>
+                      👥 {g.currentMembers || (g as any).memberCount || 0}/{g.maxMembers}명 · 📅 {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}
+                    </div>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleGenerateInsight(g.id); }}
+                    style={{
+                      padding: '6px 12px', fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                      backgroundColor: '#805ad5', color: '#fff', border: 'none', borderRadius: 4,
+                      whiteSpace: 'nowrap' as const,
+                    }}
+                  >
+                    🤖 회고
+                  </button>
+                </div>
               </div>
-              <div style={styles.listItemMeta}>
-                👥 {g.currentMembers || (g as any).memberCount || 0}/{g.maxMembers}명 · 📅 {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}
-              </div>
+              {insightGroupId === g.id && (
+                <div style={{ padding: '12px 16px', backgroundColor: '#faf5ff', borderRadius: 6, marginBottom: 8 }}>
+                  {insightLoading ? <div style={{ fontSize: 14, color: '#805ad5' }}>🤖 인사이트 생성 중...</div> : <Markdown content={insight} />}
+                  {!insightLoading && insight && (
+                    <button
+                      onClick={() => { setInsightGroupId(null); setInsight(''); }}
+                      style={{ display: 'block', marginTop: 8, fontSize: 12, color: '#805ad5', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      닫기
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           ))
         )}
@@ -233,6 +284,52 @@ function MyPage() {
               <div style={styles.listItemMeta}>
                 {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
                 {d.isRecommended && ' · ✨ 추천'}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Recommended Groups */}
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>✨ 추천 모임</div>
+        <div style={{ fontSize: 13, color: '#718096', marginBottom: 12 }}>
+          참여한 모임의 책 정보를 기반으로 비슷한 모임을 추천합니다.
+        </div>
+        {recommendedGroups.length === 0 ? (
+          <div style={styles.emptyState}>추천할 모임이 없습니다</div>
+        ) : (
+          recommendedGroups.map((g) => (
+            <div
+              key={g.id}
+              style={styles.listItem}
+              onClick={() => navigate(`/groups/${g.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/groups/${g.id}`)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {g.book.coverImageUrl && (
+                  <img src={g.book.coverImageUrl} alt="" style={{ width: 36, height: 52, objectFit: 'contain', borderRadius: 2, flexShrink: 0 }} />
+                )}
+                <div>
+                  <div style={styles.listItemTitle}>
+                    {g.book.title} — {g.name}
+                    {g.score > 0 && (() => {
+                      const label = g.score >= 5 ? '높음' : g.score >= 2 ? '보통' : '낮음';
+                      const color = g.score >= 5 ? '#276749' : g.score >= 2 ? '#2b6cb0' : '#718096';
+                      const bg = g.score >= 5 ? '#f0fff4' : g.score >= 2 ? '#ebf8ff' : '#f7fafc';
+                      return (
+                        <span style={{ display: 'inline-block', backgroundColor: bg, color, padding: '1px 8px', borderRadius: 12, fontSize: 11, fontWeight: 500, marginLeft: 8 }}>
+                          유사도 {label}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <div style={styles.listItemMeta}>
+                    {g.book.author && `${g.book.author} · `}👥 {g.currentMembers}/{g.maxMembers}명 · 📅 {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}
+                  </div>
+                </div>
               </div>
             </div>
           ))

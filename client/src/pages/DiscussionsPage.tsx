@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { discussionsApi } from '../api/discussions';
 import { memosApi } from '../api/memos';
+import { aiApi, type AiTopic } from '../api/ai';
 import { useAuthStore } from '../stores/authStore';
 import type { Discussion, Memo, RecommendedTopic, ApiError } from '../types';
 import { AxiosError } from 'axios';
@@ -181,6 +182,8 @@ function DiscussionsPage() {
 
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [recommendations, setRecommendations] = useState<RecommendedTopic[]>([]);
+  const [aiTopics, setAiTopics] = useState<AiTopic[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
   const [myMemos, setMyMemos] = useState<Memo[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterMine, setFilterMine] = useState(false);
@@ -266,6 +269,31 @@ function DiscussionsPage() {
     } catch { /* ignore */ }
   };
 
+  const handleAiSuggest = async () => {
+    if (!groupId) return;
+    setAiLoading(true);
+    try {
+      const res = await aiApi.suggestTopics(groupId);
+      setAiTopics(res.data.topics || []);
+    } catch {
+      alert('AI 요청이 많아 일시적으로 처리할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleSelectAiTopic = async (topic: AiTopic) => {
+    if (!groupId) return;
+    try {
+      await discussionsApi.create(groupId, {
+        title: topic.title,
+        content: topic.content,
+      });
+      setAiTopics([]);
+      fetchData();
+    } catch { /* ignore */ }
+  };
+
   return (
     <div style={styles.container}>
       <Link to={`/groups/${groupId}`} style={styles.backLink}>← 모임으로</Link>
@@ -323,6 +351,36 @@ function DiscussionsPage() {
             {submitting ? '생성 중...' : '토론 주제 만들기'}
           </button>
         </form>
+      </div>
+
+      {/* AI Topic Suggestions */}
+      <div style={styles.section}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={styles.sectionTitle}>🤖 AI 토론 주제 제안</div>
+          <button
+            onClick={handleAiSuggest}
+            disabled={aiLoading}
+            style={{ ...styles.button, padding: '8px 16px', fontSize: 13, ...(aiLoading ? styles.buttonDisabled : {}) }}
+          >
+            {aiLoading ? '생성 중...' : '🤖 AI 주제 생성'}
+          </button>
+        </div>
+        {aiTopics.length > 0 && aiTopics.map((topic, i) => (
+          <div
+            key={i}
+            style={{ ...styles.recCard, borderColor: '#805ad5', backgroundColor: '#faf5ff' }}
+            onClick={() => handleSelectAiTopic(topic)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleSelectAiTopic(topic)}
+          >
+            <div style={{ ...styles.recTitle, color: '#6b46c1' }}>🤖 {topic.title}</div>
+            <div style={styles.recContent}>{topic.content}</div>
+          </div>
+        ))}
+        {aiTopics.length === 0 && !aiLoading && (
+          <div style={styles.emptyState}>버튼을 눌러 AI가 책과 메모 기반으로 토론 주제를 제안합니다. 원하는 주제를 클릭하면 바로 토론 주제로 등록됩니다.</div>
+        )}
       </div>
 
       {/* Recommended Topics */}
