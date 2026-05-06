@@ -135,4 +135,94 @@ export const mypageService = {
       createdAt: d.createdAt,
     }));
   },
+
+  async getRecommendedGroups(userId: string) {
+    // 내가 참여한 모임의 책 정보 가져오기
+    const myMemberships = await prisma.groupMember.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+    const myGroupIds = myMemberships.map(m => m.groupId);
+
+    if (myGroupIds.length === 0) return [];
+
+    const myGroups = await prisma.group.findMany({
+      where: { id: { in: myGroupIds } },
+      include: { book: true },
+    });
+
+    // 내 책들에서 키워드 추출
+    const myKeywords = new Set<string>();
+    for (const g of myGroups) {
+      extractWords(g.book.title).forEach(w => myKeywords.add(w));
+      if (g.book.author) extractWords(g.book.author).forEach(w => myKeywords.add(w));
+      if (g.book.summary) extractWords(g.book.summary).forEach(w => myKeywords.add(w));
+    }
+
+    // 내가 참여하지 않은 모임 중 아직 인원이 안 찬 모임
+    const candidateGroups = await prisma.group.findMany({
+      where: {
+        id: { notIn: myGroupIds },
+      },
+      include: {
+        book: true,
+        _count: { select: { members: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    // 유사도 점수 계산
+    const scored = candidateGroups.map(g => {
+      const groupWords = new Set<string>();
+      extractWords(g.book.title).forEach(w => groupWords.add(w));
+      if (g.book.author) extractWords(g.book.author).forEach(w => groupWords.add(w));
+      if (g.book.summary) extractWords(g.book.summary).forEach(w => groupWords.add(w));
+      if (g.description) extractWords(g.description).forEach(w => groupWords.add(w));
+
+      // 교집합 크기 = 유사도 점수
+      let score = 0;
+      for (const word of groupWords) {
+        if (myKeywords.has(word)) score++;
+      }
+
+      return { group: g, score };
+    });
+
+    // 점수 높은 순 정렬, 상위 5개
+    scored.sort((a, b) => b.score - a.score);
+    const top = scored.filter(s => s.score > 0).slice(0, 5);
+
+    // 유사도 매칭이 부족하면 최신 모임으로 채우기
+    if (top.length < 3) {
+      const remaining = scored.filter(s => s.score === 0).slice(0, 3 - top.length);
+      top.push(...remaining);
+    }
+
+    return top.map(({ group: g, score }) => ({
+      id: g.id,
+      name: g.name,
+      description: g.description,
+      maxMembers: g.maxMembers,
+      currentMembers: g._count.members,
+      readingStartDate: g.readingStartDate,
+      readingEndDate: g.readingEndDate,
+      discussionDate: g.discussionDate,
+      score,
+      book: {
+        id: g.book.id,
+        title: g.book.title,
+        author: g.book.author,
+        coverImageUrl: g.book.coverImageUrl,
+      },
+    }));
+  },
 };
+
+function extractWords(text: string): string[] {
+  return text
+    .replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length >= 2)
+    .map(w => w.toLowerCase());
+}

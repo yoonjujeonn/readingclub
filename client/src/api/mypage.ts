@@ -19,4 +19,7 @@ export const mypageApi = {
 
   updateNickname: (nickname: string) =>
     apiClient.patch<User>('/me/nickname', { nickname }),
+
+  getRecommendedGroups: () =>
+    apiClient.get<any[]>('/me/recommended-groups'),
 };

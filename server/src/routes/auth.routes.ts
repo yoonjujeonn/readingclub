@@ -147,8 +147,14 @@ router.get('/kakao', (_req: Request, res: Response) => {
 router.get('/kakao/callback', async (req: Request, res: Response) => {
   try {
     const { code } = req.query;
+    // 프론트엔드 URL 자동 결정: 개발은 5173, 배포는 같은 호스트
+    const host = req.get('host') || 'localhost:3000';
+    const protocol = req.protocol;
+    const isDev = host.includes('localhost') || host.includes('127.0.0.1');
+    const frontendUrl = isDev ? `${protocol}://${host.replace(':3000', ':5173')}` : `${protocol}://${host}`;
+
     if (!code || typeof code !== 'string') {
-      res.redirect('http://localhost:5173/login?error=kakao_failed');
+      res.redirect(`${frontendUrl}/login?error=kakao_failed`);
       return;
     }
 
@@ -177,11 +183,14 @@ router.get('/kakao/callback', async (req: Request, res: Response) => {
     const kakaoAccessToken = tokenRes.data.access_token;
     const result = await authService.kakaoLogin(kakaoAccessToken);
 
-    // 프론트엔드로 토큰 전달 (URL 파라미터)
-    res.redirect(`http://localhost:5173/login?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}&isNew=${result.isNew}`);
+    res.redirect(`${frontendUrl}/login?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}&isNew=${result.isNew}`);
   } catch (err) {
     console.error('Kakao login error:', err);
-    res.redirect('http://localhost:5173/login?error=kakao_failed');
+    const host = req.get('host') || 'localhost:3000';
+    const protocol = req.protocol;
+    const isDev = host.includes('localhost') || host.includes('127.0.0.1');
+    const frontendUrl = isDev ? `${protocol}://${host.replace(':3000', ':5173')}` : `${protocol}://${host}`;
+    res.redirect(`${frontendUrl}/login?error=kakao_failed`);
   }
 });
 

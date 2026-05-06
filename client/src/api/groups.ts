@@ -19,8 +19,8 @@ export const groupsApi = {
   getDetail: (id: string) =>
     apiClient.get<GroupDetail>(`/groups/${id}`),
 
-  join: (id: string) =>
-    apiClient.post(`/groups/${id}/join`),
+  join: (id: string, password?: string) =>
+    apiClient.post(`/groups/${id}/join`, password ? { password } : undefined),
 
   update: (id: string, data: Partial<CreateGroupRequest>) =>
     apiClient.put(`/groups/${id}`, data),

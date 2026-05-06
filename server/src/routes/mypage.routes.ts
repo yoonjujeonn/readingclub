@@ -129,4 +129,22 @@ router.get('/discussions', authMiddleware, async (req: AuthRequest, res: Respons
   }
 });
 
+// GET /api/me/recommended-groups
+router.get('/recommended-groups', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const groups = await mypageService.getRecommendedGroups(req.user!.userId);
+    res.json(groups);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({
+        error: { code: err.code, message: err.message },
+      });
+      return;
+    }
+    res.status(500).json({
+      error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' },
+    });
+  }
+});
+
 export default router;
