@@ -14,6 +14,12 @@ export const mypageApi = {
   getDiscussions: () =>
     apiClient.get<Discussion[]>('/me/discussions'),
 
+  checkNickname: (nickname: string) =>
+    apiClient.get<{ available: boolean }>(`/me/check-nickname?nickname=${encodeURIComponent(nickname)}`),
+
+  updateNickname: (nickname: string) =>
+    apiClient.patch<User>('/me/nickname', { nickname }),
+
   getRecommendedGroups: () =>
     apiClient.get<any[]>('/me/recommended-groups'),
 };

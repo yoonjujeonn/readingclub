@@ -9,6 +9,34 @@ const RefreshSchema = z.object({
 
 const router = Router();
 
+// GET /api/auth/check-nickname?nickname=xxx (인증 불필요)
+router.get('/check-nickname', async (req: Request, res: Response) => {
+  try {
+    const nickname = req.query.nickname as string;
+    if (!nickname || nickname.trim().length === 0) {
+      res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: '닉네임을 입력해주세요' },
+      });
+      return;
+    }
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    const existing = await prisma.user.findUnique({ where: { nickname } });
+    await prisma.$disconnect();
+    res.json({ available: !existing });
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({
+        error: { code: err.code, message: err.message },
+      });
+      return;
+    }
+    res.status(500).json({
+      error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' },
+    });
+  }
+});
+
 // POST /api/auth/signup
 router.post('/signup', async (req: Request, res: Response) => {
   try {

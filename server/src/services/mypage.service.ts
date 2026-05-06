@@ -79,6 +79,36 @@ export const mypageService = {
     }));
   },
 
+  async checkNickname(nickname: string, userId?: string) {
+    const existing = await prisma.user.findFirst({
+      where: {
+        nickname,
+        ...(userId ? { NOT: { id: userId } } : {}),
+      },
+    });
+    return { available: !existing };
+  },
+
+  async updateNickname(userId: string, nickname: string) {
+    const existing = await prisma.user.findFirst({
+      where: { nickname, NOT: { id: userId } },
+    });
+    if (existing) {
+      throw new AppError(409, 'DUPLICATE_NICKNAME', '이미 사용 중인 닉네임입니다');
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { nickname },
+    });
+    return {
+      id: user.id,
+      email: user.email,
+      nickname: user.nickname,
+      createdAt: user.createdAt,
+    };
+  },
+
   async getMyDiscussions(userId: string) {
     const discussions = await prisma.discussion.findMany({
       where: { authorId: userId },
