@@ -25,6 +25,7 @@ model User {
   comments     Comment[]
   replies      Reply[]
   ownedGroups  Group[]      @relation("GroupOwner")
+  bans         GroupBan[]
 
   @@map("users")
 }
@@ -55,11 +56,17 @@ model Group {
   discussionDate   DateTime @map("discussion_date") @db.Date
   createdAt        DateTime @default(now()) @map("created_at")
 
-  book        Book          @relation(fields: [bookId], references: [id])
-  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id])
-  members     GroupMember[]
-  memos       Memo[]
-  discussions Discussion[]
+  inviteCode          String?   @unique @map("invite_code") @db.VarChar(20)
+  inviteCodeExpiresAt DateTime? @map("invite_code_expires_at")
+
+  book          Book           @relation(fields: [bookId], references: [id])
+  owner         User           @relation("GroupOwner", fields: [ownerId], references: [id])
+  members       GroupMember[]
+  memos         Memo[]
+  discussions   Discussion[]
+  announcements Announcement[]
+  bans          GroupBan[]
+  schedules     DiscussionSchedule[]
 
   @@map("groups")
 }
@@ -141,4 +148,45 @@ model Reply {
   author  User    @relation(fields: [authorId], references: [id])
 
   @@map("replies")
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  groupId   String   @map("group_id")
+  authorId  String   @map("author_id")
+  title     String   @db.VarChar(200)
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  group  Group @relation(fields: [groupId], references: [id])
+
+  @@map("announcements")
+}
+
+model GroupBan {
+  id        String   @id @default(uuid())
+  groupId   String   @map("group_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  group Group @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([groupId, userId])
+  @@map("group_bans")
+}
+
+model DiscussionSchedule {
+  id          String   @id @default(uuid())
+  groupId     String   @map("group_id")
+  title       String   @db.VarChar(200)
+  description String?  @db.Text
+  startDate   DateTime @map("start_date") @db.Date
+  endDate     DateTime @map("end_date") @db.Date
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  group Group @relation(fields: [groupId], references: [id])
+
+  @@map("discussion_schedules")
 }

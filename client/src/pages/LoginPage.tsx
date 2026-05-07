@@ -118,6 +118,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const setTokens = useAuthStore((s) => s.setTokens);
+  const redirectPath = searchParams.get('redirect') || '/';
   const [email, setEmail] = useState('');
 
   // 카카오 콜백 처리
@@ -128,7 +129,7 @@ function LoginPage() {
 
     if (accessToken && refreshToken) {
       setTokens(accessToken, refreshToken);
-      navigate('/');
+      navigate(redirectPath);
     } else if (error) {
       setServerError('카카오 로그인에 실패했습니다. 다시 시도해주세요.');
     }
@@ -150,7 +151,7 @@ function LoginPage() {
     try {
       const { data } = await authApi.login({ email, password });
       setTokens(data.accessToken, data.refreshToken);
-      navigate('/');
+      navigate(redirectPath);
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;
       const msg = axiosErr.response?.data?.error?.message || '이메일 또는 비밀번호가 올바르지 않습니다';
