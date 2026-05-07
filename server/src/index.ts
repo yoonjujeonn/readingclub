@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import authRouter from './routes/auth.routes';
 import bookRouter from './routes/book.routes';
 import groupRouter from './routes/group.routes';
@@ -16,6 +17,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 
+// uploads 폴더 자동 생성
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
 // CORS: 개발 환경에서만 Vite dev server 허용, 프로덕션에서는 같은 origin
 if (isProduction) {
   app.use(cors({ credentials: true }));
@@ -27,6 +32,9 @@ if (isProduction) {
 }
 
 app.use(express.json());
+
+// 업로드 파일 정적 서빙
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });

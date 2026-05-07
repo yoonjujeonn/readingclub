@@ -1,9 +1,30 @@
 import { Router, Response } from 'express';
+import multer from 'multer';
+import path from 'path';
 import { mypageService } from '../services/mypage.service';
 import { AppError } from '../services/auth.service';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 
 import { UpdateNicknameSchema } from '../validators';
+
+// 파일 업로드 설정
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads'));
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    cb(null, allowed.includes(file.mimetype));
+  },
+});
 
 const router = Router();
 
@@ -126,6 +147,76 @@ router.get('/discussions', authMiddleware, async (req: AuthRequest, res: Respons
     res.status(500).json({
       error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' },
     });
+  }
+});
+
+// PATCH /api/me/profile-image
+router.patch('/profile-image', authMiddleware, upload.single('profileImage'), async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '이미지 파일을 선택해주세요' } });
+      return;
+    }
+    const profileImageUrl = `/uploads/${req.file.filename}`;
+    const profile = await mypageService.updateProfileImage(req.user!.userId, profileImageUrl);
+    res.json(profile);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// PATCH /api/me/profile-image-reset
+router.patch('/profile-image-reset', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const profile = await mypageService.updateProfileImage(req.user!.userId, '');
+    res.json(profile);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// PATCH /api/me/password
+router.patch('/password', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '현재 비밀번호와 새 비밀번호를 입력해주세요' } });
+      return;
+    }
+    if (newPassword.length < 8) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '새 비밀번호는 8자 이상이어야 합니다' } });
+      return;
+    }
+    await mypageService.changePassword(req.user!.userId, currentPassword, newPassword);
+    res.json({ message: '비밀번호가 변경되었습니다' });
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// DELETE /api/me/account
+router.delete('/account', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    await mypageService.softDeleteAccount(req.user!.userId);
+    res.json({ message: '회원 탈퇴가 완료되었습니다' });
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
   }
 });
 
