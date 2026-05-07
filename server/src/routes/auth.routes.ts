@@ -21,7 +21,7 @@ router.get('/check-nickname', async (req: Request, res: Response) => {
     }
     const { PrismaClient } = await import('@prisma/client');
     const prisma = new PrismaClient();
-    const existing = await prisma.user.findUnique({ where: { nickname } });
+    const existing = await prisma.user.findFirst({ where: { nickname } });
     await prisma.$disconnect();
     res.json({ available: !existing });
   } catch (err) {

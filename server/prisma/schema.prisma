@@ -11,13 +11,16 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique @db.VarChar(255)
-  passwordHash String?  @map("password_hash") @db.VarChar(255)
-  nickname     String   @unique @db.VarChar(50)
-  kakaoId      String?  @unique @map("kakao_id") @db.VarChar(100)
-  provider     String   @default("local") @db.VarChar(20)
-  createdAt    DateTime @default(now()) @map("created_at")
+  id              String   @id @default(uuid())
+  email           String   @unique @db.VarChar(255)
+  passwordHash    String?  @map("password_hash") @db.VarChar(255)
+  nickname        String   @unique @db.VarChar(50)
+  profileImageUrl String?  @map("profile_image_url") @db.Text
+  kakaoId         String?  @unique @map("kakao_id") @db.VarChar(100)
+  provider        String   @default("local") @db.VarChar(20)
+  isDeleted       Boolean  @default(false) @map("is_deleted")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime @default(now()) @map("created_at")
 
   groupMembers GroupMember[]
   memos        Memo[]

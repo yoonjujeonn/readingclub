@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 import { AppError } from './auth.service';
 
 const prisma = new PrismaClient();
@@ -11,6 +12,8 @@ export const mypageService = {
       id: user.id,
       email: user.email,
       nickname: user.nickname,
+      profileImageUrl: user.profileImageUrl,
+      provider: user.provider,
       createdAt: user.createdAt,
     };
   },
@@ -216,6 +219,41 @@ export const mypageService = {
         coverImageUrl: g.book.coverImageUrl,
       },
     }));
+  },
+
+  async updateProfileImage(userId: string, profileImageUrl: string) {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { profileImageUrl: profileImageUrl || null },
+    });
+    return { id: user.id, email: user.email, nickname: user.nickname, profileImageUrl: user.profileImageUrl, createdAt: user.createdAt };
+  },
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError(404, 'NOT_FOUND', '사용자를 찾을 수 없습니다');
+    if (!user.passwordHash) throw new AppError(400, 'SOCIAL_ACCOUNT', '소셜 로그인 계정은 비밀번호를 변경할 수 없습니다');
+
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValid) throw new AppError(401, 'INVALID_CREDENTIALS', '현재 비밀번호가 올바르지 않습니다');
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: userId }, data: { passwordHash: newHash } });
+  },
+
+  async softDeleteAccount(userId: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError(404, 'NOT_FOUND', '사용자를 찾을 수 없습니다');
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date(),
+        nickname: `탈퇴한사용자_${userId.slice(0, 8)}`,
+        email: `deleted_${userId}@deleted.local`,
+      },
+    });
   },
 };
 

@@ -138,30 +138,15 @@ function MyPage() {
       {profile && (
         <div style={s.profileCard}>
           <div style={s.profileTop}>
-            <div style={s.avatar}>
-              {profile.nickname.charAt(0).toUpperCase()}
+            <div style={{ width: 56, height: 56, borderRadius: '50%', overflow: 'hidden', backgroundColor: '#f0f0f5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '3px solid #e2e8f0' }}>
+              {(profile as any).profileImageUrl ? (
+                <img src={(profile as any).profileImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ fontSize: 22, color: '#a0aec0', fontWeight: 700 }}>{profile.nickname.charAt(0).toUpperCase()}</span>
+              )}
             </div>
             <div style={{ flex: 1 }}>
-              {!editingNickname ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={s.nickname}>{profile.nickname}</div>
-                  <button
-                    onClick={handleStartEdit}
-                    style={{ padding: '3px 10px', fontSize: 12, color: '#667eea', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}
-                  >수정</button>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                    <input type="text" value={newNickname} onChange={(e) => { setNewNickname(e.target.value); setNicknameAvailable(null); setNicknameError(''); }} maxLength={50} style={{ padding: '6px 10px', fontSize: 14, border: '1px solid #d1d5db', borderRadius: 6, outline: 'none', width: 160 }} placeholder="새 닉네임" />
-                    <button onClick={handleCheckNickname} disabled={nicknameChecking} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#fff', background: nicknameChecking ? '#a0aec0' : '#667eea', border: 'none', borderRadius: 6, cursor: nicknameChecking ? 'default' : 'pointer' }}>{nicknameChecking ? '확인 중...' : '중복확인'}</button>
-                    <button onClick={handleSaveNickname} disabled={!nicknameAvailable || nicknameSaving} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#fff', background: nicknameAvailable && !nicknameSaving ? '#38a169' : '#a0aec0', border: 'none', borderRadius: 6, cursor: nicknameAvailable ? 'pointer' : 'default' }}>{nicknameSaving ? '저장 중...' : '저장'}</button>
-                    <button onClick={handleCancelEdit} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#718096', background: '#f7fafc', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer' }}>취소</button>
-                  </div>
-                  {nicknameError && <div style={{ fontSize: 12, color: '#e53e3e' }}>{nicknameError}</div>}
-                  {nicknameAvailable && <div style={{ fontSize: 12, color: '#38a169' }}>사용 가능한 닉네임입니다</div>}
-                </div>
-              )}
+              <div style={s.nickname}>{profile.nickname}</div>
               <div style={s.email}>{profile.email}</div>
             </div>
             <button style={s.logoutBtn} onClick={handleLogout}>로그아웃</button>
@@ -213,14 +198,14 @@ function MyPage() {
                         </div>
                         <span style={s.progressText}>p.{g.readingProgress || 0}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
                         <div style={s.clubMeta}>
                           👥 {g.memberCount || g.currentMembers || 0}/{g.maxMembers}명
                           {g.role === 'owner' && <span style={s.ownerBadge}>방장</span>}
                         </div>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleGenerateInsight(g.id); }}
-                          style={{ padding: '4px 10px', fontSize: 11, fontWeight: 500, cursor: 'pointer', backgroundColor: '#805ad5', color: '#fff', border: 'none', borderRadius: 4 }}
+                          style={{ padding: '5px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer', backgroundColor: '#805ad5', color: '#fff', border: 'none', borderRadius: 6 }}
                         >🤖 회고</button>
                       </div>
                     </div>

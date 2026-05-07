@@ -22,4 +22,18 @@ export const mypageApi = {
 
   getRecommendedGroups: () =>
     apiClient.get<any[]>('/me/recommended-groups'),
+
+  updateProfileImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('profileImage', file);
+    return apiClient.patch<User>('/me/profile-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiClient.patch('/me/password', { currentPassword, newPassword }),
+
+  deleteAccount: () =>
+    apiClient.delete('/me/account'),
 };
