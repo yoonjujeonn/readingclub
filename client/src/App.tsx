@@ -8,6 +8,7 @@ import MemosPage from './pages/MemosPage';
 import DiscussionsPage from './pages/DiscussionsPage';
 import DiscussionThreadPage from './pages/DiscussionThreadPage';
 import MyPage from './pages/MyPage';
+import SettingsPage from './pages/SettingsPage';
 import DashboardPage from './pages/DashboardPage';
 import InvitePage from './pages/InvitePage';
 
@@ -23,6 +24,7 @@ function App() {
       <Route path="/groups/:id/discussions" element={<DiscussionsPage />} />
       <Route path="/discussions/:id" element={<DiscussionThreadPage />} />
       <Route path="/mypage" element={<MyPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
       <Route path="/groups/:id/dashboard" element={<DashboardPage />} />
       <Route path="/invite/:code" element={<InvitePage />} />
     </Routes>
