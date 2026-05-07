@@ -121,6 +121,29 @@ function SignupPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(null);
+  const [nicknameChecking, setNicknameChecking] = useState(false);
+
+  const handleCheckNickname = async () => {
+    if (!nickname.trim()) {
+      setErrors((prev) => ({ ...prev, nickname: '닉네임을 입력해주세요' }));
+      return;
+    }
+    setNicknameChecking(true);
+    setNicknameAvailable(null);
+    setErrors((prev) => ({ ...prev, nickname: undefined }));
+    try {
+      const res = await authApi.checkNickname(nickname);
+      setNicknameAvailable(res.data.available);
+      if (!res.data.available) {
+        setErrors((prev) => ({ ...prev, nickname: '이미 사용 중인 닉네임입니다' }));
+      }
+    } catch {
+      setErrors((prev) => ({ ...prev, nickname: '중복 확인 중 오류가 발생했습니다' }));
+    } finally {
+      setNicknameChecking(false);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -178,15 +201,40 @@ function SignupPage() {
 
           <div style={styles.field}>
             <label style={styles.label} htmlFor="nickname">닉네임</label>
-            <input
-              id="nickname"
-              type="text"
-              style={{ ...styles.input, ...(errors.nickname ? styles.inputError : {}) }}
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="닉네임"
-            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                id="nickname"
+                type="text"
+                style={{ ...styles.input, flex: 1, ...(errors.nickname ? styles.inputError : {}) }}
+                value={nickname}
+                onChange={(e) => {
+                  setNickname(e.target.value);
+                  setNicknameAvailable(null);
+                  setErrors((prev) => ({ ...prev, nickname: undefined }));
+                }}
+                placeholder="닉네임"
+              />
+              <button
+                type="button"
+                onClick={handleCheckNickname}
+                disabled={nicknameChecking}
+                style={{
+                  padding: '10px 14px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: '#fff',
+                  backgroundColor: nicknameChecking ? '#a0aec0' : '#667eea',
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: nicknameChecking ? 'default' : 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {nicknameChecking ? '확인 중...' : '중복확인'}
+              </button>
+            </div>
             {errors.nickname && <div style={styles.errorText}>{errors.nickname}</div>}
+            {nicknameAvailable && <div style={{ color: '#38a169', fontSize: 12, marginTop: 4 }}>사용 가능한 닉네임입니다</div>}
           </div>
 
           <button

@@ -3,15 +3,40 @@ import { useParams, Link } from 'react-router-dom';
 import { memosApi } from '../api/memos';
 import { groupsApi } from '../api/groups';
 import { useAuthStore } from '../stores/authStore';
-import type { Memo, ApiError, GroupDetail, MemoVisibility } from '../types';
+import type { Memo, ApiError, GroupDetail, MemoVisibility, GroupMember } from '../types';
 import { AxiosError } from 'axios';
 
 const styles: Record<string, React.CSSProperties> = {
   container: { maxWidth: 800, margin: '0 auto', padding: '24px 16px' },
   backLink: { display: 'inline-block', marginBottom: 16, fontSize: 14, color: '#3182ce' },
   title: { fontSize: 24, fontWeight: 700, marginBottom: 24 },
-  section: { backgroundColor: '#fff', borderRadius: 8, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', marginBottom: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: 600, marginBottom: 12, color: '#2d3748' },
+  // 버튼 그리드
+  buttonGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 },
+  menuCard: {
+    display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center',
+    padding: '28px 16px', borderRadius: 12, cursor: 'pointer', border: '1px solid #e2e8f0',
+    backgroundColor: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'transform 0.15s, box-shadow 0.15s',
+  },
+  menuIcon: { fontSize: 32, marginBottom: 8 },
+  menuLabel: { fontSize: 15, fontWeight: 600, color: '#2d3748' },
+  menuCount: { fontSize: 12, color: '#a0aec0', marginTop: 4 },
+  // 모달
+  overlay: {
+    position: 'fixed' as const, top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: 1000, padding: 16,
+  },
+  modal: {
+    backgroundColor: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 600,
+    maxHeight: '80vh', overflowY: 'auto' as const, boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+  },
+  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 18, fontWeight: 700, color: '#1a202c' },
+  closeBtn: {
+    padding: '6px 12px', fontSize: 20, background: 'none', border: 'none', cursor: 'pointer',
+    color: '#718096', lineHeight: 1,
+  },
+  // 폼/메모 공통
   field: { marginBottom: 14 },
   label: { display: 'block', marginBottom: 4, fontSize: 14, fontWeight: 500 },
   input: { width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const },
@@ -21,7 +46,7 @@ const styles: Record<string, React.CSSProperties> = {
   row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
   button: { width: '100%', padding: '10px 0', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
   buttonDisabled: { opacity: 0.6, cursor: 'not-allowed' },
-  memoCard: { backgroundColor: '#fff', borderRadius: 8, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', marginBottom: 12 },
+  memoCard: { backgroundColor: '#f9fafb', borderRadius: 8, padding: 16, marginBottom: 12, border: '1px solid #f0f0f5' },
   memoHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   memoRange: { fontSize: 13, fontWeight: 600, color: '#3182ce' },
   memoContent: { fontSize: 14, color: '#4a5568', lineHeight: 1.6, marginBottom: 8 },
@@ -33,6 +58,8 @@ const styles: Record<string, React.CSSProperties> = {
   emptyState: { textAlign: 'center' as const, padding: '30px 20px', color: '#a0aec0', fontSize: 14 },
   visSelect: { padding: '6px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4, backgroundColor: '#fff', cursor: 'pointer', marginLeft: 4 },
 };
+
+type ModalType = 'create' | 'my' | 'public' | 'spoiler' | null;
 
 const visibilityLabel = (v: MemoVisibility) => {
   switch (v) {
@@ -60,7 +87,9 @@ function MemosPage() {
   const [spoilerMemos, setSpoilerMemos] = useState<Memo[]>([]);
   const [groupInfo, setGroupInfo] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
 
+  // 작성 폼 상태
   const [pageStart, setPageStart] = useState('');
   const [pageEnd, setPageEnd] = useState('');
   const [content, setContent] = useState('');
@@ -69,11 +98,51 @@ function MemosPage() {
   const [serverError, setServerError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // 읽은 페이지 업데이트 상태
+  const [currentProgress, setCurrentProgress] = useState<number>(0);
+  const [newProgress, setNewProgress] = useState('');
+  const [progressSaving, setProgressSaving] = useState(false);
+
+  // 수정 상태
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
   const [editPageStart, setEditPageStart] = useState('');
   const [editPageEnd, setEditPageEnd] = useState('');
 
+  // 자세히 보기 상태
+  const [detailMemo, setDetailMemo] = useState<Memo | null>(null);
+
+  // 내 메모 정렬 상태
+  type SortOption = 'newest' | 'oldest' | 'pageDesc' | 'pageAsc';
+  const [memoSort, setMemoSort] = useState<SortOption>('newest');
+  const [publicSort, setPublicSort] = useState<SortOption>('newest');
+  const [spoilerSort, setSpoilerSort] = useState<SortOption>('newest');
+
+  // 내 메모 필터 상태
+  type FilterOption = 'all' | 'private' | 'public' | 'spoiler';
+  const [memoFilter, setMemoFilter] = useState<FilterOption>('all');
+
+  const sortMemos = (memos: Memo[], sort: SortOption) => [...memos].sort((a, b) => {
+    switch (sort) {
+      case 'newest': return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case 'oldest': return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case 'pageDesc': return b.pageStart - a.pageStart || a.pageEnd - b.pageEnd;
+      case 'pageAsc': return a.pageStart - b.pageStart || a.pageEnd - b.pageEnd;
+      default: return 0;
+    }
+  });
+
+  const sortedMyMemos = sortMemos(
+    myMemos.filter((m) => {
+      if (memoFilter === 'all') return true;
+      const vis = m.visibility || (m.isPublic ? 'public' : 'private');
+      return vis === memoFilter;
+    }),
+    memoSort
+  );
+
+  const sortedPublicMemos = sortMemos(publicMemos, publicSort);
+  const sortedSpoilerMemos = sortMemos(spoilerMemos, spoilerSort);
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
     try {
@@ -93,7 +162,15 @@ function MemosPage() {
       setMyMemos(memoRes.data.myMemos || []);
       setPublicMemos(memoRes.data.publicMemos || []);
       setSpoilerMemos(memoRes.data.spoilerMemos || []);
-      if (groupRes.data) setGroupInfo(groupRes.data);
+      if (groupRes.data) {
+        setGroupInfo(groupRes.data);
+        // 현재 사용자의 읽은 페이지 가져오기
+        const me = groupRes.data.members?.find((m: GroupMember) => m.userId === currentUserId);
+        if (me) {
+          setCurrentProgress(me.readingProgress);
+          setNewProgress(String(me.readingProgress));
+        }
+      }
     } catch {
       setMyMemos([]);
       setPublicMemos([]);
@@ -134,6 +211,7 @@ function MemosPage() {
       setPageEnd('');
       setContent('');
       setVisibility('private');
+      setActiveModal(null);
       fetchMemos();
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;
@@ -146,6 +224,22 @@ function MemosPage() {
   const handleDelete = async (memoId: string) => {
     if (!confirm('메모를 삭제하시겠습니까?')) return;
     try { await memosApi.delete(memoId); fetchMemos(); } catch { /* ignore */ }
+  };
+
+  const handleUpdateProgress = async () => {
+    if (!groupId) return;
+    const page = parseInt(newProgress);
+    if (isNaN(page) || page < 0) return;
+    setProgressSaving(true);
+    try {
+      await groupsApi.updateProgress(groupId, page);
+      setCurrentProgress(page);
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      alert(axiosErr.response?.data?.error?.message || '읽은 페이지 업데이트에 실패했습니다');
+    } finally {
+      setProgressSaving(false);
+    }
   };
 
   const handleChangeVisibility = async (memo: Memo, newVis: MemoVisibility) => {
@@ -179,13 +273,23 @@ function MemosPage() {
     } catch { /* ignore */ }
   };
 
+  const closeModal = () => {
+    setActiveModal(null);
+    setEditingId(null);
+  };
+
+  // 모달 외부 클릭 핸들러
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget && activeModal !== 'create') closeModal();
+  };
+
   const renderMyMemo = (memo: Memo) => (
     <div key={memo.id} style={styles.memoCard}>
       {editingId === memo.id ? (
         <>
           <div style={styles.row}>
-            <input type="number" style={styles.input} value={editPageStart} onChange={(e) => setEditPageStart(e.target.value)} />
-            <input type="number" style={styles.input} value={editPageEnd} onChange={(e) => setEditPageEnd(e.target.value)} />
+            <input type="number" style={styles.input} value={editPageStart} onChange={(e) => setEditPageStart(e.target.value)} placeholder="시작 페이지" />
+            <input type="number" style={styles.input} value={editPageEnd} onChange={(e) => setEditPageEnd(e.target.value)} placeholder="끝 페이지" />
           </div>
           <textarea style={{ ...styles.textarea, marginTop: 8 }} value={editContent} onChange={(e) => setEditContent(e.target.value)} />
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
@@ -207,11 +311,14 @@ function MemosPage() {
                 <option value="public">🔓 공개</option>
                 <option value="spoiler">⚠️ 스포일러</option>
               </select>
+              <button style={styles.actionBtn} onClick={() => setDetailMemo(memo)}>자세히</button>
               <button style={styles.actionBtn} onClick={() => startEdit(memo)}>수정</button>
               <button style={styles.deleteBtn} onClick={() => handleDelete(memo.id)}>삭제</button>
             </div>
           </div>
-          <div style={styles.memoContent}>{memo.content}</div>
+          <div style={{ ...styles.memoContent, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const, whiteSpace: 'pre-wrap' }}>
+            {memo.content}
+          </div>
           <div style={styles.memoMeta}>{new Date(memo.createdAt).toLocaleDateString()}</div>
         </>
       )}
@@ -220,6 +327,7 @@ function MemosPage() {
 
   const renderOtherMemo = (memo: Memo) => {
     const vc = visibilityColor(memo.visibility || 'public');
+    const isOwn = memo.userId === currentUserId;
     return (
       <div key={memo.id} style={styles.memoCard}>
         <div style={styles.memoHeader}>
@@ -228,7 +336,9 @@ function MemosPage() {
             <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 500, backgroundColor: vc.bg, color: vc.color }}>
               {visibilityLabel(memo.visibility || 'public')}
             </span>
-            <span style={{ fontSize: 13, color: '#718096' }}>{memo.authorNickname}</span>
+            <span style={{ fontSize: 13, color: isOwn ? '#3182ce' : '#718096', fontWeight: isOwn ? 600 : 400 }}>
+              {memo.authorNickname}{isOwn && ' (나)'}
+            </span>
           </div>
         </div>
         {memo.isContentHidden ? (
@@ -236,12 +346,214 @@ function MemosPage() {
             ⚠️ p.{memo.pageEnd}까지 읽은 후 열람할 수 있습니다
           </div>
         ) : (
-          <div style={styles.memoContent}>{memo.content}</div>
+          <div style={{ ...styles.memoContent, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const, whiteSpace: 'pre-wrap' }}>
+            {memo.content}
+          </div>
         )}
-        <div style={styles.memoMeta}>{new Date(memo.createdAt).toLocaleDateString()}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={styles.memoMeta}>{new Date(memo.createdAt).toLocaleDateString()}</div>
+          {!memo.isContentHidden && memo.content.length > 80 && (
+            <button
+              onClick={() => setDetailMemo(memo)}
+              style={{ ...styles.actionBtn, fontSize: 11, color: '#3182ce', borderColor: '#bee3f8' }}
+            >
+              자세히
+            </button>
+          )}
+        </div>
       </div>
     );
   };
+
+  // 모달 내용 렌더링
+  const renderModalContent = () => {
+    switch (activeModal) {
+      case 'create':
+        return (
+          <>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>✏️ 메모 작성</div>
+              <button style={styles.closeBtn} onClick={closeModal} aria-label="닫기">×</button>
+            </div>
+            {/* 현재 읽은 페이지 업데이트 */}
+            <div style={{ backgroundColor: '#f7f8fc', borderRadius: 8, padding: '12px 16px', marginBottom: 16, border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 8 }}>
+                📖 현재 읽은 페이지: <span style={{ color: '#3182ce' }}>{currentProgress}p</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="number"
+                  min="0"
+                  value={newProgress}
+                  onChange={(e) => setNewProgress(e.target.value)}
+                  style={{ ...styles.input, width: 100 }}
+                  placeholder="페이지"
+                />
+                <button
+                  type="button"
+                  onClick={handleUpdateProgress}
+                  disabled={progressSaving || parseInt(newProgress) === currentProgress}
+                  style={{
+                    padding: '8px 14px', fontSize: 13, fontWeight: 600, color: '#fff',
+                    backgroundColor: progressSaving || parseInt(newProgress) === currentProgress ? '#a0aec0' : '#38a169',
+                    border: 'none', borderRadius: 6, cursor: progressSaving || parseInt(newProgress) === currentProgress ? 'default' : 'pointer',
+                  }}
+                >
+                  {progressSaving ? '저장 중...' : '변경'}
+                </button>
+                <span style={{ fontSize: 12, color: '#a0aec0' }}>
+                  메모 작성 전에 읽은 페이지를 먼저 업데이트하세요
+                </span>
+              </div>
+            </div>
+            <form onSubmit={handleSubmit} noValidate>
+              {serverError && <div style={styles.serverError}>{serverError}</div>}
+              <div style={styles.row}>
+                <div style={styles.field}>
+                  <label style={styles.label}>시작 페이지</label>
+                  <input type="number" min="0" style={{ ...styles.input, ...(formErrors.pageStart ? styles.inputError : {}) }} value={pageStart} onChange={(e) => setPageStart(e.target.value)} placeholder="0" />
+                  {formErrors.pageStart && <div style={styles.errorText}>{formErrors.pageStart}</div>}
+                </div>
+                <div style={styles.field}>
+                  <label style={styles.label}>끝 페이지</label>
+                  <input type="number" min="0" style={{ ...styles.input, ...(formErrors.pageEnd ? styles.inputError : {}) }} value={pageEnd} onChange={(e) => setPageEnd(e.target.value)} placeholder="0" />
+                  {formErrors.pageEnd && <div style={styles.errorText}>{formErrors.pageEnd}</div>}
+                </div>
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>내용</label>
+                <textarea style={{ ...styles.textarea, ...(formErrors.content ? styles.inputError : {}) }} value={content} onChange={(e) => setContent(e.target.value)} placeholder="메모 내용을 입력해주세요" />
+                {formErrors.content && <div style={styles.errorText}>{formErrors.content}</div>}
+              </div>
+              <div style={{ ...styles.field, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <label style={{ fontSize: 14, fontWeight: 500 }}>공개 설정:</label>
+                  <select
+                    value={visibility}
+                    onChange={(e) => setVisibility(e.target.value as MemoVisibility)}
+                    style={{ padding: '6px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4 }}
+                  >
+                    <option value="private">🔒 비공개 (나만 보기)</option>
+                    <option value="public">🔓 공개 (모두 열람)</option>
+                    <option value="spoiler">⚠️ 스포일러 (해당 페이지 읽은 사람만)</option>
+                  </select>
+                </div>
+                <button type="submit" style={{ ...styles.button, width: 'auto', padding: '10px 24px', ...(submitting ? styles.buttonDisabled : {}) }} disabled={submitting}>
+                  {submitting ? '저장 중...' : '메모 저장'}
+                </button>
+              </div>
+            </form>
+          </>
+        );
+
+      case 'my':
+        return (
+          <>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>📒 내 메모 ({myMemos.length})</div>
+              <button style={styles.closeBtn} onClick={closeModal} aria-label="닫기">×</button>
+            </div>
+            {myMemos.length > 0 && (
+              <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <label style={{ fontSize: 13, fontWeight: 500, color: '#4a5568' }}>정렬:</label>
+                <select
+                  value={memoSort}
+                  onChange={(e) => setMemoSort(e.target.value as SortOption)}
+                  style={{ padding: '5px 10px', fontSize: 13, border: '1px solid #ddd', borderRadius: 4 }}
+                >
+                  <option value="newest">최신순</option>
+                  <option value="oldest">오래된순</option>
+                  <option value="pageAsc">앞 페이지</option>
+                  <option value="pageDesc">뒷 페이지</option>
+                </select>
+                <span style={{ width: 1, height: 20, backgroundColor: '#e2e8f0', margin: '0 4px' }} />
+                {([['all', '전체'], ['private', '🔒 비공개'], ['public', '🔓 공개'], ['spoiler', '⚠️ 스포일러']] as [FilterOption, string][]).map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setMemoFilter(value)}
+                    style={{
+                      padding: '4px 10px', fontSize: 12, fontWeight: 500, borderRadius: 14, cursor: 'pointer',
+                      border: memoFilter === value ? '1px solid #3182ce' : '1px solid #e2e8f0',
+                      backgroundColor: memoFilter === value ? '#ebf4ff' : '#fff',
+                      color: memoFilter === value ? '#3182ce' : '#718096',
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+            {myMemos.length === 0
+              ? <div style={styles.emptyState}>작성한 메모가 없습니다</div>
+              : sortedMyMemos.map(renderMyMemo)}
+          </>
+        );
+
+      case 'public':
+        return (
+          <>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>🔓 공개 메모 ({publicMemos.length})</div>
+              <button style={styles.closeBtn} onClick={closeModal} aria-label="닫기">×</button>
+            </div>
+            {publicMemos.length > 0 && (
+              <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 500, color: '#4a5568' }}>정렬:</label>
+                <select
+                  value={publicSort}
+                  onChange={(e) => setPublicSort(e.target.value as SortOption)}
+                  style={{ padding: '5px 10px', fontSize: 13, border: '1px solid #ddd', borderRadius: 4 }}
+                >
+                  <option value="newest">최신순</option>
+                  <option value="oldest">오래된순</option>
+                  <option value="pageAsc">앞 페이지</option>
+                  <option value="pageDesc">뒷 페이지</option>
+                </select>
+              </div>
+            )}
+            {publicMemos.length === 0
+              ? <div style={styles.emptyState}>공개된 메모가 없습니다</div>
+              : sortedPublicMemos.map(renderOtherMemo)}
+          </>
+        );
+
+      case 'spoiler':
+        return (
+          <>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>⚠️ 스포일러 메모 ({spoilerMemos.length})</div>
+              <button style={styles.closeBtn} onClick={closeModal} aria-label="닫기">×</button>
+            </div>
+            <div style={{ fontSize: 12, color: '#92400e', backgroundColor: '#fffbeb', padding: '8px 12px', borderRadius: 4, marginBottom: 12 }}>
+              해당 페이지까지 읽어야 내용을 볼 수 있습니다
+            </div>
+            {spoilerMemos.length > 0 && (
+              <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 500, color: '#4a5568' }}>정렬:</label>
+                <select
+                  value={spoilerSort}
+                  onChange={(e) => setSpoilerSort(e.target.value as SortOption)}
+                  style={{ padding: '5px 10px', fontSize: 13, border: '1px solid #ddd', borderRadius: 4 }}
+                >
+                  <option value="newest">최신순</option>
+                  <option value="oldest">오래된순</option>
+                  <option value="pageAsc">앞 페이지</option>
+                  <option value="pageDesc">뒷 페이지</option>
+                </select>
+              </div>
+            )}
+            {spoilerMemos.length === 0
+              ? <div style={styles.emptyState}>스포일러 메모가 없습니다</div>
+              : sortedSpoilerMemos.map(renderOtherMemo)}
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  if (loading) return <div style={styles.emptyState}>불러오는 중...</div>;
 
   return (
     <div style={styles.container}>
@@ -260,79 +572,87 @@ function MemosPage() {
         </div>
       )}
 
-      {/* 메모 작성 */}
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>메모 작성</div>
-        <form onSubmit={handleSubmit} noValidate>
-          {serverError && <div style={styles.serverError}>{serverError}</div>}
-          <div style={styles.row}>
-            <div style={styles.field}>
-              <label style={styles.label}>시작 페이지</label>
-              <input type="number" min="0" style={{ ...styles.input, ...(formErrors.pageStart ? styles.inputError : {}) }} value={pageStart} onChange={(e) => setPageStart(e.target.value)} placeholder="0" />
-              {formErrors.pageStart && <div style={styles.errorText}>{formErrors.pageStart}</div>}
-            </div>
-            <div style={styles.field}>
-              <label style={styles.label}>끝 페이지</label>
-              <input type="number" min="0" style={{ ...styles.input, ...(formErrors.pageEnd ? styles.inputError : {}) }} value={pageEnd} onChange={(e) => setPageEnd(e.target.value)} placeholder="0" />
-              {formErrors.pageEnd && <div style={styles.errorText}>{formErrors.pageEnd}</div>}
-            </div>
-          </div>
-          <div style={styles.field}>
-            <label style={styles.label}>내용</label>
-            <textarea style={{ ...styles.textarea, ...(formErrors.content ? styles.inputError : {}) }} value={content} onChange={(e) => setContent(e.target.value)} placeholder="메모 내용을 입력해주세요" />
-            {formErrors.content && <div style={styles.errorText}>{formErrors.content}</div>}
-          </div>
-          <div style={{ ...styles.field, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ fontSize: 14, fontWeight: 500 }}>공개 설정:</label>
-              <select
-                value={visibility}
-                onChange={(e) => setVisibility(e.target.value as MemoVisibility)}
-                style={{ padding: '6px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4 }}
-              >
-                <option value="private">🔒 비공개 (나만 보기)</option>
-                <option value="public">🔓 공개 (모두 열람)</option>
-                <option value="spoiler">⚠️ 스포일러 (해당 페이지 읽은 사람만)</option>
-              </select>
-            </div>
-            <button type="submit" style={{ ...styles.button, width: 'auto', padding: '10px 24px', ...(submitting ? styles.buttonDisabled : {}) }} disabled={submitting}>
-              {submitting ? '저장 중...' : '메모 저장'}
-            </button>
-          </div>
-        </form>
+      {/* 4개 메뉴 버튼 */}
+      <div style={styles.buttonGrid}>
+        <div
+          style={{ ...styles.menuCard, borderColor: '#3182ce' }}
+          onClick={() => setActiveModal('create')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && setActiveModal('create')}
+        >
+          <div style={styles.menuIcon}>✏️</div>
+          <div style={styles.menuLabel}>메모 작성</div>
+        </div>
+
+        <div
+          style={styles.menuCard}
+          onClick={() => setActiveModal('my')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && setActiveModal('my')}
+        >
+          <div style={styles.menuIcon}>📒</div>
+          <div style={styles.menuLabel}>내 메모</div>
+          <div style={styles.menuCount}>{myMemos.length}개</div>
+        </div>
+
+        <div
+          style={styles.menuCard}
+          onClick={() => setActiveModal('public')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && setActiveModal('public')}
+        >
+          <div style={styles.menuIcon}>🔓</div>
+          <div style={styles.menuLabel}>공개 메모</div>
+          <div style={styles.menuCount}>{publicMemos.length}개</div>
+        </div>
+
+        <div
+          style={styles.menuCard}
+          onClick={() => setActiveModal('spoiler')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && setActiveModal('spoiler')}
+        >
+          <div style={styles.menuIcon}>⚠️</div>
+          <div style={styles.menuLabel}>스포일러</div>
+          <div style={styles.menuCount}>{spoilerMemos.length}개</div>
+        </div>
       </div>
 
-      {loading ? (
-        <div style={styles.emptyState}>불러오는 중...</div>
-      ) : (
-        <>
-          {/* 내 메모 */}
-          <div style={styles.section}>
-            <div style={styles.sectionTitle}>내 메모 ({myMemos.length})</div>
-            {myMemos.length === 0 ? <div style={styles.emptyState}>작성한 메모가 없습니다</div> : myMemos.map(renderMyMemo)}
+      {/* 모달 */}
+      {activeModal && (
+        <div style={styles.overlay} onClick={handleOverlayClick}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            {renderModalContent()}
           </div>
+        </div>
+      )}
 
-          {/* 공개 메모 */}
-          <div style={styles.section}>
-            <div style={styles.sectionTitle}>🔓 공개 메모 ({publicMemos.length})</div>
-            {publicMemos.length === 0 ? <div style={styles.emptyState}>공개된 메모가 없습니다</div> : publicMemos.map(renderOtherMemo)}
+      {/* 자세히 보기 모달 */}
+      {detailMemo && (
+        <div style={styles.overlay} onClick={() => setDetailMemo(null)}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>📒 메모 상세</div>
+              <button style={styles.closeBtn} onClick={() => setDetailMemo(null)} aria-label="닫기">×</button>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <span style={{ ...styles.memoRange, fontSize: 15 }}>p.{detailMemo.pageStart} ~ p.{detailMemo.pageEnd}</span>
+              <span style={{ marginLeft: 12, fontSize: 12, color: '#a0aec0' }}>
+                {visibilityLabel(detailMemo.visibility || 'private')}
+              </span>
+            </div>
+            <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+              {detailMemo.content}
+            </div>
+            <div style={{ ...styles.memoMeta, marginTop: 16 }}>
+              {new Date(detailMemo.createdAt).toLocaleDateString()}
+            </div>
           </div>
-
-          {/* 스포일러 메모 */}
-          <div style={styles.section}>
-            <div style={styles.sectionTitle}>⚠️ 스포일러 메모 ({spoilerMemos.length})</div>
-            {spoilerMemos.length === 0 ? (
-              <div style={styles.emptyState}>스포일러 메모가 없습니다</div>
-            ) : (
-              <>
-                <div style={{ fontSize: 12, color: '#92400e', backgroundColor: '#fffbeb', padding: '8px 12px', borderRadius: 4, marginBottom: 12 }}>
-                  해당 페이지까지 읽어야 내용을 볼 수 있습니다
-                </div>
-                {spoilerMemos.map(renderOtherMemo)}
-              </>
-            )}
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

@@ -9,16 +9,16 @@ export const memosApi = {
       ...m,
       authorNickname: m.user?.nickname || '',
     }));
-    const publicMemos = all.filter((m: any) => !m.isOwn && m.visibility === 'public').map((m: any) => ({
+    const publicMemos = all.filter((m: any) => m.visibility === 'public').map((m: any) => ({
       ...m,
       authorNickname: m.user?.nickname || '',
       isContentHidden: false,
       content: m.content || '',
     }));
-    const spoilerMemos = all.filter((m: any) => !m.isOwn && m.visibility === 'spoiler').map((m: any) => ({
+    const spoilerMemos = all.filter((m: any) => m.visibility === 'spoiler').map((m: any) => ({
       ...m,
       authorNickname: m.user?.nickname || '',
-      isContentHidden: !m.canView,
+      isContentHidden: !m.isOwn && !m.canView,
       content: m.content || '',
     }));
     return { data: { myMemos, publicMemos, spoilerMemos } };

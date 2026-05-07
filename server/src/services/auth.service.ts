@@ -35,6 +35,11 @@ export const authService = {
       throw new AppError(409, 'DUPLICATE_EMAIL', '이미 사용 중인 이메일입니다');
     }
 
+    const existingNickname = await prisma.user.findUnique({ where: { nickname } });
+    if (existingNickname) {
+      throw new AppError(409, 'DUPLICATE_NICKNAME', '이미 사용 중인 닉네임입니다');
+    }
+
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const user = await prisma.user.create({
       data: { email, passwordHash, nickname },

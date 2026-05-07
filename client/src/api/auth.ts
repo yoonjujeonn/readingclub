@@ -10,4 +10,7 @@ export const authApi = {
 
   refresh: (refreshToken: string) =>
     apiClient.post<{ accessToken: string }>('/auth/refresh', { refreshToken }),
+
+  checkNickname: (nickname: string) =>
+    apiClient.get<{ available: boolean }>(`/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`),
 };
