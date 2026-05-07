@@ -66,20 +66,21 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#2d3748',
   },
   commentCard: {
-    padding: '12px 0',
-    borderBottom: '1px solid #f0f0f0',
+    padding: '16px 0',
+    borderBottom: '1px solid #e2e8f0',
   },
   commentAuthor: {
     fontSize: 14,
     fontWeight: 600,
-    color: '#2d3748',
-    marginBottom: 4,
+    color: '#1a202c',
+    marginBottom: 6,
   },
   commentContent: {
     fontSize: 14,
     color: '#4a5568',
-    lineHeight: 1.6,
-    marginBottom: 4,
+    lineHeight: 1.7,
+    marginBottom: 8,
+    whiteSpace: 'pre-wrap' as const,
   },
   commentMeta: {
     fontSize: 12,
@@ -123,6 +124,18 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 4,
     boxSizing: 'border-box' as const,
   },
+  textarea: {
+    width: '100%',
+    minHeight: 80,
+    padding: '10px 12px',
+    fontSize: 14,
+    border: '1px solid #ddd',
+    borderRadius: 6,
+    resize: 'vertical' as const,
+    lineHeight: 1.6,
+    fontFamily: 'inherit',
+    boxSizing: 'border-box' as const,
+  },
   submitBtn: {
     padding: '8px 16px',
     backgroundColor: '#3182ce',
@@ -152,6 +165,29 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '30px 20px',
     color: '#a0aec0',
     fontSize: 14,
+  },
+  commentsHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  aiButton: {
+    padding: '6px 14px',
+    fontSize: 12,
+    fontWeight: 500,
+    cursor: 'pointer',
+    backgroundColor: '#805ad5',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 4,
+  },
+  aiSummaryResult: {
+    backgroundColor: '#faf5ff',
+    padding: '12px 16px',
+    borderRadius: 6,
+    marginBottom: 16,
+    borderLeft: '3px solid #805ad5',
   },
   recommendedBadge: {
     display: 'inline-block',
@@ -299,63 +335,21 @@ function DiscussionThreadPage() {
         )}
       </div>
 
-      {/* Add Comment */}
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>의견 작성</div>
-        <form onSubmit={handleAddComment}>
-          <div style={styles.formRow}>
-            <input
-              type="text"
-              style={styles.input}
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="의견을 작성해주세요"
-            />
-            <button
-              type="submit"
-              style={styles.submitBtn}
-              disabled={submittingComment}
-            >
-              {submittingComment ? '작성 중...' : '의견 작성'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* AI Summary */}
-      {comments.length > 0 && (
-        <div style={styles.section}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={styles.sectionTitle}>🤖 AI 토론 정리</div>
-            <button
-              onClick={handleAiSummary}
-              disabled={aiLoading}
-              style={{
-                padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                backgroundColor: aiLoading ? '#cbd5e0' : '#805ad5', color: '#fff',
-                border: 'none', borderRadius: 4,
-              }}
-            >
-              {aiLoading ? '정리 중...' : comments.length >= 10 ? '🤖 핵심 정리 보기' : '🤖 토론 정리 요청'}
-            </button>
-          </div>
-          <div style={{ fontSize: 13, color: '#718096', marginBottom: 12 }}>
-            AI가 토론 내용을 분석하여 핵심 논점, 주요 의견, 결론을 요약해줍니다.
-          </div>
-          {comments.length >= 10 && !aiSummary && !aiLoading && (
-            <div style={{ fontSize: 13, color: '#805ad5', backgroundColor: '#faf5ff', padding: '8px 12px', borderRadius: 4 }}>
-              의견이 10개 이상입니다. AI 정리를 확인해보세요!
-            </div>
-          )}
-          {aiSummary && (
-            <Markdown content={aiSummary} />
-          )}
-        </div>
-      )}
-
       {/* Comments List */}
       <div style={styles.section}>
-        <div style={styles.sectionTitle}>의견 목록</div>
+        <div style={styles.commentsHeader}>
+          <div style={styles.sectionTitle}>의견 목록</div>
+          {comments.length > 0 && (
+            <button onClick={handleAiSummary} disabled={aiLoading} style={styles.aiButton}>
+              {aiLoading ? '정리 중...' : '🤖 토론 정리'}
+            </button>
+          )}
+        </div>
+        {aiSummary && (
+          <div style={styles.aiSummaryResult}>
+            <Markdown content={aiSummary} />
+          </div>
+        )}
         {loading ? (
           <div style={styles.emptyState}>불러오는 중...</div>
         ) : comments.length === 0 ? (
@@ -430,6 +424,30 @@ function DiscussionThreadPage() {
           ))
         )}
       </div>
+
+      {/* Add Comment */}
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>의견 작성</div>
+        <form onSubmit={handleAddComment}>
+          <textarea
+            style={styles.textarea}
+            rows={3}
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="의견을 작성해주세요"
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+            <button
+              type="submit"
+              style={styles.submitBtn}
+              disabled={submittingComment}
+            >
+              {submittingComment ? '작성 중...' : '의견 작성'}
+            </button>
+          </div>
+        </form>
+      </div>
+
     </div>
   );
 }

@@ -172,6 +172,66 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 16,
     textAlign: 'center' as const,
   },
+  // 모달 스타일
+  overlay: {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    padding: 16,
+  },
+  modal: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    width: '100%',
+    maxWidth: 640,
+    maxHeight: '85vh',
+    overflowY: 'auto' as const,
+    boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+  },
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: '#1a202c',
+  },
+  closeBtn: {
+    padding: '6px 12px',
+    fontSize: 20,
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: '#718096',
+    lineHeight: 1,
+  },
+  createBtn: {
+    padding: '10px 20px',
+    backgroundColor: '#3182ce',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  headerRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
 };
 
 function DiscussionsPage() {
@@ -187,6 +247,7 @@ function DiscussionsPage() {
   const [myMemos, setMyMemos] = useState<Memo[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterMine, setFilterMine] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Form state
   const [formTitle, setFormTitle] = useState('');
@@ -230,6 +291,17 @@ function DiscussionsPage() {
     fetchData();
   }, [groupId, filterMine]);
 
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showCreateModal) {
+        setShowCreateModal(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showCreateModal]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setServerError('');
@@ -249,6 +321,7 @@ function DiscussionsPage() {
       setFormTitle('');
       setFormContent('');
       setFormMemoId('');
+      setShowCreateModal(false);
       fetchData();
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;
@@ -265,6 +338,7 @@ function DiscussionsPage() {
         title: rec.title,
         content: rec.content,
       });
+      setShowCreateModal(false);
       fetchData();
     } catch { /* ignore */ }
   };
@@ -290,8 +364,15 @@ function DiscussionsPage() {
         content: topic.content,
       });
       setAiTopics([]);
+      setShowCreateModal(false);
       fetchData();
     } catch { /* ignore */ }
+  };
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setShowCreateModal(false);
+    }
   };
 
   return (
@@ -299,123 +380,25 @@ function DiscussionsPage() {
       <Link to={`/groups/${groupId}`} style={styles.backLink}>← 모임으로</Link>
       <h1 style={styles.title}>💬 토론</h1>
 
-      {/* Create Discussion Form */}
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>토론 주제 만들기</div>
-        <form onSubmit={handleSubmit} noValidate>
-          {serverError && <div style={styles.serverError}>{serverError}</div>}
-
-          <div style={styles.field}>
-            <label style={styles.label}>주제 제목 *</label>
-            <input
-              type="text"
-              style={{ ...styles.input, ...(formErrors.title ? styles.inputError : {}) }}
-              value={formTitle}
-              onChange={(e) => setFormTitle(e.target.value)}
-              placeholder="토론 주제를 입력해주세요"
-            />
-            {formErrors.title && <div style={styles.errorText}>{formErrors.title}</div>}
-          </div>
-
-          <div style={styles.field}>
-            <label style={styles.label}>내용</label>
-            <textarea
-              style={styles.textarea}
-              value={formContent}
-              onChange={(e) => setFormContent(e.target.value)}
-              placeholder="토론 주제에 대한 설명 (선택)"
-            />
-          </div>
-
-          <div style={styles.field}>
-            <label style={styles.label}>메모 연결 (선택)</label>
-            <select
-              style={styles.select}
-              value={formMemoId}
-              onChange={(e) => setFormMemoId(e.target.value)}
-            >
-              <option value="">메모를 선택하세요 (선택)</option>
-              {myMemos.map((m) => (
-                <option key={m.id} value={m.id}>
-                  p.{m.pageStart}~{m.pageEnd}: {m.content.slice(0, 40)}...
-                </option>
-              ))}
-            </select>
-          </div>
-
+      {/* 헤더: 토론 주제 만들기 버튼 */}
+      <div style={styles.headerRow}>
+        {/* Filter */}
+        <div style={styles.filterRow}>
           <button
-            type="submit"
-            style={{ ...styles.button, ...(submitting ? styles.buttonDisabled : {}) }}
-            disabled={submitting}
+            style={{ ...styles.filterBtn, ...(!filterMine ? styles.filterBtnActive : {}) }}
+            onClick={() => setFilterMine(false)}
           >
-            {submitting ? '생성 중...' : '토론 주제 만들기'}
+            전체
           </button>
-        </form>
-      </div>
-
-      {/* AI Topic Suggestions */}
-      <div style={styles.section}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div style={styles.sectionTitle}>🤖 AI 토론 주제 제안</div>
           <button
-            onClick={handleAiSuggest}
-            disabled={aiLoading}
-            style={{ ...styles.button, padding: '8px 16px', fontSize: 13, ...(aiLoading ? styles.buttonDisabled : {}) }}
+            style={{ ...styles.filterBtn, ...(filterMine ? styles.filterBtnActive : {}) }}
+            onClick={() => setFilterMine(true)}
           >
-            {aiLoading ? '생성 중...' : '🤖 AI 주제 생성'}
+            내 작성
           </button>
         </div>
-        {aiTopics.length > 0 && aiTopics.map((topic, i) => (
-          <div
-            key={i}
-            style={{ ...styles.recCard, borderColor: '#805ad5', backgroundColor: '#faf5ff' }}
-            onClick={() => handleSelectAiTopic(topic)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && handleSelectAiTopic(topic)}
-          >
-            <div style={{ ...styles.recTitle, color: '#6b46c1' }}>🤖 {topic.title}</div>
-            <div style={styles.recContent}>{topic.content}</div>
-          </div>
-        ))}
-        {aiTopics.length === 0 && !aiLoading && (
-          <div style={styles.emptyState}>버튼을 눌러 AI가 책과 메모 기반으로 토론 주제를 제안합니다. 원하는 주제를 클릭하면 바로 토론 주제로 등록됩니다.</div>
-        )}
-      </div>
-
-      {/* Recommended Topics */}
-      {recommendations.length > 0 && (
-        <div style={styles.section}>
-          <div style={styles.sectionTitle}>✨ 추천 주제</div>
-          {recommendations.map((rec, i) => (
-            <div
-              key={i}
-              style={styles.recCard}
-              onClick={() => handleSelectRecommendation(rec)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && handleSelectRecommendation(rec)}
-            >
-              <div style={styles.recTitle}>{rec.title}</div>
-              <div style={styles.recContent}>{rec.content}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Filter */}
-      <div style={styles.filterRow}>
-        <button
-          style={{ ...styles.filterBtn, ...(!filterMine ? styles.filterBtnActive : {}) }}
-          onClick={() => setFilterMine(false)}
-        >
-          전체
-        </button>
-        <button
-          style={{ ...styles.filterBtn, ...(filterMine ? styles.filterBtnActive : {}) }}
-          onClick={() => setFilterMine(true)}
-        >
-          내 작성
+        <button style={styles.createBtn} onClick={() => setShowCreateModal(true)}>
+          + 토론 주제 만들기
         </button>
       </div>
 
@@ -448,6 +431,128 @@ function DiscussionsPage() {
           ))
         )}
       </div>
+
+      {/* 토론 주제 만들기 모달 */}
+      {showCreateModal && (
+        <div style={styles.overlay} onClick={handleOverlayClick}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>💬 토론 주제 만들기</div>
+              <button style={styles.closeBtn} onClick={() => setShowCreateModal(false)} aria-label="닫기">×</button>
+            </div>
+
+            {/* 직접 작성 폼 */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ ...styles.sectionTitle, marginBottom: 12 }}>✏️ 직접 작성</div>
+              <form onSubmit={handleSubmit} noValidate>
+                {serverError && <div style={styles.serverError}>{serverError}</div>}
+
+                <div style={styles.field}>
+                  <label style={styles.label}>주제 제목 *</label>
+                  <input
+                    type="text"
+                    style={{ ...styles.input, ...(formErrors.title ? styles.inputError : {}) }}
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                    placeholder="토론 주제를 입력해주세요"
+                  />
+                  {formErrors.title && <div style={styles.errorText}>{formErrors.title}</div>}
+                </div>
+
+                <div style={styles.field}>
+                  <label style={styles.label}>내용</label>
+                  <textarea
+                    style={styles.textarea}
+                    value={formContent}
+                    onChange={(e) => setFormContent(e.target.value)}
+                    placeholder="토론 주제에 대한 설명 (선택)"
+                  />
+                </div>
+
+                <div style={styles.field}>
+                  <label style={styles.label}>메모 연결 (선택)</label>
+                  <select
+                    style={styles.select}
+                    value={formMemoId}
+                    onChange={(e) => setFormMemoId(e.target.value)}
+                  >
+                    <option value="">메모를 선택하세요 (선택)</option>
+                    {myMemos.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        p.{m.pageStart}~{m.pageEnd}: {m.content.slice(0, 40)}...
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  style={{ ...styles.button, ...(submitting ? styles.buttonDisabled : {}) }}
+                  disabled={submitting}
+                >
+                  {submitting ? '생성 중...' : '토론 주제 만들기'}
+                </button>
+              </form>
+            </div>
+
+            {/* 구분선 */}
+            <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '20px 0' }} />
+
+            {/* AI 토론 주제 제안 */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div style={styles.sectionTitle}>🤖 AI 토론 주제 제안</div>
+                <button
+                  onClick={handleAiSuggest}
+                  disabled={aiLoading}
+                  style={{ ...styles.button, padding: '8px 16px', fontSize: 13, ...(aiLoading ? styles.buttonDisabled : {}) }}
+                >
+                  {aiLoading ? '생성 중...' : '🤖 AI 주제 생성'}
+                </button>
+              </div>
+              {aiTopics.length > 0 && aiTopics.map((topic, i) => (
+                <div
+                  key={i}
+                  style={{ ...styles.recCard, borderColor: '#805ad5', backgroundColor: '#faf5ff' }}
+                  onClick={() => handleSelectAiTopic(topic)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSelectAiTopic(topic)}
+                >
+                  <div style={{ ...styles.recTitle, color: '#6b46c1' }}>🤖 {topic.title}</div>
+                  <div style={styles.recContent}>{topic.content}</div>
+                </div>
+              ))}
+              {aiTopics.length === 0 && !aiLoading && (
+                <div style={styles.emptyState}>
+                  버튼을 눌러 AI가 책과 메모 기반으로 토론 주제를 제안합니다. 원하는 주제를 클릭하면 바로 토론 주제로 등록됩니다.
+                </div>
+              )}
+            </div>
+
+            {/* 추천 주제 */}
+            {recommendations.length > 0 && (
+              <div>
+                <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '20px 0' }} />
+                <div style={styles.sectionTitle}>✨ 추천 주제</div>
+                {recommendations.map((rec, i) => (
+                  <div
+                    key={i}
+                    style={styles.recCard}
+                    onClick={() => handleSelectRecommendation(rec)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSelectRecommendation(rec)}
+                  >
+                    <div style={styles.recTitle}>{rec.title}</div>
+                    <div style={styles.recContent}>{rec.content}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
