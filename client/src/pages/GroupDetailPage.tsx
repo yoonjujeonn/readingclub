@@ -407,6 +407,9 @@ function GroupDetailPage() {
         <div style={styles.linkRow}>
           <Link to={`/groups/${id}/memos`} style={styles.actionLink}>📝 메모</Link>
           <Link to={`/groups/${id}/discussions`} style={styles.actionLink}>💬 토론 페이지</Link>
+          {isOwner && (
+            <Link to={`/groups/${id}/dashboard`} style={{ ...styles.actionLink, backgroundColor: '#fefcbf', color: '#975a16' }}>🛠️ 대시보드</Link>
+          )}
           {!isOwner && (
             <button
               onClick={async () => {
@@ -439,6 +442,20 @@ function GroupDetailPage() {
           </button>
           {isFull && !joinMsg && <div style={styles.joinMsg}>모집 인원이 마감되었습니다</div>}
           {joinMsg && <div style={styles.joinMsg}>{joinMsg}</div>}
+        </div>
+      )}
+
+      {/* Announcements */}
+      {(group as any).announcements && (group as any).announcements.length > 0 && (
+        <div style={{ ...styles.section, borderLeft: '4px solid #f6ad55' }}>
+          <div style={styles.sectionTitle}>📢 공지사항</div>
+          {(group as any).announcements.map((ann: any) => (
+            <div key={ann.id} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+              <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{ann.title}</div>
+              <div style={{ fontSize: 13, color: '#4a5568', lineHeight: 1.5 }}>{ann.content}</div>
+              <div style={{ fontSize: 11, color: '#a0aec0', marginTop: 4 }}>{new Date(ann.createdAt).toLocaleDateString()}</div>
+            </div>
+          ))}
         </div>
       )}
 

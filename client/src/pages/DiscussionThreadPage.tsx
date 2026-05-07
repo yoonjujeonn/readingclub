@@ -1,6 +1,9 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { discussionsApi } from '../api/discussions';
+import { dashboardApi } from '../api/dashboard';
+import { groupsApi } from '../api/groups';
+import { useAuthStore } from '../stores/authStore';
 import { aiApi } from '../api/ai';
 import { Markdown } from '../components/Markdown';
 import { timeAgo } from '../utils/timeAgo';
@@ -164,10 +167,18 @@ const styles: Record<string, React.CSSProperties> = {
 
 function DiscussionThreadPage() {
   const { id: discussionId } = useParams<{ id: string }>();
+  const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
 
   const [topic, setTopic] = useState<Discussion | null>(null);
   const [comments, setComments] = useState<CommentType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
+
+  let currentUserId = user?.id || '';
+  if (!currentUserId && accessToken) {
+    try { currentUserId = JSON.parse(atob(accessToken.split('.')[1] || '')).userId || ''; } catch {}
+  }
 
   // Comment form
   const [newComment, setNewComment] = useState('');
@@ -192,6 +203,14 @@ function DiscussionThreadPage() {
       ]);
       setTopic(topicRes.data);
       setComments(commentsRes.data);
+
+      // Check if current user is group owner
+      if (topicRes.data?.groupId) {
+        const groupRes = await groupsApi.getDetail(topicRes.data.groupId).catch(() => ({ data: null }));
+        if (groupRes.data) {
+          setIsOwner(groupRes.data.ownerId === currentUserId);
+        }
+      }
     } catch { /* ignore */ }
     finally {
       setLoading(false);
@@ -228,6 +247,22 @@ function DiscussionThreadPage() {
     finally {
       setSubmittingReply(false);
     }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('이 의견을 삭제하시겠습니까?')) return;
+    try {
+      await dashboardApi.deleteComment(commentId);
+      fetchData();
+    } catch { /* ignore */ }
+  };
+
+  const handleDeleteReply = async (replyId: string) => {
+    if (!confirm('이 답글을 삭제하시겠습니까?')) return;
+    try {
+      await dashboardApi.deleteReply(replyId);
+      fetchData();
+    } catch { /* ignore */ }
   };
 
   const handleAiSummary = async () => {
@@ -342,6 +377,12 @@ function DiscussionThreadPage() {
                 >
                   {replyingTo === comment.id ? '취소' : '댓글 달기'}
                 </button>
+                {(isOwner || comment.authorId === currentUserId) && (
+                  <>
+                    {' · '}
+                    <button style={{ ...styles.replyToggle, color: '#e53e3e' }} onClick={() => handleDeleteComment(comment.id)}>삭제</button>
+                  </>
+                )}
               </div>
 
               {/* Reply Form */}
@@ -372,7 +413,15 @@ function DiscussionThreadPage() {
                     <div key={reply.id} style={styles.replyCard}>
                       <div style={styles.replyAuthor}>{reply.authorNickname}</div>
                       <div style={styles.replyContent}>{reply.content}</div>
-                      <div style={styles.replyMeta}>{timeAgo(reply.createdAt)}</div>
+                      <div style={styles.replyMeta}>
+                        {timeAgo(reply.createdAt)}
+                        {(isOwner || reply.authorId === currentUserId) && (
+                          <>
+                            {' · '}
+                            <button style={{ ...styles.replyToggle, color: '#e53e3e', fontSize: 11 }} onClick={() => handleDeleteReply(reply.id)}>삭제</button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
