@@ -14,7 +14,7 @@ model User {
   id           String   @id @default(uuid())
   email        String   @unique @db.VarChar(255)
   passwordHash String?  @map("password_hash") @db.VarChar(255)
-  nickname     String   @db.VarChar(50)
+  nickname     String   @unique @db.VarChar(50)
   kakaoId      String?  @unique @map("kakao_id") @db.VarChar(100)
   provider     String   @default("local") @db.VarChar(20)
   createdAt    DateTime @default(now()) @map("created_at")

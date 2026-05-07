@@ -9,6 +9,7 @@ import memoRouter from './routes/memo.routes';
 import discussionRouter from './routes/discussion.routes';
 import mypageRouter from './routes/mypage.routes';
 import dashboardRouter from './routes/dashboard.routes';
+import aiRouter from './routes/ai.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -40,6 +41,7 @@ app.use('/api', memoRouter);
 app.use('/api', discussionRouter);
 app.use('/api/me', mypageRouter);
 app.use('/api', dashboardRouter);
+app.use('/api', aiRouter);
 
 // 글로벌 에러 핸들러 (모든 라우터 뒤에 등록)
 app.use(globalErrorHandler);

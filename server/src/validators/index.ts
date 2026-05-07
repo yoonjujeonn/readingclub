@@ -81,6 +81,11 @@ export const UpdateGroupSchema = z.object({
   discussionDate: z.string().date().optional(),
 });
 
+// 닉네임 변경
+export const UpdateNicknameSchema = z.object({
+  nickname: z.string().min(1, '닉네임을 입력해주세요').max(50, '닉네임은 50자 이하여야 합니다'),
+});
+
 // 타입 추출
 export type SignupInput = z.infer<typeof SignupSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
@@ -90,3 +95,4 @@ export type CreateMemoInput = z.infer<typeof CreateMemoSchema>;
 export type UpdateMemoInput = z.infer<typeof UpdateMemoSchema>;
 export type CreateDiscussionInput = z.infer<typeof CreateDiscussionSchema>;
 export type CreateCommentInput = z.infer<typeof CreateCommentSchema>;
+export type UpdateNicknameInput = z.infer<typeof UpdateNicknameSchema>;

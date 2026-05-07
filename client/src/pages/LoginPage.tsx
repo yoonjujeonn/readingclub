@@ -206,7 +206,7 @@ function LoginPage() {
         <div style={{ margin: '16px 0', textAlign: 'center' as const, color: '#a0aec0', fontSize: 13 }}>또는</div>
 
         <a
-          href="http://localhost:3000/api/auth/kakao"
+          href="/api/auth/kakao"
           style={{
             display: 'block',
             width: '100%',

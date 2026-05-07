@@ -10,15 +10,17 @@ interface AuthState {
   logout: () => void;
 }
 
-// localStorage에서 초기값 복원
-const storedAccessToken = localStorage.getItem('accessToken');
-const storedRefreshToken = localStorage.getItem('refreshToken');
-const storedUser = localStorage.getItem('user');
-
 export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: storedAccessToken,
-  refreshToken: storedRefreshToken,
-  user: storedUser ? JSON.parse(storedUser) : null,
+  accessToken: localStorage.getItem('accessToken'),
+  refreshToken: localStorage.getItem('refreshToken'),
+  user: (() => {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })(),
 
   setTokens: (accessToken, refreshToken) => {
     localStorage.setItem('accessToken', accessToken);
