@@ -25,3 +25,6 @@ server/prisma/migrations/
 
 # Test coverage
 coverage/
+
+# Docs
+서버시작 매뉴얼.md
