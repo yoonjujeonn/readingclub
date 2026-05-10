@@ -25,13 +25,25 @@ function parseNaverResponse(data: any): BookSearchResult[] {
   if (!data?.items || !Array.isArray(data.items)) {
     return [];
   }
-  return data.items.map((item: any) => ({
-    title: (item.title ?? '').replace(/<[^>]*>/g, ''),
-    author: (item.author ?? '').replace(/<[^>]*>/g, ''),
-    coverImageUrl: item.image ?? '',
-    summary: (item.description ?? '').replace(/<[^>]*>/g, ''),
-    isbn: item.isbn ?? '',
-  }));
+  return data.items.map((item: any) => {
+    const rawSummary = (item.description ?? '').replace(/<[^>]*>/g, '');
+    // 마지막 완전한 문장(마침표/느낌표/물음표)까지만 사용
+    const lastSentenceEnd = Math.max(
+      rawSummary.lastIndexOf('.'),
+      rawSummary.lastIndexOf('!'),
+      rawSummary.lastIndexOf('?'),
+      rawSummary.lastIndexOf('다.'),
+    );
+    const summary = lastSentenceEnd > 0 ? rawSummary.slice(0, lastSentenceEnd + 1) : rawSummary;
+
+    return {
+      title: (item.title ?? '').replace(/<[^>]*>/g, ''),
+      author: (item.author ?? '').replace(/<[^>]*>/g, ''),
+      coverImageUrl: item.image ?? '',
+      summary,
+      isbn: item.isbn ?? '',
+    };
+  });
 }
 
 export const bookSearchService = {
