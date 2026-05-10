@@ -159,6 +159,8 @@ function GroupDetailPage() {
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [joining, setJoining] = useState(false);
   const [joinMsg, setJoinMsg] = useState('');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [joinPassword, setJoinPassword] = useState('');
 
   // Edit state
   const [editing, setEditing] = useState(false);
@@ -170,6 +172,8 @@ function GroupDetailPage() {
   const [editDiscussionDate, setEditDiscussionDate] = useState('');
   const [editError, setEditError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [editIsPrivate, setEditIsPrivate] = useState(false);
+  const [editPassword, setEditPassword] = useState('');
 
   const fetchDetail = async () => {
     if (!id) return;
@@ -211,6 +215,8 @@ function GroupDetailPage() {
     setEditDiscussionDate(group.discussionDate?.slice(0, 10) || '');
     setEditError('');
     setEditing(true);
+    setEditIsPrivate((group as any).isPrivate || false);
+    setEditPassword('');
   };
 
   const handleSaveEdit = async () => {
@@ -226,6 +232,8 @@ function GroupDetailPage() {
         readingStartDate: editReadingStart,
         readingEndDate: editReadingEnd,
         discussionDate: editDiscussionDate,
+        isPrivate: editIsPrivate,
+        password: editIsPrivate ? (editPassword || undefined) : null,
       } as any);
       setEditing(false);
       fetchDetail();
@@ -237,18 +245,27 @@ function GroupDetailPage() {
     }
   };
 
-  const handleJoin = async () => {
+  const handleJoin = async (password?: string) => {
     if (!id) return;
     if (!accessToken) {
       navigate('/login');
       return;
     }
     if (isMember || isFull) return;
+
+    // 비공개 모임이면 비밀번호 모달 표시
+    if ((group as any)?.isPrivate && !password) {
+      setShowPasswordModal(true);
+      return;
+    }
+
     setJoining(true);
     setJoinMsg('');
     try {
-      await groupsApi.join(id);
+      await groupsApi.join(id, password);
       setJoinMsg('모임에 참여했습니다!');
+      setShowPasswordModal(false);
+      setJoinPassword('');
       fetchDetail();
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;
@@ -257,6 +274,10 @@ function GroupDetailPage() {
         setJoinMsg('이미 참여 중인 모임입니다');
       } else if (code === 'GROUP_FULL') {
         setJoinMsg('모집 인원이 마감되었습니다');
+      } else if (code === 'WRONG_PASSWORD') {
+        setJoinMsg('비밀번호가 올바르지 않습니다');
+      } else if (code === 'PASSWORD_REQUIRED') {
+        setShowPasswordModal(true);
       } else {
         setJoinMsg(axiosErr.response?.data?.error?.message || '참여에 실패했습니다');
       }
@@ -390,6 +411,28 @@ function GroupDetailPage() {
               <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>토론 날짜</label>
               <input type="date" value={editDiscussionDate} onChange={(e) => setEditDiscussionDate(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
             </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                <input type="checkbox" checked={editIsPrivate} onChange={(e) => setEditIsPrivate(e.target.checked)} />
+                🔒 비공개 모임
+              </label>
+              {editIsPrivate && (
+                <div style={{ marginTop: 8 }}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="숫자 6자리 비밀번호 (변경 시 입력)"
+                    style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }}
+                  />
+                  <div style={{ fontSize: 11, color: '#718096', marginTop: 4 }}>
+                    비밀번호를 변경하려면 새 비밀번호를 입력하세요. 비워두면 기존 비밀번호가 유지됩니다.
+                  </div>
+                </div>
+              )}
+            </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={handleSaveEdit} disabled={saving} style={{ padding: '8px 20px', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer' }}>
                 {saving ? '저장 중...' : '저장'}
@@ -433,15 +476,56 @@ function GroupDetailPage() {
       {/* Join Button */}
       {!isMember && (
         <div style={styles.section}>
+          {(group as any)?.isPrivate && (
+            <div style={{ fontSize: 13, color: '#975a16', backgroundColor: '#fefcbf', padding: '8px 12px', borderRadius: 4, marginBottom: 12, textAlign: 'center' as const }}>
+              🔒 비공개 모임 — 비밀번호가 필요합니다
+            </div>
+          )}
           <button
             style={{ ...styles.joinBtn, ...(isFull ? styles.joinBtnDisabled : {}) }}
-            onClick={handleJoin}
+            onClick={() => handleJoin()}
             disabled={isFull || joining}
           >
             {joining ? '참여 중...' : isFull ? '모집 마감' : '참여하기'}
           </button>
           {isFull && !joinMsg && <div style={styles.joinMsg}>모집 인원이 마감되었습니다</div>}
           {joinMsg && <div style={styles.joinMsg}>{joinMsg}</div>}
+        </div>
+      )}
+
+      {/* Password Modal */}
+      {showPasswordModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: 12, padding: 24, width: 320, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>🔒 비밀번호 입력</div>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={joinPassword}
+              onChange={(e) => setJoinPassword(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="숫자 6자리 비밀번호"
+              style={{ width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const, marginBottom: 12 }}
+              onKeyDown={(e) => e.key === 'Enter' && joinPassword.length === 6 && handleJoin(joinPassword)}
+              autoFocus
+            />
+            {joinMsg && <div style={{ color: '#e53e3e', fontSize: 13, marginBottom: 8 }}>{joinMsg}</div>}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => handleJoin(joinPassword)}
+                disabled={joining || !joinPassword}
+                style={{ flex: 1, padding: '10px 0', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+              >
+                {joining ? '확인 중...' : '참여하기'}
+              </button>
+              <button
+                onClick={() => { setShowPasswordModal(false); setJoinPassword(''); setJoinMsg(''); }}
+                style={{ flex: 1, padding: '10px 0', backgroundColor: '#edf2f7', color: '#333', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer' }}
+              >
+                취소
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

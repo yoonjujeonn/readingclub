@@ -355,6 +355,7 @@ function HomePage() {
                     📅 독서 기간: {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}<br />
                     💬 토론 날짜: {formatDate(g.discussionDate)}<br />
                     <span style={styles.members}>👥 {g.currentMembers}/{g.maxMembers}명</span>
+                    {(g as any).isPrivate && <span style={{ display: 'inline-block', background: '#fefcbf', color: '#975a16', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginLeft: 6 }}>🔒 비공개</span>}
                   </div>
                 </div>
               </div>

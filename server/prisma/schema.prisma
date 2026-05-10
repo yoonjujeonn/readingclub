@@ -59,6 +59,8 @@ model Group {
   discussionDate   DateTime @map("discussion_date") @db.Date
   createdAt        DateTime @default(now()) @map("created_at")
 
+  isPrivate           Boolean   @default(false) @map("is_private")
+  password            String?   @map("password") @db.VarChar(255)
   inviteCode          String?   @unique @map("invite_code") @db.VarChar(20)
   inviteCodeExpiresAt DateTime? @map("invite_code_expires_at")
 

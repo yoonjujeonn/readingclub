@@ -79,7 +79,8 @@ router.get('/:id', optionalAuthMiddleware, async (req: AuthRequest, res: Respons
 // POST /api/groups/:id/join
 router.post('/:id/join', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    await groupService.join(req.params.id as string, req.user!.userId);
+    const { password, inviteToken } = req.body || {};
+    await groupService.join(req.params.id as string, req.user!.userId, password, inviteToken);
     res.json({ message: '모임에 참여했습니다' });
   } catch (err) {
     if (err instanceof AppError) {

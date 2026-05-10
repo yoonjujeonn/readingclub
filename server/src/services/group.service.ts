@@ -48,6 +48,8 @@ export const groupService = {
           readingStartDate: new Date(data.readingStartDate),
           readingEndDate: new Date(data.readingEndDate),
           discussionDate: new Date(data.discussionDate),
+          isPrivate: data.isPrivate ?? false,
+          password: data.password ?? null,
         },
         include: { book: true },
       });
@@ -104,6 +106,7 @@ export const groupService = {
       discussionDate: g.discussionDate,
       createdAt: g.createdAt,
       ownerId: g.ownerId,
+      isPrivate: g.isPrivate,
       memberCount: g._count.members,
       isMember: userId ? (g as any).members?.length > 0 : false,
       book: {
@@ -192,6 +195,7 @@ export const groupService = {
       discussionDate: group.discussionDate,
       createdAt: group.createdAt,
       ownerId: group.ownerId,
+      isPrivate: group.isPrivate,
       book: {
         id: group.book.id,
         title: group.book.title,
@@ -235,7 +239,7 @@ export const groupService = {
     };
   },
 
-  async join(groupId: string, userId: string) {
+  async join(groupId: string, userId: string, password?: string, inviteToken?: string) {
     const group = await prisma.group.findUnique({
       where: { id: groupId },
       include: { _count: { select: { members: true } } },
@@ -243,6 +247,19 @@ export const groupService = {
 
     if (!group) {
       throw new AppError(404, 'NOT_FOUND', '모임을 찾을 수 없습니다');
+    }
+
+    // 비공개 모임: 초대코드가 맞으면 비번 없이 통과, 아니면 비밀번호 검증
+    if (group.isPrivate) {
+      const bypassByInvite = inviteToken && group.inviteCode === inviteToken;
+      if (!bypassByInvite) {
+        if (!password) {
+          throw new AppError(403, 'PASSWORD_REQUIRED', '비공개 모임입니다. 비밀번호를 입력해주세요.');
+        }
+        if (password !== group.password) {
+          throw new AppError(403, 'WRONG_PASSWORD', '비밀번호가 올바르지 않습니다.');
+        }
+      }
     }
 
     // 차단 여부 확인
@@ -292,6 +309,16 @@ export const groupService = {
     if (data.readingStartDate !== undefined) updateData.readingStartDate = new Date(data.readingStartDate);
     if (data.readingEndDate !== undefined) updateData.readingEndDate = new Date(data.readingEndDate);
     if (data.discussionDate !== undefined) updateData.discussionDate = new Date(data.discussionDate);
+    if (data.isPrivate !== undefined) {
+      updateData.isPrivate = data.isPrivate;
+      if (data.isPrivate === false) {
+        // 공개로 전환 시 비밀번호 제거
+        updateData.password = null;
+      }
+    }
+    if (data.password !== undefined && data.password !== null) {
+      updateData.password = data.password;
+    }
 
     return prisma.group.update({
       where: { id: groupId },
