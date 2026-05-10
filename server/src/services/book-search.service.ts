@@ -45,21 +45,7 @@ export const bookSearchService = {
     const naverClientId = process.env.NAVER_CLIENT_ID;
     const naverClientSecret = process.env.NAVER_CLIENT_SECRET;
 
-    // Try Kakao API first
-    if (kakaoKey && !kakaoKey.startsWith('your-')) {
-      try {
-        const response = await axios.get('https://dapi.kakao.com/v3/search/book', {
-          params: { query, size: 10 },
-          headers: { Authorization: `KakaoAK ${kakaoKey}` },
-          timeout: 5000,
-        });
-        return parseKakaoResponse(response.data);
-      } catch {
-        // Fall through to Naver
-      }
-    }
-
-    // Try Naver API as fallback
+    // Try Naver API first (줄거리가 더 완전함)
     if (naverClientId && naverClientSecret && !naverClientId.startsWith('your-')) {
       try {
         const response = await axios.get('https://openapi.naver.com/v1/search/book.json', {
@@ -71,6 +57,20 @@ export const bookSearchService = {
           timeout: 5000,
         });
         return parseNaverResponse(response.data);
+      } catch {
+        // Fall through to Kakao
+      }
+    }
+
+    // Try Kakao API as fallback
+    if (kakaoKey && !kakaoKey.startsWith('your-')) {
+      try {
+        const response = await axios.get('https://dapi.kakao.com/v3/search/book', {
+          params: { query, size: 10 },
+          headers: { Authorization: `KakaoAK ${kakaoKey}` },
+          timeout: 5000,
+        });
+        return parseKakaoResponse(response.data);
       } catch {
         // Fall through
       }
