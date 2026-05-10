@@ -182,6 +182,8 @@ function CreateGroupPage() {
   const [readingStartDate, setReadingStartDate] = useState('');
   const [readingEndDate, setReadingEndDate] = useState('');
   const [discussionDate, setDiscussionDate] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [password, setPassword] = useState('');
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
@@ -256,6 +258,8 @@ function CreateGroupPage() {
         readingStartDate,
         readingEndDate,
         discussionDate,
+        isPrivate,
+        password: isPrivate ? password : undefined,
       });
       navigate('/');
     } catch (err) {
@@ -446,6 +450,33 @@ function CreateGroupPage() {
               onChange={(e) => setDiscussionDate(e.target.value)}
             />
             {errors.discussionDate && <div style={styles.errorText}>{errors.discussionDate}</div>}
+          </div>
+
+          <div style={styles.field}>
+            <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={isPrivate}
+                onChange={(e) => setIsPrivate(e.target.checked)}
+              />
+              🔒 비공개 모임
+            </label>
+            {isPrivate && (
+              <div style={{ marginTop: 8 }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  style={styles.input}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="숫자 6자리"
+                />
+                <div style={{ fontSize: 12, color: '#718096', marginTop: 4 }}>
+                  비공개 모임은 숫자 6자리 비밀번호를 알아야 참여할 수 있습니다. 초대 링크로는 비밀번호 없이 참여 가능합니다.
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

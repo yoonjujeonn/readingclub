@@ -76,6 +76,8 @@ export interface CreateGroupRequest {
   readingStartDate: string;
   readingEndDate: string;
   discussionDate: string;
+  isPrivate?: boolean;
+  password?: string;
 }
 
 export interface GroupMember {
