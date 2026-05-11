@@ -1,7 +1,7 @@
 ## 팀페이지 주소
 [2026년 84조 캡스톤 깃허브](https://github.com/kookmin-sw/2026-capstone-84)
 
-
+[프로젝트 소개 페이지](https://kookmin-sw.github.io/2026-capstone-84/)
 
 
 ## 1. 프로젝트 소개
