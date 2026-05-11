@@ -3,19 +3,476 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>독서 토론 웹사이트</title>
+  <title>Buzzy Pages - 독서 토론 커뮤니티</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Pretendard', sans-serif; background: #f5f5f5; color: #333; }
-    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-    h1 { text-align: center; margin: 40px 0 20px; }
-    p { text-align: center; color: #666; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif; background: #f8f9fa; color: #333; line-height: 1.6; }
+
+    /* 사이드바 */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 240px;
+      height: 100vh;
+      background: #1a202c;
+      color: #e2e8f0;
+      padding: 24px 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      border-bottom: 1px solid #2d3748;
+      margin-bottom: 16px;
+    }
+    .sidebar nav a {
+      display: block;
+      padding: 10px 20px;
+      color: #a0aec0;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s;
+    }
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      background: #2d3748;
+      color: #fff;
+    }
+    .sidebar nav a .nav-icon {
+      margin-right: 8px;
+    }
+
+    /* 메인 콘텐츠 */
+    .main {
+      margin-left: 240px;
+      padding: 40px 48px;
+      max-width: 1000px;
+    }
+
+    /* 섹션 */
+    section {
+      margin-bottom: 48px;
+      scroll-margin-top: 24px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #1a202c;
+      margin-bottom: 12px;
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: #4a5568;
+      margin: 20px 0 10px;
+    }
+    p {
+      color: #4a5568;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+    .highlight {
+      color: #667eea;
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    /* 테이블 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border: 1px solid #e2e8f0;
+    }
+    th {
+      background: #edf2f7;
+      font-weight: 600;
+      color: #2d3748;
+    }
+    tr:hover {
+      background: #f7fafc;
+    }
+
+    /* 팀 소개 카드 */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .team-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 1px solid #f0f0f5;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .team-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .team-card img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 12px;
+      border: 3px solid #e2e8f0;
+    }
+    .team-card .name {
+      font-weight: 700;
+      font-size: 15px;
+      color: #1a202c;
+      margin-bottom: 4px;
+    }
+    .team-card .name a {
+      color: #1a202c;
+      text-decoration: none;
+    }
+    .team-card .name a:hover {
+      color: #667eea;
+    }
+    .team-card .role {
+      font-size: 13px;
+      color: #718096;
+    }
+
+    /* 기술 스택 뱃지 */
+    .tech-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .badge-frontend { background: #ebf4ff; color: #2b6cb0; }
+    .badge-backend { background: #f0fff4; color: #276749; }
+    .badge-db { background: #fefcbf; color: #975a16; }
+    .badge-ai { background: #faf5ff; color: #6b46c1; }
+    .badge-devops { background: #fff5f5; color: #c53030; }
+
+    /* 코드 블록 */
+    code {
+      background: #edf2f7;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: 'Fira Code', monospace;
+    }
+    pre {
+      background: #1a202c;
+      color: #e2e8f0;
+      padding: 16px 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 12px 0;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    /* 리스트 */
+    ul, ol {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+    li {
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #4a5568;
+    }
+
+    /* 반응형 */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        padding: 16px 0;
+      }
+      .main {
+        margin-left: 0;
+        padding: 24px 16px;
+      }
+      .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📚 독서 토론 웹사이트</h1>
-    <p>github</p>
+
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">📚 Buzzy Pages</div>
+    <nav>
+      <a href="#intro"><span class="nav-icon">📖</span>프로젝트 소개</a>
+      <a href="#features"><span class="nav-icon">⚡</span>주요 기능</a>
+      <a href="#video"><span class="nav-icon">🎬</span>소개 영상</a>
+      <a href="#team"><span class="nav-icon">👥</span>팀 소개</a>
+      <a href="#architecture"><span class="nav-icon">🏗️</span>시스템 구조</a>
+      <a href="#tech-stack"><span class="nav-icon">🛠️</span>기술 스택</a>
+      <a href="#setup"><span class="nav-icon">🚀</span>실행 방법</a>
+      <a href="#structure"><span class="nav-icon">📁</span>디렉토리 구조</a>
+    </nav>
+  </aside>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="main">
+
+    <!-- 프로젝트 소개 -->
+    <section id="intro">
+      <h1>📚 Buzzy Pages</h1>
+      <p>같은 책을 읽는 사람들을 연결하고, 독서 과정에서의 기록을 바탕으로 자연스럽게 사람들과 책 이야기를 나눌 수 있도록 돕는 커뮤니티 <span class="highlight">buzzy pages</span>입니다.</p>
+      <p>'<strong>독서 모임 참여자</strong>는 <strong>모임 참여, 독서 준비, 토론 진행, 이후 정리</strong>의 각 과정에서 서로 다른 어려움을 겪어, <strong>독서 토론에 적극적으로 참여하고 의미 있는 대화를 나누기</strong> 어렵다.'라는 문제 의식에서 시작하여 시공간의 제약 없이 책 이야기를 나누고, 책에 대한 정보를 찾아볼 수 있는 공간으로 만들어가고 있습니다.</p>
+      <p style="margin-top: 16px;">
+        <a href="https://github.com/kookmin-sw/2026-capstone-84" style="color: #667eea; font-weight: 600; text-decoration: none;">🔗 GitHub 저장소 바로가기</a>
+      </p>
+    </section>
+
+    <!-- 주요 기능 -->
+    <section id="features">
+      <h2>⚡ 주요 기능</h2>
+      <table>
+        <thead>
+          <tr><th>카테고리</th><th>기능</th><th>설명</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>📚 독서 모임</td><td>모임 생성/참여</td><td>책 검색(카카오/네이버 API) 후 독서 모임 생성, 공개/비공개 설정</td></tr>
+          <tr><td></td><td>초대 링크</td><td>방장이 30분 만료 초대 코드를 생성하여 링크로 멤버 초대</td></tr>
+          <tr><td></td><td>모임 관리</td><td>방장 대시보드에서 멤버 강퇴, 모임 수정/삭제, 공지사항 관리</td></tr>
+          <tr><td>📝 메모</td><td>독서 메모 작성</td><td>페이지 범위 지정 후 메모 작성, 읽은 페이지 진행률 연동</td></tr>
+          <tr><td></td><td>공개 설정</td><td>비공개 / 공개 / 스포일러(해당 페이지까지 읽은 사람만 열람) 3단계</td></tr>
+          <tr><td></td><td>정렬/필터</td><td>최신순, 오래된순, 페이지순 정렬 및 공개 상태별 필터링</td></tr>
+          <tr><td>💬 토론</td><td>토론 주제 생성</td><td>직접 작성 또는 메모 연결하여 토론 스레드 개설</td></tr>
+          <tr><td></td><td>의견/댓글</td><td>토론 주제에 의견 작성, 의견에 대한 답글(대댓글) 지원</td></tr>
+          <tr><td></td><td>추천 주제</td><td>공개 메모 키워드 분석 기반 자동 토론 주제 추천</td></tr>
+          <tr><td>🤖 AI</td><td>AI 토론 주제 제안</td><td>Gemini API로 책 정보 + 메모 기반 토론 주제 3개 자동 생성</td></tr>
+          <tr><td></td><td>토론 요약</td><td>토론 스레드의 핵심 논점·주요 의견·결론을 마크다운으로 정리</td></tr>
+          <tr><td></td><td>독서 회고 인사이트</td><td>내 메모와 모임 토론 내용을 분석하여 개인화된 독서 인사이트 생성</td></tr>
+          <tr><td>📅 일정</td><td>토론 일정 관리</td><td>캘린더 뷰에서 독서 기간, 토론일, 커스텀 일정 시각화</td></tr>
+          <tr><td>👤 마이페이지</td><td>프로필 관리</td><td>닉네임 변경, 프로필 이미지, 비밀번호 변경, 회원 탈퇴</td></tr>
+          <tr><td></td><td>활동 내역</td><td>참여 모임·작성 메모·참여 토론 한눈에 조회</td></tr>
+          <tr><td></td><td>추천 모임</td><td>참여 모임의 책 정보 기반 유사 모임 추천</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 소개 영상 -->
+    <section id="video">
+      <h2>🎬 소개 영상</h2>
+      <p>영상은 추후 추가될 예정입니다.</p>
+    </section>
+
+    <!-- 팀 소개 -->
+    <section id="team">
+      <h2>👥 팀 소개</h2>
+      <div class="team-grid">
+        <div class="team-card">
+          <img src="https://github.com/cho2-0923.png" alt="조연지">
+          <div class="name"><a href="https://github.com/cho2-0923">조연지</a></div>
+          <div class="role">PM / Project Lead</div>
+        </div>
+        <div class="team-card">
+          <img src="https://github.com/qnfdudemr.png" alt="양병규">
+          <div class="name"><a href="https://github.com/qnfdudemr">양병규</a></div>
+          <div class="role">AI 관련 기능 개발</div>
+        </div>
+        <div class="team-card">
+          <img src="https://github.com/williamjeon7.png" alt="전석환">
+          <div class="name"><a href="https://github.com/williamjeon73">전석환</a></div>
+          <div class="role">Infra</div>
+        </div>
+        <div class="team-card">
+          <img src="https://github.com/yoonjujeonn.png" alt="전윤주">
+          <div class="name"><a href="https://github.com/yoonjujeonn">전윤주</a></div>
+          <div class="role">API 데이터 페칭, 풀스택 개발</div>
+        </div>
+        <div class="team-card">
+          <img src="https://github.com/Choiyeonw00.png" alt="최연우">
+          <div class="name"><a href="https://github.com/Choiyeonw00">최연우</a></div>
+          <div class="role">AI 기반 추천</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 시스템 구조 -->
+    <section id="architecture">
+      <h2>🏗️ 시스템 구조</h2>
+      <p>추후 다이어그램이 추가될 예정입니다.</p>
+    </section>
+
+    <!-- 기술 스택 -->
+    <section id="tech-stack">
+      <h2>🛠️ 기술 스택</h2>
+      <table>
+        <thead>
+          <tr><th>구분</th><th>기술</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Frontend</td><td>React 18, TypeScript, Vite, Zustand, React Router v6</td></tr>
+          <tr><td>Backend</td><td>Node.js, Express, TypeScript</td></tr>
+          <tr><td>ORM</td><td>Prisma</td></tr>
+          <tr><td>Database</td><td>MySQL 8.0</td></tr>
+          <tr><td>AI</td><td>Google Gemini API</td></tr>
+          <tr><td>외부 API</td><td>카카오 책 검색 API, 네이버 책 검색 API</td></tr>
+          <tr><td>인증</td><td>JWT (Access Token + Refresh Token), bcrypt</td></tr>
+          <tr><td>테스트</td><td>Vitest, Supertest, fast-check (PBT)</td></tr>
+          <tr><td>배포</td><td>AWS EC2, Nginx, PM2</td></tr>
+          <tr><td>DevOps &amp; 협업도구</td><td>GitHub, Notion, Slack</td></tr>
+        </tbody>
+      </table>
+
+      <h3>기술 뱃지</h3>
+      <div class="tech-badges">
+        <span class="badge badge-frontend">React</span>
+        <span class="badge badge-frontend">TypeScript</span>
+        <span class="badge badge-frontend">Vite</span>
+        <span class="badge badge-backend">Node.js</span>
+        <span class="badge badge-backend">Express</span>
+        <span class="badge badge-backend">Prisma</span>
+        <span class="badge badge-db">MySQL</span>
+        <span class="badge badge-ai">Gemini AI</span>
+        <span class="badge badge-devops">AWS EC2</span>
+        <span class="badge badge-devops">Nginx</span>
+        <span class="badge badge-devops">PM2</span>
+      </div>
+    </section>
+
+    <!-- 실행 방법 -->
+    <section id="setup">
+      <h2>🚀 실행 방법</h2>
+
+      <h3>사전 요구사항</h3>
+      <ul>
+        <li>Node.js v18 이상</li>
+        <li>npm v9 이상</li>
+        <li>MySQL 8.0 이상</li>
+      </ul>
+
+      <h3>1. 저장소 클론</h3>
+      <pre><code>git clone https://github.com/kookmin-sw/2026-capstone-84.git
+cd 2026-capstone-84</code></pre>
+
+      <h3>2. 서버(Backend) 설정</h3>
+      <pre><code>cd server
+npm install
+cp .env.example .env</code></pre>
+      <p><code>.env</code> 파일을 열어 아래 항목을 본인 환경에 맞게 수정합니다:</p>
+      <table>
+        <thead><tr><th>변수명</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>DATABASE_URL</code></td><td>MySQL 접속 URL</td></tr>
+          <tr><td><code>JWT_SECRET</code></td><td>JWT 토큰 서명용 시크릿 키</td></tr>
+          <tr><td><code>JWT_REFRESH_SECRET</code></td><td>JWT 리프레시 토큰 시크릿 키</td></tr>
+          <tr><td><code>KAKAO_API_KEY</code></td><td>카카오 책 검색 API 키</td></tr>
+          <tr><td><code>GEMINI_API_KEY</code></td><td>Google Gemini AI API 키</td></tr>
+        </tbody>
+      </table>
+
+      <p>데이터베이스 마이그레이션:</p>
+      <pre><code>npx prisma migrate dev</code></pre>
+
+      <p>서버 실행:</p>
+      <pre><code># 개발 모드
+npm run dev
+
+# 프로덕션 빌드 후 실행
+npm run build
+npm start</code></pre>
+      <p>서버는 기본적으로 <code>http://localhost:3000</code>에서 실행됩니다.</p>
+
+      <h3>3. 클라이언트(Frontend) 설정</h3>
+      <pre><code>cd client
+npm install
+npm run dev</code></pre>
+      <p>클라이언트는 기본적으로 <code>http://localhost:5173</code>에서 실행됩니다.</p>
+
+      <h3>테스트 실행</h3>
+      <pre><code>cd server
+npm run test</code></pre>
+    </section>
+
+    <!-- 디렉토리 구조 -->
+    <section id="structure">
+      <h2>📁 디렉토리 구조</h2>
+      <pre><code>2026-capstone-84/
+├── client/                 # 프론트엔드 (React + Vite)
+│   ├── src/
+│   │   ├── api/            # API 호출 모듈
+│   │   ├── components/     # 공통 컴포넌트
+│   │   ├── pages/          # 페이지 컴포넌트
+│   │   ├── stores/         # Zustand 상태 관리
+│   │   ├── types/          # TypeScript 타입 정의
+│   │   └── utils/          # 유틸리티 함수
+│   └── package.json
+├── server/                 # 백엔드 (Express)
+│   ├── src/
+│   │   ├── middleware/     # 인증, 에러 핸들링 미들웨어
+│   │   ├── routes/         # API 라우트
+│   │   ├── services/       # 비즈니스 로직
+│   │   └── validators/     # 입력 검증 (Zod)
+│   ├── prisma/
+│   │   └── schema.prisma   # DB 스키마
+│   └── package.json
+├── nginx/                  # Nginx 설정
+├── docs/                   # 프로젝트 문서
+└── README.md</code></pre>
+    </section>
+
   </div>
+
+  <!-- 사이드바 활성 상태 스크립트 -->
+  <script>
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.sidebar nav a');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const top = section.offsetTop - 80;
+        if (window.scrollY >= top) {
+          current = section.getAttribute('id');
+        }
+      });
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+
 </body>
 </html>
