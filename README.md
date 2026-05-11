@@ -1,26 +1,5 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/Lvs6kcL8)
-# Welcome to GitHub
-
-캡스톤 팀 생성을 축하합니다.
-
-## 팀소개 및 페이지를 꾸며주세요.
-
-- 프로젝트 소개
-  - 프로젝트 설치방법 및 데모, 사용방법, 프리뷰등을 readme.md에 작성.
-  - Api나 사용방법등 내용이 많을경우 wiki에 꾸미고 링크 추가.
-
-- 팀페이지 꾸미기
-  - 프로젝트 소개 및 팀원 소개
-  - index.md 예시보고 수정.
-
-- GitHub Pages 리파지토리 Settings > Options > GitHub Pages 
-  - Source를 marster branch
-  - Theme Chooser에서 태마선택
-  - 수정후 팀페이지 확인하여 점검.
-
-**팀페이지 주소**   
-2026년 84조 
-https://github.com/kookmin-sw/2026-capstone-84
+## 팀페이지 주소
+[2026년 84조 캡스톤 깃허브](https://github.com/kookmin-sw/2026-capstone-84)
 
 
 
@@ -61,11 +40,11 @@ https://github.com/kookmin-sw/2026-capstone-84
 
 | Profile | Name | Role |
 |--------|-------|------|
-| <img src="https://github.com/cho2-0923.png" width="100px"> | [조연지](https://github.com/cho2-0923) | Frontend / UI |
-| <img src="https://github.com/qnfdudemr.png" width="100px"> | [양병규](https://github.com/qnfdudemr) | Backend / API |
-| <img src="https://github.com/williamjeon7.png" width="100px"> | [전석환](https://github.com/williamjeon73) | AI / Recommendation |
-| <img src="https://github.com/yoonjujeonn.png" width="100px"> | [전윤주](https://github.com/yoonjujeonn) | Infrastructure / DevOps |
-| <img src="https://github.com/Choiyeonw00.png" width="100px"> | [최연우](https://github.com/Choiyeonw00) | PM / Full Stack |
+| <img src="https://github.com/cho2-0923.png" width="100px"> | [조연지](https://github.com/cho2-0923) | PM / Project Lead |
+| <img src="https://github.com/qnfdudemr.png" width="100px"> | [양병규](https://github.com/qnfdudemr) | AI 관련 기능 개발 |
+| <img src="https://github.com/williamjeon7.png" width="100px"> | [전석환](https://github.com/williamjeon73) | Infra |
+| <img src="https://github.com/yoonjujeonn.png" width="100px"> | [전윤주](https://github.com/yoonjujeonn) | API 데이터 페칭, 풀스택 개발 |
+| <img src="https://github.com/Choiyeonw00.png" width="100px"> | [최연우](https://github.com/Choiyeonw00) | AI 기반 추천 |
 
 ## 4. 시스템 구조
 ## 5. 기술 스택
