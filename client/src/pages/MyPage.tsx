@@ -121,10 +121,8 @@ function MyPage() {
     const now = new Date();
     const start = new Date(g.readingStartDate);
     const end = new Date(g.readingEndDate);
-    const disc = new Date(g.discussionDate);
     if (now < start) return { label: '시작 전', color: '#a0aec0', bg: '#f7fafc' };
     if (now <= end) return { label: '독서 중', color: '#38a169', bg: '#f0fff4' };
-    if (now <= disc) return { label: '토론 준비', color: '#d69e2e', bg: '#fffff0' };
     return { label: '완료', color: '#718096', bg: '#f7fafc' };
   };
 

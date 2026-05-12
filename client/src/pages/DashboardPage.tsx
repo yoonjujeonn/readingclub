@@ -7,11 +7,11 @@ import { useAuthStore } from '../stores/authStore';
 import type { GroupDetail, Discussion } from '../types';
 
 const tabs = [
-  { id: 'calendar', label: '📅 토론 일정' },
+  { id: 'calendar', label: '📅 모임 일정' },
   { id: 'invite', label: '🔗 초대 링크' },
   { id: 'announcements', label: '📢 공지사항' },
   { id: 'members', label: '👥 멤버 관리' },
-  { id: 'threads', label: '📚 책수다 관리' },
+  { id: 'threads', label: '📚 스레드 관리' },
 ] as const;
 
 type TabId = typeof tabs[number]['id'];
@@ -174,7 +174,6 @@ function DashboardPage() {
     const days = daysInMonth(calMonth);
     const startDay = firstDayOfMonth(calMonth);
     const cells = [];
-    const discussionDate = group?.discussionDate ? new Date(group.discussionDate) : null;
     const readStart = group?.readingStartDate ? new Date(group.readingStartDate) : null;
     const readEnd = group?.readingEndDate ? new Date(group.readingEndDate) : null;
 
@@ -188,10 +187,9 @@ function DashboardPage() {
         const end = new Date(s.endDate);
         return date >= start && date <= end;
       });
-      if (discussionDate && isSameDay(date, discussionDate)) { bg = '#3182ce'; color = '#fff'; }
-      else if (hasSchedule) { bg = '#c6f6d5'; }
+      if (hasSchedule) { bg = '#c6f6d5'; }
       else if (readStart && readEnd && date >= readStart && date <= readEnd) { bg = '#ebf8ff'; }
-      cells.push(<div key={d} style={{ ...styles.calCell, backgroundColor: bg, color, fontWeight: discussionDate && isSameDay(date, discussionDate) ? 700 : 400 }}>{d}</div>);
+      cells.push(<div key={d} style={{ ...styles.calCell, backgroundColor: bg, color }}>{d}</div>);
     }
     return cells;
   };
@@ -204,7 +202,7 @@ function DashboardPage() {
         return (
           <div style={styles.section}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div style={styles.sectionTitle}>📅 토론 일정</div>
+              <div style={styles.sectionTitle}>📅 모임 일정</div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <button style={{ ...styles.btn, ...styles.btnSecondary }} onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1))}>◀</button>
                 <span style={{ fontSize: 14, fontWeight: 600 }}>{calMonth.getFullYear()}년 {calMonth.getMonth() + 1}월</span>
@@ -217,8 +215,6 @@ function DashboardPage() {
             </div>
             <div style={{ marginTop: 12, fontSize: 12, color: '#718096' }}>
               <span style={{ display: 'inline-block', width: 12, height: 12, backgroundColor: '#ebf8ff', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} /> 독서 기간
-              <span style={{ display: 'inline-block', width: 12, height: 12, backgroundColor: '#c6f6d5', borderRadius: 2, marginLeft: 12, marginRight: 4, verticalAlign: 'middle' }} /> 토론 일정
-              <span style={{ display: 'inline-block', width: 12, height: 12, backgroundColor: '#3182ce', borderRadius: 2, marginLeft: 12, marginRight: 4, verticalAlign: 'middle' }} /> 토론일
             </div>
             <div style={{ marginTop: 16, padding: '12px 0', borderTop: '1px solid #f0f0f0' }}>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>일정 추가</div>
@@ -305,11 +301,11 @@ function DashboardPage() {
       case 'threads':
         return (
           <div style={styles.section}>
-            <div style={styles.sectionTitle}>📚 책수다 관리</div>
-            <div style={{ fontSize: 13, color: '#718096', marginBottom: 16 }}>스레드 종료일 수정, 대표 수다 설정/해제를 관리합니다.</div>
+            <div style={styles.sectionTitle}>📚 스레드 관리</div>
+            <div style={{ fontSize: 13, color: '#718096', marginBottom: 16 }}>스레드 종료일 수정, 대표 스레드 설정/해제를 관리합니다.</div>
 
             {threads.length === 0 ? (
-              <div style={{ color: '#a0aec0', fontSize: 13 }}>아직 생성된 수다가 없습니다</div>
+              <div style={{ color: '#a0aec0', fontSize: 13 }}>아직 생성된 스레드가 없습니다</div>
             ) : threads.map((d: any) => (
               <div key={d.id} style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

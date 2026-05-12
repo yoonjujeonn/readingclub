@@ -56,7 +56,7 @@ model Group {
   maxMembers       Int      @map("max_members")
   readingStartDate DateTime @map("reading_start_date") @db.Date
   readingEndDate   DateTime @map("reading_end_date") @db.Date
-  discussionDate   DateTime @map("discussion_date") @db.Date
+  discussionDate   DateTime? @map("discussion_date") @db.Date
   createdAt        DateTime @default(now()) @map("created_at")
 
   isPrivate           Boolean   @default(false) @map("is_private")

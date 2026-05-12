@@ -259,7 +259,6 @@ function GroupJoinModal({ group, onClose, onJoin, joining, joinMsg }: GroupJoinM
           {/* Meta Info */}
           <div style={styles.meta}>
             📅 독서 기간: {formatDate(group.readingStartDate)} ~ {formatDate(group.readingEndDate)}<br />
-            💬 토론 날짜: {formatDate(group.discussionDate)}<br />
             <span style={styles.members}>👥 {group.currentMembers}/{group.maxMembers}명</span>
           </div>
         </div>

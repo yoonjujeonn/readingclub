@@ -378,7 +378,6 @@ function GroupDetailPage() {
             {group.description && <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 12 }}>{group.description}</p>}
             <div style={styles.meta}>
               📅 독서 기간: {formatDate(group.readingStartDate)} ~ {formatDate(group.readingEndDate)}<br />
-              💬 토론 날짜: {formatDate(group.discussionDate)}<br />
               👥 참여 인원: {group.currentMembers || group.memberCount || group.members?.length}/{group.maxMembers}명
             </div>
           </>
@@ -406,10 +405,6 @@ function GroupDetailPage() {
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>독서 종료일</label>
                 <input type="date" value={editReadingEnd} onChange={(e) => setEditReadingEnd(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
               </div>
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>토론 날짜</label>
-              <input type="date" value={editDiscussionDate} onChange={(e) => setEditDiscussionDate(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
             </div>
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
@@ -449,7 +444,7 @@ function GroupDetailPage() {
       {isMember && (
         <div style={styles.linkRow}>
           <Link to={`/groups/${id}/memos`} style={styles.actionLink}>📝 메모</Link>
-          <Link to={`/groups/${id}/discussions`} style={styles.actionLink}>📚 책수다</Link>
+          <Link to={`/groups/${id}/discussions`} style={styles.actionLink}>💬 스레드</Link>
           {isOwner && (
             <Link to={`/groups/${id}/dashboard`} style={{ ...styles.actionLink, backgroundColor: '#fefcbf', color: '#975a16' }}>🛠️ 대시보드</Link>
           )}

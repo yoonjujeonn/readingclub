@@ -234,7 +234,6 @@ function CreateGroupPage() {
     if (!maxMembers || parseInt(maxMembers) < 1) errs.maxMembers = '모집 인원은 1명 이상이어야 합니다';
     if (!readingStartDate) errs.readingStartDate = '독서 시작일을 선택해주세요';
     if (!readingEndDate) errs.readingEndDate = '독서 종료일을 선택해주세요';
-    if (!discussionDate) errs.discussionDate = '토론 날짜를 선택해주세요';
     return errs;
   };
 
@@ -439,17 +438,6 @@ function CreateGroupPage() {
               />
               {errors.readingEndDate && <div style={styles.errorText}>{errors.readingEndDate}</div>}
             </div>
-          </div>
-
-          <div style={styles.field}>
-            <label style={styles.label}>토론 날짜 *</label>
-            <input
-              type="date"
-              style={{ ...styles.input, ...(errors.discussionDate ? styles.inputError : {}) }}
-              value={discussionDate}
-              onChange={(e) => setDiscussionDate(e.target.value)}
-            />
-            {errors.discussionDate && <div style={styles.errorText}>{errors.discussionDate}</div>}
           </div>
 
           <div style={styles.field}>

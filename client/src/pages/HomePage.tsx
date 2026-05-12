@@ -252,7 +252,7 @@ function HomePage() {
     <div style={styles.container}>
       <div style={styles.header}>
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => { setSearch(''); setSearched(false); fetchGroups(); }}>
-          <h1 style={styles.title}>📚 독서 토론</h1>
+          <h1 style={styles.title}>📚 독서 모임</h1>
         </Link>
         <div style={styles.nav}>
           {isLoggedIn ? (
@@ -275,11 +275,11 @@ function HomePage() {
       }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-            함께 읽고, 함께 나누는 독서 토론
+            함께 읽고, 함께 나누는 독서 모임
           </div>
           <div style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.6, maxWidth: 480 }}>
             책을 읽으며 메모를 남기고, 다른 독서가들과 생각을 나눠보세요.
-            기록이 토론으로 이어지는 새로운 독서 경험을 시작하세요.
+            기록이 스레드로 이어지는 새로운 독서 경험을 시작하세요.
           </div>
           <Link to="/groups/new" style={{
             display: 'inline-block',
@@ -353,7 +353,6 @@ function HomePage() {
                   {g.description && <div style={{ ...styles.summary, marginBottom: 8 }}>{g.description}</div>}
                   <div style={styles.meta}>
                     📅 독서 기간: {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}<br />
-                    💬 토론 날짜: {formatDate(g.discussionDate)}<br />
                     <span style={styles.members}>👥 {g.currentMembers}/{g.maxMembers}명</span>
                     {(g as any).isPrivate && <span style={{ display: 'inline-block', background: '#fefcbf', color: '#975a16', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginLeft: 6 }}>🔒 비공개</span>}
                   </div>
