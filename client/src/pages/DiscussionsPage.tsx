@@ -317,8 +317,13 @@ function DiscussionsPage() {
     e.preventDefault();
     setServerError('');
     const errs: Record<string, string> = {};
+<<<<<<< Updated upstream
     if (!formTitle.trim()) errs.title = '주제를 입력해주세요';
     if (!formEndDate) errs.endDate = '종료일을 입력해주세요';
+=======
+    if (!formTitle.trim()) errs.title = '제목을 입력해주세요';
+    if (!formContent.trim()) errs.content = '내용을 입력해주세요';
+>>>>>>> Stashed changes
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) return;
     if (!groupId) return;
@@ -327,7 +332,7 @@ function DiscussionsPage() {
     try {
       await discussionsApi.create(groupId!, {
         title: formTitle.trim(),
-        content: formContent.trim() || undefined,
+        content: formContent.trim(),
         memoId: formMemoId || undefined,
         endDate: formEndDate || undefined,
       });
@@ -339,7 +344,7 @@ function DiscussionsPage() {
       fetchData();
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;
-      setServerError(axiosErr.response?.data?.error?.message || '토론 주제 생성에 실패했습니다');
+      setServerError(axiosErr.response?.data?.error?.message || '스레드 생성에 실패했습니다');
     } finally {
       setSubmitting(false);
     }
@@ -392,9 +397,15 @@ function DiscussionsPage() {
   return (
     <div style={styles.container}>
       <Link to={`/groups/${groupId}`} style={styles.backLink}>← 모임으로</Link>
+<<<<<<< Updated upstream
       <h1 style={styles.title}>📚 책수다</h1>
 
       {/* 헤더: 책수다 만들기 버튼 */}
+=======
+      <h1 style={styles.title}>💬 스레드</h1>
+
+      {/* 헤더: 스레드 만들기 버튼 */}
+>>>>>>> Stashed changes
       <div style={styles.headerRow}>
         {/* Filter */}
         <div style={styles.filterRow}>
@@ -412,6 +423,7 @@ function DiscussionsPage() {
           </button>
         </div>
         <button style={styles.createBtn} onClick={() => setShowCreateModal(true)}>
+<<<<<<< Updated upstream
           + 책수다 만들기
         </button>
       </div>
@@ -421,6 +433,21 @@ function DiscussionsPage() {
         <div style={{ ...styles.section, borderLeft: '4px solid #3182ce' }}>
           <div style={styles.sectionTitle}>📌 대표 수다</div>
           {discussions.filter((d: any) => d.isPinned).map((d) => (
+=======
+          + 스레드 만들기
+        </button>
+      </div>
+
+      {/* Discussion List */}
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>스레드 목록</div>
+        {loading ? (
+          <div style={styles.emptyState}>불러오는 중...</div>
+        ) : discussions.length === 0 ? (
+          <div style={styles.emptyState}>스레드가 없습니다</div>
+        ) : (
+          discussions.map((d) => (
+>>>>>>> Stashed changes
             <div
               key={d.id}
               style={styles.discussionItem}
@@ -468,6 +495,7 @@ function DiscussionsPage() {
         )}
       </div>
 
+<<<<<<< Updated upstream
       {/* 종료된 수다 */}
       {discussions.filter((d: any) => d.status === 'closed').length > 0 && (
         <div style={styles.section}>
@@ -494,11 +522,18 @@ function DiscussionsPage() {
       )}
 
       {/* 책수다 만들기 모달 */}
+=======
+      {/* 스레드 만들기 모달 */}
+>>>>>>> Stashed changes
       {showCreateModal && (
         <div style={styles.overlay} onClick={handleOverlayClick}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
+<<<<<<< Updated upstream
               <div style={styles.modalTitle}>💬 책수다 만들기</div>
+=======
+              <div style={styles.modalTitle}>💬 스레드 만들기</div>
+>>>>>>> Stashed changes
               <button style={styles.closeBtn} onClick={() => setShowCreateModal(false)} aria-label="닫기">×</button>
             </div>
 
@@ -509,25 +544,34 @@ function DiscussionsPage() {
                 {serverError && <div style={styles.serverError}>{serverError}</div>}
 
                 <div style={styles.field}>
-                  <label style={styles.label}>주제 제목 *</label>
+                  <label style={styles.label}>제목 *</label>
                   <input
                     type="text"
                     style={{ ...styles.input, ...(formErrors.title ? styles.inputError : {}) }}
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
+<<<<<<< Updated upstream
                     placeholder="주제를 입력해주세요"
+=======
+                    placeholder="제목을 입력해주세요"
+>>>>>>> Stashed changes
                   />
                   {formErrors.title && <div style={styles.errorText}>{formErrors.title}</div>}
                 </div>
 
                 <div style={styles.field}>
-                  <label style={styles.label}>내용</label>
+                  <label style={styles.label}>내용 *</label>
                   <textarea
                     style={styles.textarea}
                     value={formContent}
                     onChange={(e) => setFormContent(e.target.value)}
+<<<<<<< Updated upstream
                     placeholder="주제에 대한 설명 (선택)"
+=======
+                    placeholder="내용을 입력해주세요"
+>>>>>>> Stashed changes
                   />
+                  {formErrors.content && <div style={styles.errorText}>{formErrors.content}</div>}
                 </div>
 
                 <div style={styles.field}>
@@ -562,7 +606,11 @@ function DiscussionsPage() {
                   style={{ ...styles.button, ...(submitting ? styles.buttonDisabled : {}) }}
                   disabled={submitting}
                 >
+<<<<<<< Updated upstream
                   {submitting ? '생성 중...' : '책수다 만들기'}
+=======
+                  {submitting ? '생성 중...' : '스레드 만들기'}
+>>>>>>> Stashed changes
                 </button>
               </form>
             </div>
@@ -570,10 +618,10 @@ function DiscussionsPage() {
             {/* 구분선 */}
             <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '20px 0' }} />
 
-            {/* AI 토론 주제 제안 */}
+            {/* AI 스레드 주제 제안 */}
             <div style={{ marginBottom: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <div style={styles.sectionTitle}>🤖 AI 토론 주제 제안</div>
+                <div style={styles.sectionTitle}>🤖 AI 스레드 주제 제안</div>
                 <button
                   onClick={handleAiSuggest}
                   disabled={aiLoading}
@@ -597,7 +645,7 @@ function DiscussionsPage() {
               ))}
               {aiTopics.length === 0 && !aiLoading && (
                 <div style={styles.emptyState}>
-                  버튼을 눌러 AI가 책과 메모 기반으로 토론 주제를 제안합니다. 원하는 주제를 클릭하면 바로 토론 주제로 등록됩니다.
+                  버튼을 눌러 AI가 책과 메모 기반으로 스레드 주제를 제안합니다. 원하는 주제를 클릭하면 바로 스레드로 등록됩니다.
                 </div>
               )}
             </div>

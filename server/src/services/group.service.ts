@@ -47,7 +47,7 @@ export const groupService = {
           maxMembers: data.maxMembers,
           readingStartDate: new Date(data.readingStartDate),
           readingEndDate: new Date(data.readingEndDate),
-          discussionDate: new Date(data.discussionDate),
+          discussionDate: data.discussionDate ? new Date(data.discussionDate) : null,
           isPrivate: data.isPrivate ?? false,
           password: data.password ?? null,
         },
