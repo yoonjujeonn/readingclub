@@ -444,11 +444,7 @@ function GroupDetailPage() {
       {isMember && (
         <div style={styles.linkRow}>
           <Link to={`/groups/${id}/memos`} style={styles.actionLink}>📝 메모</Link>
-<<<<<<< Updated upstream
-          <Link to={`/groups/${id}/discussions`} style={styles.actionLink}>📚 책수다</Link>
-=======
           <Link to={`/groups/${id}/discussions`} style={styles.actionLink}>💬 스레드</Link>
->>>>>>> Stashed changes
           {isOwner && (
             <Link to={`/groups/${id}/dashboard`} style={{ ...styles.actionLink, backgroundColor: '#fefcbf', color: '#975a16' }}>🛠️ 대시보드</Link>
           )}

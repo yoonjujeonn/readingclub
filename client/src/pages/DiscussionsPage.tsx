@@ -173,7 +173,6 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 16,
     textAlign: 'center' as const,
   },
-  // 모달 스타일
   overlay: {
     position: 'fixed' as const,
     top: 0,
@@ -284,7 +283,6 @@ function DiscussionsPage() {
       setRecommendations(recRes.data);
       setMyMemos(memoRes.data.myMemos || []);
 
-      // 방장 여부 확인
       if (currentUserId) {
         const groupRes = await groupsApi.getDetail(groupId!).catch(() => ({ data: null }));
         if (groupRes.data) {
@@ -302,7 +300,6 @@ function DiscussionsPage() {
     fetchData();
   }, [groupId, filterMine]);
 
-  // ESC 키로 모달 닫기
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && showCreateModal) {
@@ -317,13 +314,9 @@ function DiscussionsPage() {
     e.preventDefault();
     setServerError('');
     const errs: Record<string, string> = {};
-<<<<<<< Updated upstream
-    if (!formTitle.trim()) errs.title = '주제를 입력해주세요';
-    if (!formEndDate) errs.endDate = '종료일을 입력해주세요';
-=======
     if (!formTitle.trim()) errs.title = '제목을 입력해주세요';
     if (!formContent.trim()) errs.content = '내용을 입력해주세요';
->>>>>>> Stashed changes
+    if (!formEndDate) errs.endDate = '종료일을 입력해주세요';
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) return;
     if (!groupId) return;
@@ -397,17 +390,10 @@ function DiscussionsPage() {
   return (
     <div style={styles.container}>
       <Link to={`/groups/${groupId}`} style={styles.backLink}>← 모임으로</Link>
-<<<<<<< Updated upstream
-      <h1 style={styles.title}>📚 책수다</h1>
-
-      {/* 헤더: 책수다 만들기 버튼 */}
-=======
       <h1 style={styles.title}>💬 스레드</h1>
 
       {/* 헤더: 스레드 만들기 버튼 */}
->>>>>>> Stashed changes
       <div style={styles.headerRow}>
-        {/* Filter */}
         <div style={styles.filterRow}>
           <button
             style={{ ...styles.filterBtn, ...(!filterMine ? styles.filterBtnActive : {}) }}
@@ -423,22 +409,11 @@ function DiscussionsPage() {
           </button>
         </div>
         <button style={styles.createBtn} onClick={() => setShowCreateModal(true)}>
-<<<<<<< Updated upstream
-          + 책수다 만들기
-        </button>
-      </div>
-
-      {/* 📌 대표 수다 (고정) */}
-      {discussions.filter((d: any) => d.isPinned).length > 0 && (
-        <div style={{ ...styles.section, borderLeft: '4px solid #3182ce' }}>
-          <div style={styles.sectionTitle}>📌 대표 수다</div>
-          {discussions.filter((d: any) => d.isPinned).map((d) => (
-=======
           + 스레드 만들기
         </button>
       </div>
 
-      {/* Discussion List */}
+      {/* 스레드 목록 */}
       <div style={styles.section}>
         <div style={styles.sectionTitle}>스레드 목록</div>
         {loading ? (
@@ -447,7 +422,6 @@ function DiscussionsPage() {
           <div style={styles.emptyState}>스레드가 없습니다</div>
         ) : (
           discussions.map((d) => (
->>>>>>> Stashed changes
             <div
               key={d.id}
               style={styles.discussionItem}
@@ -461,79 +435,20 @@ function DiscussionsPage() {
                 {(d as any).status === 'closed' && <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>}
               </div>
               <div style={styles.discussionMeta}>
-                {d.authorNickname} · {(d as any).endDate && `~${new Date((d as any).endDate).toLocaleDateString()}`}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 진행중인 수다 */}
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>🟢 진행중인 수다</div>
-        {discussions.filter((d: any) => d.status !== 'closed').length === 0 ? (
-          <div style={styles.emptyState}>진행중인 수다가 없습니다</div>
-        ) : (
-          discussions.filter((d: any) => d.status !== 'closed').map((d) => (
-            <div
-              key={d.id}
-              style={styles.discussionItem}
-              onClick={() => navigate(`/discussions/${d.id}`)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}
-            >
-              <div style={styles.discussionTitle}>
-                {d.title}
-                {(d as any).endDate && <span style={{ fontSize: 11, color: '#718096', marginLeft: 8 }}>~{new Date((d as any).endDate).toLocaleDateString()}</span>}
-              </div>
-              <div style={styles.discussionMeta}>
                 {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
+                {(d as any).endDate && ` · ~${new Date((d as any).endDate).toLocaleDateString()}`}
               </div>
             </div>
           ))
         )}
       </div>
 
-<<<<<<< Updated upstream
-      {/* 종료된 수다 */}
-      {discussions.filter((d: any) => d.status === 'closed').length > 0 && (
-        <div style={styles.section}>
-          <div style={styles.sectionTitle}>🔴 종료된 수다</div>
-          {discussions.filter((d: any) => d.status === 'closed').map((d) => (
-            <div
-              key={d.id}
-              style={{ ...styles.discussionItem, opacity: 0.6 }}
-              onClick={() => navigate(`/discussions/${d.id}`)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}
-            >
-              <div style={styles.discussionTitle}>
-                {d.title}
-                <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>
-              </div>
-              <div style={styles.discussionMeta}>
-                {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 책수다 만들기 모달 */}
-=======
       {/* 스레드 만들기 모달 */}
->>>>>>> Stashed changes
       {showCreateModal && (
         <div style={styles.overlay} onClick={handleOverlayClick}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-<<<<<<< Updated upstream
-              <div style={styles.modalTitle}>💬 책수다 만들기</div>
-=======
               <div style={styles.modalTitle}>💬 스레드 만들기</div>
->>>>>>> Stashed changes
               <button style={styles.closeBtn} onClick={() => setShowCreateModal(false)} aria-label="닫기">×</button>
             </div>
 
@@ -550,11 +465,7 @@ function DiscussionsPage() {
                     style={{ ...styles.input, ...(formErrors.title ? styles.inputError : {}) }}
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
-<<<<<<< Updated upstream
-                    placeholder="주제를 입력해주세요"
-=======
                     placeholder="제목을 입력해주세요"
->>>>>>> Stashed changes
                   />
                   {formErrors.title && <div style={styles.errorText}>{formErrors.title}</div>}
                 </div>
@@ -565,11 +476,7 @@ function DiscussionsPage() {
                     style={styles.textarea}
                     value={formContent}
                     onChange={(e) => setFormContent(e.target.value)}
-<<<<<<< Updated upstream
-                    placeholder="주제에 대한 설명 (선택)"
-=======
                     placeholder="내용을 입력해주세요"
->>>>>>> Stashed changes
                   />
                   {formErrors.content && <div style={styles.errorText}>{formErrors.content}</div>}
                 </div>
@@ -606,16 +513,11 @@ function DiscussionsPage() {
                   style={{ ...styles.button, ...(submitting ? styles.buttonDisabled : {}) }}
                   disabled={submitting}
                 >
-<<<<<<< Updated upstream
-                  {submitting ? '생성 중...' : '책수다 만들기'}
-=======
                   {submitting ? '생성 중...' : '스레드 만들기'}
->>>>>>> Stashed changes
                 </button>
               </form>
             </div>
 
-            {/* 구분선 */}
             <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '20px 0' }} />
 
             {/* AI 스레드 주제 제안 */}
