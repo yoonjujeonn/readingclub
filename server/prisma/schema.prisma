@@ -111,14 +111,17 @@ model Memo {
 }
 
 model Discussion {
-  id            String   @id @default(uuid())
-  groupId       String   @map("group_id")
-  authorId      String   @map("author_id")
-  memoId        String?  @map("memo_id")
-  title         String   @db.VarChar(200)
-  content       String?  @db.Text
-  isRecommended Boolean  @default(false) @map("is_recommended")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id            String    @id @default(uuid())
+  groupId       String    @map("group_id")
+  authorId      String    @map("author_id")
+  memoId        String?   @map("memo_id")
+  title         String    @db.VarChar(200)
+  content       String?   @db.Text
+  isRecommended Boolean   @default(false) @map("is_recommended")
+  isPinned      Boolean   @default(false) @map("is_pinned")
+  status        String    @default("active") @map("status") @db.VarChar(20)
+  endDate       DateTime? @map("end_date") @db.Date
+  createdAt     DateTime  @default(now()) @map("created_at")
 
   group    Group     @relation(fields: [groupId], references: [id])
   author   User      @relation(fields: [authorId], references: [id])

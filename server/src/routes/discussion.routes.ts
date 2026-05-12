@@ -10,9 +10,10 @@ const router = Router();
 router.get('/groups/:groupId/discussions', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const authorId = typeof req.query.authorId === 'string' ? req.query.authorId : undefined;
+    const status = typeof req.query.status === 'string' ? req.query.status : undefined;
     const discussions = await discussionService.listTopics(
       req.params.groupId as string,
-      authorId ? { authorId } : undefined,
+      { ...(authorId && { authorId }), ...(status && { status }) },
     );
     res.json(discussions);
   } catch (err) {
@@ -160,6 +161,53 @@ router.post('/comments/:id/replies', authMiddleware, async (req: AuthRequest, re
     res.status(500).json({
       error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' },
     });
+  }
+});
+
+// PATCH /api/discussions/:id/end-date - 종료일 수정 (방장)
+router.patch('/discussions/:id/end-date', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { endDate } = req.body;
+    if (!endDate) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '종료일을 입력해주세요' } });
+      return;
+    }
+    const result = await discussionService.updateEndDate(req.params.id as string, req.user!.userId, endDate);
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// POST /api/discussions/:id/pin - 대표 스레드 설정 (방장)
+router.post('/discussions/:id/pin', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await discussionService.pinThread(req.params.id as string, req.user!.userId);
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// DELETE /api/discussions/:id/pin - 대표 스레드 해제 (방장)
+router.delete('/discussions/:id/pin', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await discussionService.unpinThread(req.params.id as string, req.user!.userId);
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
   }
 });
 

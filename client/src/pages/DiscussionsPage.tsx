@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { discussionsApi } from '../api/discussions';
+import { groupsApi } from '../api/groups';
 import { memosApi } from '../api/memos';
 import { aiApi, type AiTopic } from '../api/ai';
 import { useAuthStore } from '../stores/authStore';
@@ -241,6 +242,7 @@ function DiscussionsPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
+  const [isOwner, setIsOwner] = useState(false);
   const [recommendations, setRecommendations] = useState<RecommendedTopic[]>([]);
   const [aiTopics, setAiTopics] = useState<AiTopic[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -253,6 +255,7 @@ function DiscussionsPage() {
   const [formTitle, setFormTitle] = useState('');
   const [formContent, setFormContent] = useState('');
   const [formMemoId, setFormMemoId] = useState('');
+  const [formEndDate, setFormEndDate] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -280,6 +283,14 @@ function DiscussionsPage() {
       setDiscussions(discRes.data);
       setRecommendations(recRes.data);
       setMyMemos(memoRes.data.myMemos || []);
+
+      // 방장 여부 확인
+      if (currentUserId) {
+        const groupRes = await groupsApi.getDetail(groupId!).catch(() => ({ data: null }));
+        if (groupRes.data) {
+          setIsOwner(groupRes.data.ownerId === currentUserId);
+        }
+      }
     } catch {
       setDiscussions([]);
     } finally {
@@ -306,7 +317,8 @@ function DiscussionsPage() {
     e.preventDefault();
     setServerError('');
     const errs: Record<string, string> = {};
-    if (!formTitle.trim()) errs.title = '토론 주제를 입력해주세요';
+    if (!formTitle.trim()) errs.title = '주제를 입력해주세요';
+    if (!formEndDate) errs.endDate = '종료일을 입력해주세요';
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) return;
     if (!groupId) return;
@@ -317,10 +329,12 @@ function DiscussionsPage() {
         title: formTitle.trim(),
         content: formContent.trim() || undefined,
         memoId: formMemoId || undefined,
+        endDate: formEndDate || undefined,
       });
       setFormTitle('');
       setFormContent('');
       setFormMemoId('');
+      setFormEndDate('');
       setShowCreateModal(false);
       fetchData();
     } catch (err) {
@@ -378,9 +392,9 @@ function DiscussionsPage() {
   return (
     <div style={styles.container}>
       <Link to={`/groups/${groupId}`} style={styles.backLink}>← 모임으로</Link>
-      <h1 style={styles.title}>💬 토론</h1>
+      <h1 style={styles.title}>📚 책수다</h1>
 
-      {/* 헤더: 토론 주제 만들기 버튼 */}
+      {/* 헤더: 책수다 만들기 버튼 */}
       <div style={styles.headerRow}>
         {/* Filter */}
         <div style={styles.filterRow}>
@@ -398,19 +412,15 @@ function DiscussionsPage() {
           </button>
         </div>
         <button style={styles.createBtn} onClick={() => setShowCreateModal(true)}>
-          + 토론 주제 만들기
+          + 책수다 만들기
         </button>
       </div>
 
-      {/* Discussion List */}
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>토론 주제 목록</div>
-        {loading ? (
-          <div style={styles.emptyState}>불러오는 중...</div>
-        ) : discussions.length === 0 ? (
-          <div style={styles.emptyState}>토론 주제가 없습니다</div>
-        ) : (
-          discussions.map((d) => (
+      {/* 📌 대표 수다 (고정) */}
+      {discussions.filter((d: any) => d.isPinned).length > 0 && (
+        <div style={{ ...styles.section, borderLeft: '4px solid #3182ce' }}>
+          <div style={styles.sectionTitle}>📌 대표 수다</div>
+          {discussions.filter((d: any) => d.isPinned).map((d) => (
             <div
               key={d.id}
               style={styles.discussionItem}
@@ -421,23 +431,74 @@ function DiscussionsPage() {
             >
               <div style={styles.discussionTitle}>
                 {d.title}
-                {d.isRecommended && <span style={styles.recommendedBadge}>추천</span>}
+                {(d as any).status === 'closed' && <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>}
+              </div>
+              <div style={styles.discussionMeta}>
+                {d.authorNickname} · {(d as any).endDate && `~${new Date((d as any).endDate).toLocaleDateString()}`}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 진행중인 수다 */}
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>🟢 진행중인 수다</div>
+        {discussions.filter((d: any) => d.status !== 'closed').length === 0 ? (
+          <div style={styles.emptyState}>진행중인 수다가 없습니다</div>
+        ) : (
+          discussions.filter((d: any) => d.status !== 'closed').map((d) => (
+            <div
+              key={d.id}
+              style={styles.discussionItem}
+              onClick={() => navigate(`/discussions/${d.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}
+            >
+              <div style={styles.discussionTitle}>
+                {d.title}
+                {(d as any).endDate && <span style={{ fontSize: 11, color: '#718096', marginLeft: 8 }}>~{new Date((d as any).endDate).toLocaleDateString()}</span>}
               </div>
               <div style={styles.discussionMeta}>
                 {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
-                {d.memoId && ' · 📝 메모 연결됨'}
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* 토론 주제 만들기 모달 */}
+      {/* 종료된 수다 */}
+      {discussions.filter((d: any) => d.status === 'closed').length > 0 && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>🔴 종료된 수다</div>
+          {discussions.filter((d: any) => d.status === 'closed').map((d) => (
+            <div
+              key={d.id}
+              style={{ ...styles.discussionItem, opacity: 0.6 }}
+              onClick={() => navigate(`/discussions/${d.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}
+            >
+              <div style={styles.discussionTitle}>
+                {d.title}
+                <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>
+              </div>
+              <div style={styles.discussionMeta}>
+                {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 책수다 만들기 모달 */}
       {showCreateModal && (
         <div style={styles.overlay} onClick={handleOverlayClick}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <div style={styles.modalTitle}>💬 토론 주제 만들기</div>
+              <div style={styles.modalTitle}>💬 책수다 만들기</div>
               <button style={styles.closeBtn} onClick={() => setShowCreateModal(false)} aria-label="닫기">×</button>
             </div>
 
@@ -454,7 +515,7 @@ function DiscussionsPage() {
                     style={{ ...styles.input, ...(formErrors.title ? styles.inputError : {}) }}
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
-                    placeholder="토론 주제를 입력해주세요"
+                    placeholder="주제를 입력해주세요"
                   />
                   {formErrors.title && <div style={styles.errorText}>{formErrors.title}</div>}
                 </div>
@@ -465,7 +526,7 @@ function DiscussionsPage() {
                     style={styles.textarea}
                     value={formContent}
                     onChange={(e) => setFormContent(e.target.value)}
-                    placeholder="토론 주제에 대한 설명 (선택)"
+                    placeholder="주제에 대한 설명 (선택)"
                   />
                 </div>
 
@@ -485,12 +546,23 @@ function DiscussionsPage() {
                   </select>
                 </div>
 
+                <div style={styles.field}>
+                  <label style={styles.label}>종료일 *</label>
+                  <input
+                    type="date"
+                    style={{ ...styles.input, ...(formErrors.endDate ? styles.inputError : {}) }}
+                    value={formEndDate}
+                    onChange={(e) => setFormEndDate(e.target.value)}
+                  />
+                  {formErrors.endDate && <div style={styles.errorText}>{formErrors.endDate}</div>}
+                </div>
+
                 <button
                   type="submit"
                   style={{ ...styles.button, ...(submitting ? styles.buttonDisabled : {}) }}
                   disabled={submitting}
                 >
-                  {submitting ? '생성 중...' : '토론 주제 만들기'}
+                  {submitting ? '생성 중...' : '책수다 만들기'}
                 </button>
               </form>
             </div>

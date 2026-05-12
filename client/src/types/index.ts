@@ -132,6 +132,7 @@ export interface CreateDiscussionRequest {
   title: string;
   content?: string;
   memoId?: string;
+  endDate?: string;
 }
 
 export interface Comment {
