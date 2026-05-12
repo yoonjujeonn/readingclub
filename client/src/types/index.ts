@@ -125,6 +125,9 @@ export interface Discussion {
   title: string;
   content?: string;
   isRecommended: boolean;
+  isPinned?: boolean;
+  status?: string;
+  endDate?: string;
   createdAt: string;
 }
 

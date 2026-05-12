@@ -413,15 +413,11 @@ function DiscussionsPage() {
         </button>
       </div>
 
-      {/* 스레드 목록 */}
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>스레드 목록</div>
-        {loading ? (
-          <div style={styles.emptyState}>불러오는 중...</div>
-        ) : discussions.length === 0 ? (
-          <div style={styles.emptyState}>스레드가 없습니다</div>
-        ) : (
-          discussions.map((d) => (
+      {/* 📌 대표 스레드 (고정) */}
+      {!loading && discussions.filter((d: any) => d.isPinned).length > 0 && (
+        <div style={{ ...styles.section, borderLeft: '4px solid #3182ce' }}>
+          <div style={styles.sectionTitle}>📌 대표 스레드</div>
+          {discussions.filter((d: any) => d.isPinned).map((d) => (
             <div
               key={d.id}
               style={styles.discussionItem}
@@ -435,13 +431,66 @@ function DiscussionsPage() {
                 {(d as any).status === 'closed' && <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>}
               </div>
               <div style={styles.discussionMeta}>
+                {d.authorNickname} · {(d as any).endDate && `~${new Date((d as any).endDate).toLocaleDateString()}`}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 🟢 진행중인 스레드 */}
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>🟢 진행중인 스레드</div>
+        {loading ? (
+          <div style={styles.emptyState}>불러오는 중...</div>
+        ) : discussions.filter((d: any) => d.status !== 'closed').length === 0 ? (
+          <div style={styles.emptyState}>진행중인 스레드가 없습니다</div>
+        ) : (
+          discussions.filter((d: any) => d.status !== 'closed').map((d) => (
+            <div
+              key={d.id}
+              style={styles.discussionItem}
+              onClick={() => navigate(`/discussions/${d.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}
+            >
+              <div style={styles.discussionTitle}>
+                {d.title}
+                {(d as any).endDate && <span style={{ fontSize: 11, color: '#718096', marginLeft: 8 }}>~{new Date((d as any).endDate).toLocaleDateString()}</span>}
+              </div>
+              <div style={styles.discussionMeta}>
                 {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
-                {(d as any).endDate && ` · ~${new Date((d as any).endDate).toLocaleDateString()}`}
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* 🔴 종료된 스레드 */}
+      {!loading && discussions.filter((d: any) => d.status === 'closed').length > 0 && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>🔴 종료된 스레드</div>
+          {discussions.filter((d: any) => d.status === 'closed').map((d) => (
+            <div
+              key={d.id}
+              style={{ ...styles.discussionItem, opacity: 0.6 }}
+              onClick={() => navigate(`/discussions/${d.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}
+            >
+              <div style={styles.discussionTitle}>
+                {d.title}
+                <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>
+              </div>
+              <div style={styles.discussionMeta}>
+                {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 스레드 만들기 모달 */}
       {showCreateModal && (
