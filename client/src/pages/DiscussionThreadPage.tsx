@@ -426,27 +426,33 @@ function DiscussionThreadPage() {
       </div>
 
       {/* Add Comment */}
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>의견 작성</div>
-        <form onSubmit={handleAddComment}>
-          <textarea
-            style={styles.textarea}
-            rows={3}
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="의견을 작성해주세요"
-          />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-            <button
-              type="submit"
-              style={styles.submitBtn}
-              disabled={submittingComment}
-            >
-              {submittingComment ? '작성 중...' : '의견 작성'}
-            </button>
-          </div>
-        </form>
-      </div>
+      {(topic as any)?.status === 'closed' ? (
+        <div style={{ ...styles.section, backgroundColor: '#fff5f5', textAlign: 'center' as const }}>
+          <div style={{ color: '#c53030', fontSize: 14, fontWeight: 500 }}>🔴 이 스레드는 종료되었습니다. 의견 작성이 불가능합니다.</div>
+        </div>
+      ) : (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>의견 작성</div>
+          <form onSubmit={handleAddComment}>
+            <textarea
+              style={styles.textarea}
+              rows={3}
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="의견을 작성해주세요"
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+              <button
+                type="submit"
+                style={styles.submitBtn}
+                disabled={submittingComment}
+              >
+                {submittingComment ? '작성 중...' : '의견 작성'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
     </div>
   );

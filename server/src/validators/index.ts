@@ -69,6 +69,7 @@ export const CreateDiscussionSchema = z.object({
   title: z.string().min(1, '토론 주제를 입력해주세요'),
   content: z.string().optional(),
   memoId: z.string().uuid().optional(),
+  endDate: z.string().optional(),
 });
 
 // 의견 작성

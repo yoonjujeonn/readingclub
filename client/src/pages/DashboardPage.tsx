@@ -4,14 +4,14 @@ import { dashboardApi, type Announcement, type DiscussionSchedule } from '../api
 import { groupsApi } from '../api/groups';
 import { discussionsApi } from '../api/discussions';
 import { useAuthStore } from '../stores/authStore';
-import type { GroupDetail, RecommendedTopic } from '../types';
+import type { GroupDetail, Discussion } from '../types';
 
 const tabs = [
   { id: 'calendar', label: '📅 토론 일정' },
   { id: 'invite', label: '🔗 초대 링크' },
   { id: 'announcements', label: '📢 공지사항' },
   { id: 'members', label: '👥 멤버 관리' },
-  { id: 'topics', label: '💡 추천 주제' },
+  { id: 'threads', label: '📚 책수다 관리' },
 ] as const;
 
 type TabId = typeof tabs[number]['id'];
@@ -36,7 +36,6 @@ const styles: Record<string, React.CSSProperties> = {
   inviteBox: { backgroundColor: '#f7fafc', padding: '12px 16px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 12 },
   calGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, textAlign: 'center' as const },
   calCell: { padding: '8px 4px', fontSize: 12, borderRadius: 4, minHeight: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  recCard: { backgroundColor: '#f0fff4', padding: '12px 16px', borderRadius: 6, marginBottom: 8 },
 };
 
 function DashboardPage() {
@@ -50,7 +49,9 @@ function DashboardPage() {
   const [inviteExpiresAt, setInviteExpiresAt] = useState<string | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [schedules, setSchedules] = useState<DiscussionSchedule[]>([]);
-  const [recommendations, setRecommendations] = useState<RecommendedTopic[]>([]);
+  const [threads, setThreads] = useState<Discussion[]>([]);
+  const [editingEndDateId, setEditingEndDateId] = useState<string | null>(null);
+  const [editingEndDateValue, setEditingEndDateValue] = useState('');
   const [newAnnTitle, setNewAnnTitle] = useState('');
   const [newAnnContent, setNewAnnContent] = useState('');
   const [newSchedTitle, setNewSchedTitle] = useState('');
@@ -67,19 +68,19 @@ function DashboardPage() {
   const fetchAll = async () => {
     if (!groupId) return;
     try {
-      const [gRes, invRes, annRes, recRes, schedRes] = await Promise.all([
+      const [gRes, invRes, annRes, schedRes, threadsRes] = await Promise.all([
         groupsApi.getDetail(groupId),
         dashboardApi.getInviteCode(groupId).catch(() => ({ data: { inviteCode: null, expiresAt: null } })),
         dashboardApi.listAnnouncements(groupId).catch(() => ({ data: [] })),
-        discussionsApi.getRecommendations(groupId).catch(() => ({ data: [] })),
         dashboardApi.listSchedules(groupId).catch(() => ({ data: [] })),
+        discussionsApi.listByGroup(groupId).catch(() => ({ data: [] })),
       ]);
       setGroup(gRes.data);
       setInviteCode(invRes.data.inviteCode);
       setInviteExpiresAt(invRes.data.expiresAt || null);
       setAnnouncements(annRes.data);
-      setRecommendations(recRes.data);
       setSchedules(schedRes.data);
+      setThreads(threadsRes.data);
     } catch {}
   };
 
@@ -117,12 +118,6 @@ function DashboardPage() {
     await dashboardApi.deleteAnnouncement(groupId, annId); fetchAll();
   };
 
-  const handleSelectRecommendation = async (rec: RecommendedTopic) => {
-    if (!groupId) return;
-    await discussionsApi.create(groupId, { title: rec.title, content: rec.content });
-    alert('토론 스레드가 생성되었습니다'); fetchAll();
-  };
-
   const handleCreateSchedule = async () => {
     if (!groupId || !newSchedTitle.trim() || !newSchedStart || !newSchedEnd) return;
     await dashboardApi.createSchedule(groupId, { title: newSchedTitle.trim(), startDate: newSchedStart, endDate: newSchedEnd });
@@ -132,6 +127,42 @@ function DashboardPage() {
   const handleDeleteSchedule = async (scheduleId: string) => {
     if (!groupId || !confirm('이 일정을 삭제하시겠습니까?')) return;
     await dashboardApi.deleteSchedule(groupId, scheduleId); fetchAll();
+  };
+
+  const handleUpdateEndDate = async (discussionId: string) => {
+    setEditingEndDateId(discussionId);
+    const thread = threads.find((t: any) => t.id === discussionId);
+    setEditingEndDateValue(thread?.endDate ? new Date(thread.endDate).toISOString().slice(0, 10) : '');
+  };
+
+  const handleSaveEndDate = async () => {
+    if (!editingEndDateId || !editingEndDateValue) return;
+    try {
+      await discussionsApi.updateEndDate(editingEndDateId, editingEndDateValue);
+      setEditingEndDateId(null);
+      setEditingEndDateValue('');
+      fetchAll();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || '종료일 수정에 실패했습니다');
+    }
+  };
+
+  const handlePinThread = async (discussionId: string) => {
+    try {
+      await discussionsApi.pinThread(discussionId);
+      fetchAll();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || '대표 설정에 실패했습니다');
+    }
+  };
+
+  const handleUnpinThread = async (discussionId: string) => {
+    try {
+      await discussionsApi.unpinThread(discussionId);
+      fetchAll();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || '대표 해제에 실패했습니다');
+    }
   };
 
   // Calendar helpers
@@ -271,17 +302,43 @@ function DashboardPage() {
           </div>
         );
 
-      case 'topics':
+      case 'threads':
         return (
           <div style={styles.section}>
-            <div style={styles.sectionTitle}>💡 AI 추천 토론 주제</div>
-            {recommendations.length === 0 ? (
-              <div style={{ color: '#a0aec0', fontSize: 13 }}>공개 메모가 2개 이상이면 추천 주제가 생성됩니다</div>
-            ) : recommendations.map((rec, i) => (
-              <div key={i} style={styles.recCard}>
-                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{rec.title}</div>
-                <div style={{ fontSize: 13, color: '#4a5568', marginBottom: 8 }}>{rec.content}</div>
-                <button style={{ ...styles.btn, ...styles.btnPrimary, padding: '6px 14px', fontSize: 12 }} onClick={() => handleSelectRecommendation(rec)}>이 주제로 토론 열기</button>
+            <div style={styles.sectionTitle}>📚 책수다 관리</div>
+            <div style={{ fontSize: 13, color: '#718096', marginBottom: 16 }}>스레드 종료일 수정, 대표 수다 설정/해제를 관리합니다.</div>
+
+            {threads.length === 0 ? (
+              <div style={{ color: '#a0aec0', fontSize: 13 }}>아직 생성된 수다가 없습니다</div>
+            ) : threads.map((d: any) => (
+              <div key={d.id} style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: '#2d3748' }}>
+                      {d.title}
+                      {d.isPinned && <span style={{ fontSize: 11, backgroundColor: '#ebf8ff', color: '#3182ce', padding: '2px 6px', borderRadius: 10, marginLeft: 6 }}>대표</span>}
+                      {d.status === 'closed' && <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 6px', borderRadius: 10, marginLeft: 6 }}>종료</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#a0aec0', marginTop: 2 }}>
+                      종료일: {d.endDate ? new Date(d.endDate).toLocaleDateString() : '없음'}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button style={{ ...styles.btn, ...styles.btnSecondary, padding: '4px 8px', fontSize: 11 }} onClick={() => handleUpdateEndDate(d.id)}>종료일 수정</button>
+                    {d.isPinned ? (
+                      <button style={{ ...styles.btn, ...styles.btnSecondary, padding: '4px 8px', fontSize: 11 }} onClick={() => handleUnpinThread(d.id)}>대표 해제</button>
+                    ) : (
+                      <button style={{ ...styles.btn, ...styles.btnPrimary, padding: '4px 8px', fontSize: 11 }} onClick={() => handlePinThread(d.id)}>대표 설정</button>
+                    )}
+                  </div>
+                </div>
+                {editingEndDateId === d.id && (
+                  <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input type="date" style={{ ...styles.input, marginBottom: 0, flex: 1 }} value={editingEndDateValue} onChange={e => setEditingEndDateValue(e.target.value)} />
+                    <button style={{ ...styles.btn, ...styles.btnPrimary, padding: '6px 12px', fontSize: 12 }} onClick={handleSaveEndDate}>저장</button>
+                    <button style={{ ...styles.btn, ...styles.btnSecondary, padding: '6px 12px', fontSize: 12 }} onClick={() => setEditingEndDateId(null)}>취소</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

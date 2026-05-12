@@ -40,6 +40,8 @@ export const discussionService = {
         title: data.title,
         content: data.content ?? null,
         isRecommended: false,
+        status: 'active',
+        endDate: data.endDate ? new Date(data.endDate) : null,
       },
       include: {
         author: { select: { id: true, nickname: true } },
@@ -67,10 +69,23 @@ export const discussionService = {
     };
   },
 
-  async listTopics(groupId: string, filter?: { authorId?: string }) {
+  async listTopics(groupId: string, filter?: { authorId?: string; status?: string }) {
+    // 종료일 지난 active 스레드를 자동 종료 처리
+    await prisma.discussion.updateMany({
+      where: {
+        groupId,
+        status: 'active',
+        endDate: { not: null, lt: new Date() },
+      },
+      data: { status: 'closed' },
+    });
+
     const where: any = { groupId };
     if (filter?.authorId) {
       where.authorId = filter.authorId;
+    }
+    if (filter?.status) {
+      where.status = filter.status;
     }
 
     const discussions = await prisma.discussion.findMany({
@@ -91,6 +106,9 @@ export const discussionService = {
       title: d.title,
       content: d.content,
       isRecommended: d.isRecommended,
+      isPinned: (d as any).isPinned,
+      status: (d as any).status,
+      endDate: (d as any).endDate,
       createdAt: d.createdAt,
       author: d.author,
       memo: d.memo,
@@ -105,6 +123,11 @@ export const discussionService = {
     });
     if (!discussion) {
       throw new AppError(404, 'NOT_FOUND', '토론 주제를 찾을 수 없습니다');
+    }
+
+    // 종료된 스레드에는 의견 작성 불가
+    if (discussion.status === 'closed') {
+      throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드에는 의견을 작성할 수 없습니다');
     }
 
     // Verify user is a member of the group
@@ -137,6 +160,11 @@ export const discussionService = {
     });
     if (!comment) {
       throw new AppError(404, 'NOT_FOUND', '의견을 찾을 수 없습니다');
+    }
+
+    // 종료된 스레드에는 댓글 작성 불가
+    if (comment.discussion && comment.discussion.status === 'closed') {
+      throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드에는 댓글을 작성할 수 없습니다');
     }
 
     // Verify user is a member of the group
@@ -270,6 +298,65 @@ export const discussionService = {
     });
 
     return discussion;
+  },
+
+  // 종료일 수정 (방장) — 종료된 스레드를 다시 진행중으로 바꿀 수 있음
+  async updateEndDate(discussionId: string, userId: string, endDate: string) {
+    const discussion = await prisma.discussion.findUnique({ where: { id: discussionId } });
+    if (!discussion) throw new AppError(404, 'NOT_FOUND', '스레드를 찾을 수 없습니다');
+
+    const group = await prisma.group.findUnique({ where: { id: discussion.groupId } });
+    if (!group || group.ownerId !== userId) {
+      throw new AppError(403, 'FORBIDDEN', '방장만 종료일을 수정할 수 있습니다');
+    }
+
+    const newEndDate = new Date(endDate);
+    const newStatus = newEndDate >= new Date() ? 'active' : 'closed';
+
+    return prisma.discussion.update({
+      where: { id: discussionId },
+      data: { endDate: newEndDate, status: newStatus },
+    });
+  },
+
+  // 대표 스레드 설정 (방장, 최대 3개)
+  async pinThread(discussionId: string, userId: string) {
+    const discussion = await prisma.discussion.findUnique({ where: { id: discussionId } });
+    if (!discussion) throw new AppError(404, 'NOT_FOUND', '스레드를 찾을 수 없습니다');
+
+    const group = await prisma.group.findUnique({ where: { id: discussion.groupId } });
+    if (!group || group.ownerId !== userId) {
+      throw new AppError(403, 'FORBIDDEN', '방장만 대표 스레드를 설정할 수 있습니다');
+    }
+
+    // 최대 3개 확인
+    const pinnedCount = await prisma.discussion.count({
+      where: { groupId: discussion.groupId, isPinned: true },
+    });
+    if (pinnedCount >= 3) {
+      throw new AppError(400, 'PIN_LIMIT', '대표 스레드는 최대 3개까지 설정할 수 있습니다');
+    }
+
+    return prisma.discussion.update({
+      where: { id: discussionId },
+      data: { isPinned: true },
+    });
+  },
+
+  // 대표 스레드 해제 (방장)
+  async unpinThread(discussionId: string, userId: string) {
+    const discussion = await prisma.discussion.findUnique({ where: { id: discussionId } });
+    if (!discussion) throw new AppError(404, 'NOT_FOUND', '스레드를 찾을 수 없습니다');
+
+    const group = await prisma.group.findUnique({ where: { id: discussion.groupId } });
+    if (!group || group.ownerId !== userId) {
+      throw new AppError(403, 'FORBIDDEN', '방장만 대표 스레드를 해제할 수 있습니다');
+    }
+
+    return prisma.discussion.update({
+      where: { id: discussionId },
+      data: { isPinned: false },
+    });
   },
 };
 

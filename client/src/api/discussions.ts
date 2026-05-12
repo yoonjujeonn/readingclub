@@ -40,4 +40,13 @@ export const discussionsApi = {
 
   getRecommendations: (groupId: string) =>
     apiClient.get<RecommendedTopic[]>(`/groups/${groupId}/discussions/recommendations`),
+
+  updateEndDate: (discussionId: string, endDate: string) =>
+    apiClient.patch(`/discussions/${discussionId}/end-date`, { endDate }),
+
+  pinThread: (discussionId: string) =>
+    apiClient.post(`/discussions/${discussionId}/pin`),
+
+  unpinThread: (discussionId: string) =>
+    apiClient.delete(`/discussions/${discussionId}/pin`),
 };
