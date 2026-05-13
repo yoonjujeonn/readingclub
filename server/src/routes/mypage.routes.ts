@@ -1,28 +1,18 @@
 import { Router, Response } from 'express';
 import multer from 'multer';
-import path from 'path';
 import { mypageService } from '../services/mypage.service';
 import { AppError } from '../services/auth.service';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
+import { isAllowedImageType, saveProfileImage } from '../services/file-storage.service';
 
 import { UpdateNicknameSchema } from '../validators';
 
 // 파일 업로드 설정
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, path.join(__dirname, '../../uploads'));
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
-  },
-});
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (_req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    cb(null, allowed.includes(file.mimetype));
+    cb(null, isAllowedImageType(file.mimetype));
   },
 });
 
@@ -157,7 +147,7 @@ router.patch('/profile-image', authMiddleware, upload.single('profileImage'), as
       res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '이미지 파일을 선택해주세요' } });
       return;
     }
-    const profileImageUrl = `/uploads/${req.file.filename}`;
+    const profileImageUrl = await saveProfileImage(req.file);
     const profile = await mypageService.updateProfileImage(req.user!.userId, profileImageUrl);
     res.json(profile);
   } catch (err) {
