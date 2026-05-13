@@ -99,20 +99,20 @@ ${memoSummary}
       }
     }
 
-    const systemPrompt = `당신은 독서 토론 정리 도우미입니다. 토론 내용을 핵심 위주로 정리해주세요. 마크다운 형식으로 작성하세요.`;
-    const userPrompt = `다음 토론 스레드를 정리해주세요:
+    const systemPrompt = `당신은 독서 토론 정리 도우미입니다. 스레드에서 나눈 이야기를 핵심 위주로 정리해주세요. 마크다운 형식으로 작성하세요.`;
+    const userPrompt = `다음 스레드 대화를 정리해주세요:
 
 ${thread.join('\n')}
 
 다음 형식으로 정리해주세요:
-## 핵심 논점
-- 주요 논점들
+## 핵심 내용
+- 주요 이야기들
 
 ## 주요 의견
 - 참여자별 핵심 의견
 
 ## 결론 및 인사이트
-- 토론에서 도출된 인사이트`;
+- 대화에서 도출된 인사이트`;
 
     const summary = await callGemini(systemPrompt, userPrompt);
     return { summary };
@@ -156,7 +156,7 @@ ${thread.join('\n')}
       return `- ${d.title} (의견 ${commentCount}개, 댓글 ${replyCount}개)`;
     }).join('\n') || '(토론 없음)';
 
-    const systemPrompt = `당신은 독서 모임 회고 도우미입니다. 사용자의 메모와 모임 토론 내용을 바탕으로 개인화된 독서 인사이트를 정리해주세요. 마크다운 형식으로 작성하세요.`;
+    const systemPrompt = `당신은 독서 모임 회고 도우미입니다. 사용자의 메모와 스레드에서 나눈 이야기를 바탕으로 개인화된 독서 인사이트를 정리해주세요. 마크다운 형식으로 작성하세요.`;
     const userPrompt = `책: ${group.book.title} (${group.book.author || '미상'})
 독서 기간: ${group.readingStartDate.toISOString().slice(0, 10)} ~ ${group.readingEndDate.toISOString().slice(0, 10)}
 참여자: ${group.members.map(m => m.user.nickname).join(', ')}
@@ -164,7 +164,7 @@ ${thread.join('\n')}
 내 메모:
 ${memoText}
 
-모임 토론:
+스레드 대화:
 ${discussionText}
 
 위 내용을 바탕으로 다음을 정리해주세요:
@@ -172,7 +172,7 @@ ${discussionText}
 - 이 책에서 내가 주목한 부분들
 
 ## 💡 핵심 인사이트
-- 메모와 토론에서 얻은 인사이트
+- 메모와 대화에서 얻은 인사이트
 
 ## 🔄 성장 포인트
 - 이 독서를 통해 얻은 것들

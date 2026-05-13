@@ -30,6 +30,7 @@ model User {
   ownedGroups  Group[]      @relation("GroupOwner")
   bans         GroupBan[]
   tokens       DiscussionToken[]
+  insights     DiscussionInsight[]
 
   @@map("users")
 }
@@ -73,6 +74,7 @@ model Group {
   announcements Announcement[]
   bans          GroupBan[]
   schedules     DiscussionSchedule[]
+  insights      DiscussionInsight[]
 
   @@map("groups")
 }
@@ -214,4 +216,24 @@ model DiscussionSchedule {
   group Group @relation(fields: [groupId], references: [id])
 
   @@map("discussion_schedules")
+}
+
+model DiscussionInsight {
+  id              String   @id @default(uuid())
+  groupId         String   @map("group_id")
+  userId          String   @map("user_id")
+  summary         String   @db.Text
+  keywords        String   @db.Text
+  participantStats String  @map("participant_stats") @db.Text
+  memoCount       Int      @default(0) @map("memo_count")
+  discussionCount Int      @default(0) @map("discussion_count")
+  commentCount    Int      @default(0) @map("comment_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  group Group @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([groupId, userId])
+  @@map("discussion_insights")
 }

@@ -6,6 +6,7 @@ import { groupsApi } from '../api/groups';
 import { useAuthStore } from '../stores/authStore';
 import { aiApi } from '../api/ai';
 import { Markdown } from '../components/Markdown';
+import { InsightCard } from '../components/InsightCard';
 import { timeAgo } from '../utils/timeAgo';
 import type { Comment as CommentType, Discussion } from '../types';
 
@@ -231,6 +232,9 @@ function DiscussionThreadPage() {
   const [aiSummary, setAiSummary] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
 
+  // Thread insight (종료 시 자동 생성된 인사이트)
+  const [threadInsight, setThreadInsight] = useState<any>(null);
+
   const fetchData = async () => {
     if (!discussionId) return;
     setLoading(true);
@@ -254,6 +258,12 @@ function DiscussionThreadPage() {
         const groupRes = await groupsApi.getDetail(topicRes.data.groupId).catch(() => ({ data: null }));
         if (groupRes.data) {
           setIsOwner(groupRes.data.ownerId === currentUserId);
+        }
+
+        // 종료된 스레드면 인사이트 불러오기
+        if (topicRes.data && (topicRes.data as any).status === 'closed' && topicRes.data.groupId) {
+          const insightRes = await aiApi.getSavedInsight(topicRes.data.groupId).catch(() => ({ data: null }));
+          if (insightRes.data) setThreadInsight(insightRes.data);
         }
       }
     } catch { /* ignore */ }
@@ -348,6 +358,17 @@ function DiscussionThreadPage() {
           </div>
         )}
       </div>
+
+      {/* Thread Insight (종료된 스레드) */}
+      {threadInsight && (topic as any)?.status === 'closed' && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>📊 인사이트</div>
+          <div style={{ fontSize: 13, color: '#718096', marginBottom: 12 }}>
+            이 스레드가 종료되어 AI가 자동으로 생성한 인사이트입니다.
+          </div>
+          <InsightCard insight={threadInsight} />
+        </div>
+      )}
 
       {/* Comments List */}
       <div style={styles.section}>

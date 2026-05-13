@@ -85,11 +85,7 @@ export const UpdateGroupSchema = z.object({
   readingEndDate: z.string().date().optional(),
   isPrivate: z.boolean().optional(),
   password: z.string().regex(/^\d{6}$/, '비밀번호는 숫자 6자리여야 합니다').optional().nullable(),
-}).refine(data => {
-  // 비공개로 전환할 때 비밀번호 필수
-  if (data.isPrivate === true && !data.password) return false;
-  return true;
-}, { message: '비공개 모임은 비밀번호를 설정해야 합니다' });
+});
 
 // 닉네임 변경
 export const UpdateNicknameSchema = z.object({

@@ -47,7 +47,6 @@ export const groupService = {
           maxMembers: data.maxMembers,
           readingStartDate: new Date(data.readingStartDate),
           readingEndDate: new Date(data.readingEndDate),
-          discussionDate: null,
           isPrivate: data.isPrivate ?? false,
           password: data.password ?? null,
         },
@@ -314,6 +313,9 @@ export const groupService = {
       if (data.isPrivate === false) {
         // 공개로 전환 시 비밀번호 제거
         updateData.password = null;
+      } else if (data.isPrivate === true && !group.isPrivate && !data.password) {
+        // 공개 → 비공개 전환인데 비밀번호가 없으면 에러
+        throw new AppError(400, 'VALIDATION_ERROR', '비공개 모임은 비밀번호를 설정해야 합니다');
       }
     }
     if (data.password !== undefined && data.password !== null) {
