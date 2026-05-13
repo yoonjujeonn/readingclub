@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { mypageApi } from '../api/mypage';
 import { aiApi } from '../api/ai';
-import { Markdown } from '../components/Markdown';
+import { InsightCard } from '../components/InsightCard';
 import { useAuthStore } from '../stores/authStore';
 import type { GroupCard, Memo, Discussion, User } from '../types';
 
@@ -23,8 +23,9 @@ function MyPage() {
   const [recommendedGroups, setRecommendedGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [insightGroupId, setInsightGroupId] = useState<string | null>(null);
-  const [insight, setInsight] = useState('');
+  const [insight, setInsight] = useState<any>(null);
   const [insightLoading, setInsightLoading] = useState(false);
+  const [generatedGroups, setGeneratedGroups] = useState<Set<string>>(new Set());
 
   // 닉네임 수정 상태
   const [editingNickname, setEditingNickname] = useState(false);
@@ -38,12 +39,13 @@ function MyPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [pRes, gRes, mRes, dRes, recRes] = await Promise.all([
+        const [pRes, gRes, mRes, dRes, recRes, insightsRes] = await Promise.all([
           mypageApi.getProfile().catch(() => ({ data: null })),
           mypageApi.getGroups().catch(() => ({ data: [] })),
           mypageApi.getMemos().catch(() => ({ data: [] })),
           mypageApi.getDiscussions().catch(() => ({ data: [] })),
           mypageApi.getRecommendedGroups().catch(() => ({ data: [] })),
+          aiApi.getMyInsights().catch(() => ({ data: [] })),
         ]);
         setProfile(pRes.data);
         if (pRes.data) setUser(pRes.data);
@@ -51,6 +53,9 @@ function MyPage() {
         setMemos(mRes.data);
         setDiscussions(dRes.data);
         setRecommendedGroups(recRes.data);
+        // 이미 인사이트가 생성된 모임 ID 추적
+        const existingIds = new Set<string>((insightsRes.data || []).map((i: any) => i.groupId));
+        setGeneratedGroups(existingIds);
       } finally {
         setLoading(false);
       }
@@ -106,14 +111,45 @@ function MyPage() {
 
   const handleGenerateInsight = async (groupId: string) => {
     setInsightGroupId(groupId);
-    setInsight('');
+    setInsight(null);
     setInsightLoading(true);
     try {
-      const res = await aiApi.generateInsight(groupId);
-      setInsight(res.data.insight);
+      const res = await aiApi.generateAndSaveInsight(groupId);
+      setInsight(res.data);
+      setGeneratedGroups(prev => new Set(prev).add(groupId));
     } catch {
       alert('AI 요청이 많아 일시적으로 처리할 수 없습니다. 잠시 후 다시 시도해주세요.');
       setInsightGroupId(null);
+    } finally { setInsightLoading(false); }
+  };
+
+  const handleToggleInsight = async (groupId: string) => {
+    // 이미 열려있으면 접기
+    if (insightGroupId === groupId && insight) {
+      setInsightGroupId(null);
+      setInsight(null);
+      return;
+    }
+    // 저장된 인사이트 열기
+    setInsightGroupId(groupId);
+    setInsight(null);
+    setInsightLoading(true);
+    try {
+      const existing = await aiApi.getSavedInsight(groupId);
+      if (existing.data) {
+        setInsight(existing.data);
+      }
+    } catch { /* ignore */ }
+    finally { setInsightLoading(false); }
+  };
+
+  const handleRegenerateInsight = async (groupId: string) => {
+    setInsightLoading(true);
+    try {
+      const res = await aiApi.generateAndSaveInsight(groupId);
+      setInsight(res.data);
+    } catch {
+      alert('AI 요청이 많아 일시적으로 처리할 수 없습니다. 잠시 후 다시 시도해주세요.');
     } finally { setInsightLoading(false); }
   };
 
@@ -215,19 +251,38 @@ function MyPage() {
                           👥 {g.memberCount || g.currentMembers || 0}/{g.maxMembers}명
                           {g.role === 'owner' && <span style={s.ownerBadge}>방장</span>}
                         </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleGenerateInsight(g.id); }}
-                          style={{ padding: '5px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer', backgroundColor: '#805ad5', color: '#fff', border: 'none', borderRadius: 6 }}
-                        >🤖 회고</button>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          {generatedGroups.has(g.id) && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleToggleInsight(g.id); }}
+                              style={{ padding: '5px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', backgroundColor: insightGroupId === g.id ? '#e2e8f0' : '#f7fafc', color: '#4a5568', border: '1px solid #e2e8f0', borderRadius: 6 }}
+                            >{insightGroupId === g.id ? '접기' : '열기'}</button>
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleGenerateInsight(g.id); }}
+                            style={{ padding: '5px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer', backgroundColor: '#805ad5', color: '#fff', border: 'none', borderRadius: 6 }}
+                          >{generatedGroups.has(g.id) ? '🔄 재생성' : '🤖 회고'}</button>
+                        </div>
                       </div>
                     </div>
                   </div>
                   {insightGroupId === g.id && (
                     <div style={{ padding: '12px 16px', backgroundColor: '#faf5ff', borderRadius: 6, marginBottom: 8 }}>
-                      {insightLoading ? <div style={{ fontSize: 14, color: '#805ad5' }}>🤖 인사이트 생성 중...</div> : <Markdown content={insight} />}
-                      {!insightLoading && insight && (
-                        <button onClick={() => { setInsightGroupId(null); setInsight(''); }} style={{ display: 'block', marginTop: 8, fontSize: 12, color: '#805ad5', background: 'none', border: 'none', cursor: 'pointer' }}>닫기</button>
-                      )}
+                      {insightLoading ? (
+                        <div style={{ fontSize: 14, color: '#805ad5' }}>🤖 인사이트 생성 중...</div>
+                      ) : insight ? (
+                        <div>
+                          <InsightCard insight={insight} />
+                          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                            <button
+                              onClick={() => { setInsightGroupId(null); setInsight(null); }}
+                              style={{ fontSize: 12, color: '#718096', background: 'none', border: '1px solid #e2e8f0', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}
+                            >
+                              접기
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </div>

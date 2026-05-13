@@ -12,6 +12,7 @@ import mypageRouter from './routes/mypage.routes';
 import dashboardRouter from './routes/dashboard.routes';
 import aiRouter from './routes/ai.routes';
 import tokenRouter from './routes/token.routes';
+import insightRouter from './routes/insight.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -52,6 +53,7 @@ app.use('/api/me', mypageRouter);
 app.use('/api', dashboardRouter);
 app.use('/api', aiRouter);
 app.use('/api', tokenRouter);
+app.use('/api', insightRouter);
 
 // 글로벌 에러 핸들러 (모든 라우터 뒤에 등록)
 app.use(globalErrorHandler);

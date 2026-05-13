@@ -14,4 +14,14 @@ export const aiApi = {
 
   generateInsight: (groupId: string) =>
     apiClient.post<{ insight: string }>(`/groups/${groupId}/ai/insight`),
+
+  // 인사이트 저장 기능
+  generateAndSaveInsight: (groupId: string) =>
+    apiClient.post<any>(`/groups/${groupId}/insights`),
+
+  getSavedInsight: (groupId: string) =>
+    apiClient.get<any>(`/groups/${groupId}/insights`),
+
+  getMyInsights: () =>
+    apiClient.get<any[]>('/me/insights'),
 };

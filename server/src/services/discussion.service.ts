@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { AppError } from './auth.service';
 import { CreateDiscussionInput, CreateCommentInput } from '../validators';
 import { tokenService } from './token.service';
+import { generateInsightOnThreadClose } from './insight.service';
 
 const prisma = new PrismaClient();
 
@@ -78,14 +79,28 @@ export const discussionService = {
 
   async listTopics(groupId: string, filter?: { authorId?: string; status?: string }) {
     // 종료일 지난 active 스레드를 자동 종료 처리
-    await prisma.discussion.updateMany({
+    const closedThreads = await prisma.discussion.findMany({
       where: {
         groupId,
         status: 'active',
         endDate: { not: null, lt: new Date() },
       },
-      data: { status: 'closed' },
+      select: { id: true },
     });
+
+    if (closedThreads.length > 0) {
+      await prisma.discussion.updateMany({
+        where: {
+          id: { in: closedThreads.map(t => t.id) },
+        },
+        data: { status: 'closed' },
+      });
+
+      // 종료된 스레드에 대해 비동기로 인사이트 생성 (응답 차단 안 함)
+      for (const thread of closedThreads) {
+        generateInsightOnThreadClose(thread.id).catch(() => {});
+      }
+    }
 
     const where: any = { groupId };
     if (filter?.authorId) {
@@ -329,10 +344,17 @@ export const discussionService = {
     newEndDate.setHours(23, 59, 59, 999);
     const newStatus = newEndDate >= new Date() ? 'active' : 'closed';
 
-    return prisma.discussion.update({
+    const updated = await prisma.discussion.update({
       where: { id: discussionId },
       data: { endDate: newEndDate, status: newStatus },
     });
+
+    // 종료로 변경된 경우 인사이트 자동 생성
+    if (newStatus === 'closed') {
+      generateInsightOnThreadClose(discussionId).catch(() => {});
+    }
+
+    return updated;
   },
 
   // 대표 스레드 설정 (방장, 최대 3개)
