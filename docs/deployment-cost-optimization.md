@@ -1,28 +1,13 @@
-# 소규모 서비스 배포 비용 최적화 제안
+# 소규모 서비스 배포 구조 제안
 
-작성일: 2026-05-13
+작성일: 2026-05-13  
+수정일: 2026-05-14
 
-이 문서는 현재 `buzzy pages` 프로젝트가 AWS EC2 한 대에서 실행되는 구조를 기준으로, 소규모/캡스톤 프로젝트에 적합한 배포 구조와 조금 더 안정적인 배포 구조를 비교한다.
+이 문서는 `buzzy pages` 프로젝트의 배포 구조를 **EC2 + S3** 기준으로 정리한다. 기존에는 EC2 단일 서버 구조와 S3 + CloudFront 분리 구조를 함께 검토했지만, 현재 서비스 규모와 비용을 고려해 CloudFront는 기본 구조에서 제외한다.
 
-현재 코드 기준 주요 구성은 다음과 같다.
+## 결론
 
-- Frontend: React 18, Vite, TypeScript
-- Backend: Node.js, Express, TypeScript
-- Database: MySQL, Prisma
-- File upload: EC2 로컬 `server/uploads`
-- Process manager: PM2
-- Reverse proxy: Nginx
-- Production serving: Express가 `client/dist` 정적 파일과 `/api`를 함께 제공
-
-## 결론 요약
-
-예산을 가장 아껴야 하고 사용자가 많지 않다면 **Option A: 단일 서버 구조**가 가장 현실적이다. 운영 부담이 적고, AWS 서비스가 많이 늘어나지 않아 비용 예측이 쉽다.
-
-사용자 데이터와 업로드 파일을 더 안전하게 보관하고, 서버 교체나 장애 대응을 쉽게 만들고 싶다면 **Option B: 프론트/업로드 분리 구조**가 좋다. 비용은 조금 늘 수 있지만, 서비스 운영 안정성은 확실히 좋아진다.
-
-## Option A. 소규모/캡스톤 기준 최저비용 구조
-
-### 구조
+현재 프로젝트에는 **EC2 한 대에서 웹/API/DB를 운영하고, 사용자 업로드 이미지만 S3에 저장하는 구조**가 가장 현실적이다.
 
 ```text
 사용자
@@ -33,113 +18,148 @@ Nginx
   v
 EC2 또는 Lightsail 1대
   |
-  +-- Express API
   +-- React 정적 파일(client/dist)
+  +-- Express API
   +-- MySQL
-  +-- uploads 로컬 디렉터리
   +-- PM2
+  |
+  v
+S3
+  +-- profile-images/
+  +-- thread-images/    예정
+  +-- comment-images/   예정
+  +-- db-backups/       선택
 ```
 
-### 적합한 상황
+이 구조는 CloudFront를 사용하지 않는다. 프론트엔드 정적 파일은 EC2의 Nginx가 제공하고, 이미지 업로드 파일은 S3에 직접 저장한다.
 
-- 캡스톤 발표, 시연, 소규모 사용자 테스트가 목적이다.
-- 월 비용을 가장 낮게 유지해야 한다.
-- 트래픽이 많지 않고, 동시 접속자가 적다.
-- 장애 발생 시 수동 복구를 어느 정도 감수할 수 있다.
-- 운영자가 서버에 직접 접속해서 배포, 로그 확인, DB 백업을 할 수 있다.
+## 왜 EC2+S3인가
 
 ### 장점
 
-- 구조가 단순하다.
-- 비용이 가장 낮다.
-- 배포 대상이 한 대라서 이해하기 쉽다.
-- Nginx, PM2, MySQL, Node.js만 관리하면 된다.
-- 프론트와 백엔드가 같은 origin에서 동작하므로 CORS 설정이 단순하다.
+- CloudFront, ALB, ECS 같은 추가 서비스 없이 구조가 단순하다.
+- EC2를 교체하거나 재배포해도 업로드 이미지가 사라지지 않는다.
+- 프로필 이미지뿐 아니라 스레드/댓글 이미지 기능을 추가하기 쉽다.
+- S3 저장 비용은 이미지 용량이 작을 때 매우 낮은 편이다.
+- 프론트와 API가 같은 서버에서 제공되므로 CORS 설정이 단순하다.
 
 ### 단점
 
-- 서버 한 대에 모든 것이 몰려 있어 장애 지점이 하나다.
-- EC2 디스크가 손상되거나 인스턴스를 새로 만들면 업로드 파일과 DB가 위험할 수 있다.
-- 트래픽 증가 시 프론트 정적 파일 요청도 API 서버 자원을 함께 사용한다.
-- DB 백업, 보안 패치, 로그 관리, 디스크 용량 관리를 직접 해야 한다.
-- MySQL과 Node.js가 같은 작은 서버에서 돌기 때문에 메모리 부족이 생길 수 있다.
+- 프론트 정적 파일 전송은 여전히 EC2/Nginx가 담당한다.
+- S3 public object URL을 직접 사용하므로 CDN 캐싱 이점은 없다.
+- S3 버킷 정책, IAM 권한, 파일 삭제 정책을 직접 관리해야 한다.
+- DB는 EC2에 남아 있으므로 MySQL 백업은 별도로 필요하다.
 
-### 비용 관점
+## CloudFront를 제외하는 이유
 
-가장 큰 비용은 보통 서버 인스턴스다. 소규모라면 EC2 `t3.micro`, `t4g.micro` 또는 Lightsail 저가형 번들을 검토할 수 있다.
+현재 CloudFront는 비용 대비 이점이 크지 않다.
 
-Lightsail은 월 고정형 요금에 가까워 예산을 설명하기 쉽다. EC2는 더 유연하지만 EBS, 퍼블릭 IPv4, 데이터 전송량 등 주변 비용을 함께 봐야 한다.
+- 현재 이미지 사용량이 작고, 전 세계 CDN 성능이 꼭 필요한 단계가 아니다.
+- CloudFront를 붙이면 배포 구조, 캐시 무효화, behavior 설정이 늘어난다.
+- 프론트엔드를 S3 정적 호스팅으로 분리하지 않는다면 CloudFront의 효과가 제한적이다.
+- 지금의 우선순위는 CDN 최적화보다 업로드 파일을 EC2 디스크에서 분리하는 것이다.
 
-### 운영 권장사항
+따라서 CloudFront는 향후 트래픽 증가, 글로벌 사용자, 정적 프론트 분리 필요성이 생겼을 때 다시 검토한다.
 
-#### 1. 인스턴스 크기 낮추기
+## 현재 코드 기준 파일 저장 방식
 
-현재 사용량이 작다면 작은 인스턴스부터 시작한다.
+현재 서버는 환경변수로 파일 저장소를 선택한다.
 
-권장 시작점:
+로컬 개발:
 
-- 최소 시연용: Lightsail 0.5GB 또는 EC2 micro급
-- MySQL까지 같은 서버에서 실행: 가능하면 1GB RAM 이상
-- AI 요청, 빌드 작업, 동시 접속이 조금 있다면 2GB RAM 이상 고려
-
-Node.js, MySQL, Nginx, PM2를 함께 돌리기 때문에 0.5GB RAM은 빡빡할 수 있다. 실제 운영에서는 `free -h`, `htop`, CloudWatch 지표로 메모리 사용량을 확인해야 한다.
-
-#### 2. 서버에서 빌드하지 않기
-
-작은 서버에서 `npm install`, `npm run build`를 직접 수행하면 메모리가 부족할 수 있다.
-
-더 좋은 방식:
-
-```text
-로컬 또는 CI에서 빌드
-  -> client/dist, server/dist 생성
-  -> EC2에는 빌드 결과물만 업로드
-  -> PM2 restart
+```env
+FILE_STORAGE_DRIVER=local
 ```
 
-#### 3. MySQL 백업 자동화
+운영 EC2+S3:
 
-단일 서버 구조에서 가장 중요한 것은 DB 백업이다.
-
-예시 운영 방식:
-
-```text
-매일 새벽 mysqldump 실행
-  -> 압축
-  -> S3 또는 별도 저장소에 업로드
-  -> 오래된 백업 삭제
+```env
+FILE_STORAGE_DRIVER=s3
+AWS_REGION=ap-northeast-2
+AWS_S3_BUCKET=your-bucket-name
 ```
 
-백업 파일을 같은 EC2 안에만 두면 서버 장애 시 함께 사라질 수 있으므로, 가능하면 S3나 외부 저장소에 복사한다.
+S3 사용 시 서버는 업로드된 이미지의 URL을 다음 형식으로 DB에 저장한다.
 
-#### 4. 업로드 파일 백업
+```text
+https://your-bucket-name.s3.ap-northeast-2.amazonaws.com/profile-images/filename.webp
+```
 
-현재 코드는 `/uploads` 정적 디렉터리를 사용한다.
+현재 구현된 업로드 대상은 프로필 이미지다. 이후 스레드와 댓글 이미지 기능을 추가할 때 같은 저장 계층을 확장한다.
 
-최저비용 구조를 유지하더라도 다음 중 하나는 필요하다.
+## S3 버킷 운영 기준
 
-- `server/uploads`를 주기적으로 압축해서 S3에 백업
-- EC2 스냅샷을 주기적으로 생성
-- 업로드 파일 용량 제한 적용
+### 권장 버킷 설정
 
-#### 5. 로그와 디스크 관리
+- Region: `ap-northeast-2`
+- Object ownership: ACL 비활성화 권장
+- Public access block: 공개 이미지 제공 방식에 맞춰 조정
+- Bucket policy: 공개 이미지 prefix만 읽기 허용
+- CORS: 브라우저에서 S3로 직접 업로드하지 않는다면 최소 설정
+- Lifecycle rule: 오래된 미사용 이미지 정리 검토
 
-PM2 로그, Nginx 로그, MySQL 로그가 계속 쌓이면 작은 디스크를 빠르게 채울 수 있다.
+현재 서버가 S3에 업로드하고 사용자는 저장된 URL로 이미지를 조회하는 방식이므로, 최소한 이미지 객체에 대한 `GetObject` 접근이 가능해야 한다.
 
-권장:
+예시 bucket policy:
 
-- PM2 log rotate 설정
-- Nginx logrotate 확인
-- MySQL binlog 사용 여부 확인
-- `df -h`로 디스크 사용량 주기 확인
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowPublicReadForUploadedImages",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": [
+        "arn:aws:s3:::your-bucket-name/profile-images/*",
+        "arn:aws:s3:::your-bucket-name/thread-images/*",
+        "arn:aws:s3:::your-bucket-name/comment-images/*"
+      ]
+    }
+  ]
+}
+```
 
-### 이 구조에서 개선할 수 있는 코드/설정
+DB 백업 파일까지 같은 버킷에 둔다면 `db-backups/*`는 공개하지 않는다.
 
-현재 `nginx/book-discussion.conf`는 모든 요청을 Express로 프록시한다.
+## IAM 권한
 
-단일 서버 구조를 유지하더라도 Nginx가 정적 파일을 직접 서빙하게 만들면 Express 부하를 줄일 수 있다.
+EC2에서 사용하는 IAM user 또는 role에는 업로드 이미지 prefix에 대한 최소 권한만 부여한다.
 
-예시:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::your-bucket-name/profile-images/*",
+        "arn:aws:s3:::your-bucket-name/thread-images/*",
+        "arn:aws:s3:::your-bucket-name/comment-images/*"
+      ]
+    }
+  ]
+}
+```
+
+이미지 조회는 public object URL로 처리하므로 서버가 `GetObject` 권한을 반드시 가질 필요는 없다. 다만 서버에서 이미지 존재 확인이나 삭제 검증을 하려면 `s3:GetObject` 또는 `s3:HeadObject` 권한을 추가한다.
+
+## EC2 역할
+
+EC2는 다음만 담당한다.
+
+- Nginx로 React 정적 파일 제공
+- Express API 실행
+- MySQL 실행
+- S3로 이미지 업로드
+- PM2로 프로세스 관리
+
+Nginx가 정적 파일을 직접 서빙하게 만들면 Express 부하를 줄일 수 있다.
 
 ```nginx
 location /assets/ {
@@ -158,286 +178,74 @@ location / {
 }
 ```
 
-이렇게 하면 React 정적 파일은 Nginx가 처리하고, Express는 API만 처리한다.
+## 기능 확장 순서
 
-## Option B. 조금 더 안정적인 구조
+배포 구조는 먼저 EC2+S3로 확정하고, 그 다음 이미지 기능을 넓힌다.
 
-### 구조
+1. 프로필 이미지가 S3에 저장되는지 확인
+2. 파일 저장 서비스를 공통 함수로 확장
+3. 스레드 이미지 업로드 추가
+4. 댓글 이미지 업로드 추가
+5. 이미지 삭제 또는 교체 시 S3 객체 정리
 
-```text
-사용자
-  |
-  +--------------------+
-  |                    |
-  v                    v
-S3 + CloudFront      EC2 또는 Lightsail
-React 정적 파일       Express API
-                       |
-                       +-- MySQL 또는 RDS
-                       |
-                       +-- S3 업로드 저장소
-```
-
-대안으로 프론트엔드는 S3 + CloudFront 대신 Vercel, Netlify, GitHub Pages를 사용할 수 있다.
-
-### 적합한 상황
-
-- 실제 사용자를 어느 정도 받을 계획이 있다.
-- 서버를 새로 만들어도 업로드 파일이 사라지면 안 된다.
-- 프론트 배포와 백엔드 배포를 분리하고 싶다.
-- 정적 파일 전송 부하를 API 서버에서 빼고 싶다.
-- 운영 안정성을 조금 더 중요하게 본다.
-
-### 장점
-
-- 프론트 정적 파일 요청이 API 서버를 사용하지 않는다.
-- CloudFront나 정적 호스팅을 사용하면 전 세계 사용자에게 더 빠르게 전달할 수 있다.
-- 업로드 파일을 S3에 저장하면 EC2 교체, 재배포, 장애에 강해진다.
-- 서버는 API 처리에 집중할 수 있다.
-- 나중에 EC2를 교체하거나 확장하기 쉽다.
-
-### 단점
-
-- 관리할 서비스가 늘어난다.
-- S3 bucket, CloudFront, CORS, 환경변수 설정이 추가된다.
-- 배포 파이프라인이 단일 서버보다 복잡하다.
-- RDS까지 도입하면 월 비용이 확실히 증가할 수 있다.
-
-## Option B 세부 설계
-
-### 1. Frontend를 정적 호스팅으로 분리
-
-현재 프론트 API 클라이언트는 `baseURL: '/api'`를 사용한다. 프론트와 백엔드가 같은 도메인에서 제공될 때는 이 방식이 편하다.
-
-프론트를 별도 도메인으로 분리하면 다음 중 하나를 선택해야 한다.
-
-#### 방식 A: API 절대 URL 사용
-
-```ts
-baseURL: import.meta.env.VITE_API_BASE_URL
-```
-
-예시 환경변수:
-
-```env
-VITE_API_BASE_URL=https://api.example.com/api
-```
-
-장점:
-
-- 구조가 명확하다.
-- 프론트 호스팅 위치와 API 서버 위치가 완전히 분리된다.
-
-주의점:
-
-- 백엔드 CORS 설정을 정확히 해야 한다.
-- 쿠키 기반 인증을 사용한다면 SameSite, Secure 설정까지 봐야 한다.
-
-현재 프로젝트는 JWT를 주로 사용하므로, Authorization header 방식이면 분리가 비교적 쉽다.
-
-#### 방식 B: CloudFront에서 `/api`만 API 서버로 라우팅
+권장 S3 key 구조:
 
 ```text
-https://example.com
-  /assets/* -> S3
-  /api/*    -> EC2 Express
-  /*        -> S3 index.html
+profile-images/{uuid}.{ext}
+thread-images/{threadId}/{uuid}.{ext}
+comment-images/{commentId}/{uuid}.{ext}
 ```
 
-장점:
+## 운영 필수 항목
 
-- 프론트 코드는 기존처럼 `/api`를 유지할 수 있다.
-- 사용자 입장에서는 하나의 도메인만 사용한다.
-- CORS 문제가 줄어든다.
+### MySQL 백업
 
-단점:
-
-- CloudFront behavior 설정이 필요하다.
-- 처음 설정 난이도가 방식 A보다 높다.
-
-### 2. 업로드 파일을 S3로 이동
-
-현재 업로드 흐름은 대략 다음과 같다.
+S3를 이미지 저장소로 사용하더라도 DB는 EC2 안에 있으므로 자동 백업이 필요하다.
 
 ```text
-multer
-  -> EC2 server/uploads 저장
-  -> DB에 /uploads/filename 저장
-  -> Express static으로 제공
+매일 새벽 mysqldump 실행
+  -> 압축
+  -> S3 db-backups/ 업로드
+  -> 오래된 백업 삭제
 ```
 
-S3로 바꾸면 다음 구조가 된다.
+### 로그와 디스크 관리
 
-```text
-multer memoryStorage
-  -> S3 PutObject
-  -> DB에 S3 또는 CloudFront URL 저장
-```
-
-권장 저장 방식:
-
-- S3 bucket은 private으로 유지
-- 공개 프로필 이미지만 CloudFront 또는 presigned URL로 제공
-- 파일명은 UUID 기반으로 생성
-- 파일 크기와 MIME type 제한
-- 오래된 프로필 이미지는 삭제하거나 lifecycle rule 적용
-
-업로드 파일을 S3로 옮기면 EC2는 언제든 새로 만들어도 된다. 이 변화 하나만으로도 운영 안정성이 크게 좋아진다.
-
-### 3. DB 선택: EC2 MySQL 유지 vs RDS
-
-#### EC2 내부 MySQL 유지
-
-장점:
-
-- 가장 저렴하다.
-- 구조가 단순하다.
-- 네트워크 지연이 거의 없다.
-
-단점:
-
-- 백업, 복구, 패치, 장애 대응을 직접 해야 한다.
-- 서버 장애 시 API와 DB가 동시에 멈춘다.
-- 디스크 용량 관리가 중요하다.
-
-소규모 캡스톤에는 이 방식도 충분히 가능하다. 단, 자동 백업은 반드시 있어야 한다.
-
-#### RDS MySQL 사용
-
-장점:
-
-- 백업과 복구가 편하다.
-- DB를 앱 서버와 분리할 수 있다.
-- EC2를 교체해도 DB는 유지된다.
-- 모니터링과 유지보수가 편해진다.
-
-단점:
-
-- 비용이 증가한다.
-- 보안 그룹, 서브넷, 파라미터 그룹 등 설정이 늘어난다.
-- 작은 프로젝트에서는 과할 수 있다.
-
-AWS Free Tier를 사용할 수 있는 계정이라면 RDS micro급을 실험적으로 사용하는 것도 좋다. Free Tier가 끝났거나 예산이 작다면 EC2 내부 MySQL + 자동 백업이 더 현실적이다.
-
-## 단계별 전환 전략
-
-한 번에 모든 구조를 바꾸기보다 위험이 낮은 순서로 나누는 것이 좋다.
-
-### 1단계: 현재 단일 서버 구조 안정화
-
-- Nginx 정적 파일 서빙 적용
 - PM2 log rotate 설정
-- MySQL 백업 자동화
-- uploads 백업 자동화
-- CloudWatch 또는 간단한 서버 모니터링 적용
+- Nginx logrotate 확인
+- MySQL binlog 사용 여부 확인
+- `df -h`로 디스크 사용량 확인
 
-### 2단계: 업로드 파일 S3 이전
+### 업로드 제한
 
-- S3 bucket 생성
-- IAM 권한 최소화
-- `multer.diskStorage`에서 `memoryStorage` 또는 임시 파일 방식으로 변경
-- 업로드 후 S3 URL을 DB에 저장
-- 기존 `/uploads` 파일 마이그레이션
+- 이미지 MIME type 제한
+- 파일 크기 제한
+- UUID 기반 파일명 사용
+- 필요 시 이미지 개수 제한
 
-이 단계는 비용 대비 안정성 개선 효과가 크다.
+## 나중에 다시 검토할 수 있는 선택지
 
-현재 코드에는 이 전환을 위한 환경변수 기반 분기 구조가 반영되어 있다.
+다음 조건이 생기면 CloudFront 또는 RDS를 다시 검토한다.
 
-로컬 개발에서는 기존처럼 EC2/로컬 서버 디스크에 저장한다.
+- 이미지 트래픽이 커져 S3 직접 전송 비용이나 지연이 부담된다.
+- 프론트엔드를 EC2에서 분리해 S3 정적 호스팅으로 운영한다.
+- 해외 사용자가 많아져 CDN 캐싱 효과가 필요하다.
+- DB 백업과 복구 요구사항이 커져 RDS가 필요하다.
 
-```env
-FILE_STORAGE_DRIVER=local
-```
-
-운영에서 S3 저장소를 사용하려면 다음 값을 설정한다.
-
-```env
-FILE_STORAGE_DRIVER=s3
-AWS_REGION=ap-northeast-2
-AWS_S3_BUCKET=your-bucket-name
-AWS_S3_PUBLIC_BASE_URL=https://your-cloudfront-domain.example.com
-```
-
-`AWS_S3_PUBLIC_BASE_URL`은 CloudFront를 붙였을 때 사용하는 공개 파일 URL의 base URL이다. 이 값이 없으면 서버는 S3 public URL 형식으로 이미지 주소를 만든다. 단, bucket을 private으로 운영할 계획이라면 CloudFront + OAC 같은 구성을 두고 `AWS_S3_PUBLIC_BASE_URL`을 설정하는 편이 좋다.
-
-### 3단계: 프론트 정적 호스팅 분리
-
-- `VITE_API_BASE_URL` 도입 또는 CloudFront `/api` 라우팅 선택
-- 프론트 배포 대상을 S3/CloudFront, Vercel, Netlify 중 선택
-- 백엔드 CORS origin 제한
-- 배포 문서 업데이트
-
-현재 프론트엔드는 `VITE_API_BASE_URL`이 있으면 해당 API 서버를 사용하고, 없으면 기존처럼 `/api` 상대 경로를 사용한다.
-
-로컬 개발:
-
-```env
-VITE_API_BASE_URL=
-```
-
-운영 정적 호스팅:
-
-```env
-VITE_API_BASE_URL=https://api.example.com/api
-```
-
-백엔드가 별도 도메인에서 호출된다면 서버에는 프론트 도메인을 허용해야 한다.
-
-```env
-CORS_ORIGIN=https://example.com,https://www.example.com
-```
-
-### 4단계: DB 분리 검토
-
-- 사용자 수, 데이터 중요도, 백업 복구 요구사항 확인
-- RDS Free Tier 가능 여부 확인
-- 비용이 허용되면 RDS Single-AZ부터 고려
-- 고가용성이 꼭 필요할 때만 Multi-AZ 검토
-
-## 추천 우선순위
-
-이 프로젝트에는 다음 순서를 추천한다.
-
-1. 현재 EC2 또는 Lightsail 한 대 구조 유지
-2. DB와 uploads 자동 백업 추가
-3. Nginx가 React 정적 파일 직접 서빙
-4. 업로드 이미지를 S3로 이전
-5. 프론트 정적 호스팅 분리
-6. 필요할 때 RDS 도입
-
-가장 먼저 해야 할 일은 서버를 더 복잡하게 만드는 것이 아니라, 현재 단일 서버 구조에서 데이터가 사라지지 않게 만드는 것이다.
-
-## 선택 기준표
-
-| 기준 | Option A: 단일 서버 | Option B: 분리형 |
-| --- | --- | --- |
-| 월 비용 | 가장 낮음 | 조금 증가 |
-| 구조 복잡도 | 낮음 | 중간 |
-| 장애 대응 | 수동 대응 필요 | 더 쉬움 |
-| 업로드 파일 안정성 | 낮음, 백업 필요 | 높음 |
-| 프론트 성능 | 서버 성능에 의존 | 정적 호스팅/CDN 활용 가능 |
-| 배포 난이도 | 낮음 | 중간 |
-| 캡스톤 시연 | 적합 | 적합하지만 약간 과할 수 있음 |
-| 실제 사용자 운영 | 제한적으로 가능 | 더 적합 |
-
-## 피하는 것이 좋은 구조
-
-현재 규모에서는 다음 구조는 비용 대비 효율이 낮을 가능성이 크다.
+현재 단계에서는 다음 구조는 비용 대비 과하다.
 
 ```text
+CloudFront
 ALB
-  -> ECS/Fargate
-  -> RDS Multi-AZ
-  -> NAT Gateway
-  -> Private Subnet 다중 구성
+ECS/Fargate
+RDS Multi-AZ
+NAT Gateway
+Private Subnet 다중 구성
 ```
-
-이 구조는 실무적으로는 좋은 구조일 수 있지만, 캡스톤/소규모 서비스에서는 고정비와 운영 복잡도가 크게 증가한다. 특히 NAT Gateway와 Load Balancer는 작은 프로젝트에서 체감 비용이 커질 수 있다.
 
 ## 참고 링크
 
 - AWS EC2 On-Demand: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-on-demand-instances.html
-- AWS Lightsail Pricing: https://aws.amazon.com/lightsail/pricing/
 - Amazon S3 Pricing: https://aws.amazon.com/pricing/s3/
-- Amazon RDS Free Tier: https://aws.amazon.com/rds/free/
-- AWS Compute Optimizer: https://docs.aws.amazon.com/compute-optimizer/latest/ug/rightsizing-preferences.html
+- Amazon S3 Bucket Policy Examples: https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-bucket-policies.html
+- AWS IAM Policies for S3: https://docs.aws.amazon.com/AmazonS3/latest/userguide/security_iam_service-with-iam.html

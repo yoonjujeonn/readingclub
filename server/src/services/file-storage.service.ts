@@ -8,7 +8,6 @@ const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/gif', 'imag
 const storageDriver = process.env.FILE_STORAGE_DRIVER || (process.env.AWS_S3_BUCKET ? 's3' : 'local');
 const s3Bucket = process.env.AWS_S3_BUCKET;
 const s3Region = process.env.AWS_REGION || 'ap-northeast-2';
-const s3PublicBaseUrl = process.env.AWS_S3_PUBLIC_BASE_URL;
 
 const s3Client = new S3Client({ region: s3Region });
 
@@ -52,10 +51,6 @@ export async function saveProfileImage(file: Express.Multer.File) {
 }
 
 function buildS3PublicUrl(key: string) {
-  if (s3PublicBaseUrl) {
-    return `${s3PublicBaseUrl.replace(/\/$/, '')}/${key}`;
-  }
-
   return `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${key}`;
 }
 
