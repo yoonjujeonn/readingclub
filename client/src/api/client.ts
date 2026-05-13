@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 
-// 프로덕션에서는 같은 origin, 개발에서는 Vite proxy 사용 → 상대 경로로 통일
+const apiBaseURL = import.meta.env.VITE_API_BASE_URL || '/api';
+
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: apiBaseURL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -81,7 +82,7 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post('/api/auth/refresh', { refreshToken });
+        const { data } = await axios.post(`${apiBaseURL.replace(/\/$/, '')}/auth/refresh`, { refreshToken });
         const newAccessToken = data.accessToken;
         useAuthStore.getState().setTokens(newAccessToken, refreshToken);
         processQueue(null, newAccessToken);
