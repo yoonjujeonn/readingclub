@@ -49,4 +49,17 @@ export const discussionsApi = {
 
   unpinThread: (discussionId: string) =>
     apiClient.delete(`/discussions/${discussionId}/pin`),
+
+  // 발언권
+  getTokens: (discussionId: string) =>
+    apiClient.get<{ remaining: number; requested: boolean }>(`/discussions/${discussionId}/tokens`),
+
+  requestTokens: (discussionId: string) =>
+    apiClient.post(`/discussions/${discussionId}/tokens/request`),
+
+  getTokenRequests: (discussionId: string) =>
+    apiClient.get<any[]>(`/discussions/${discussionId}/tokens/requests`),
+
+  grantTokens: (discussionId: string, userId: string, amount: number) =>
+    apiClient.post(`/discussions/${discussionId}/tokens/grant`, { userId, amount }),
 };

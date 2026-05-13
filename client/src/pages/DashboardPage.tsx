@@ -52,6 +52,8 @@ function DashboardPage() {
   const [threads, setThreads] = useState<Discussion[]>([]);
   const [editingEndDateId, setEditingEndDateId] = useState<string | null>(null);
   const [editingEndDateValue, setEditingEndDateValue] = useState('');
+  const [tokenRequestsForId, setTokenRequestsForId] = useState<string | null>(null);
+  const [tokenRequests, setTokenRequests] = useState<any[]>([]);
   const [newAnnTitle, setNewAnnTitle] = useState('');
   const [newAnnContent, setNewAnnContent] = useState('');
   const [newSchedTitle, setNewSchedTitle] = useState('');
@@ -162,6 +164,31 @@ function DashboardPage() {
       fetchAll();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || '대표 해제에 실패했습니다');
+    }
+  };
+
+  const handleViewTokenRequests = async (discussionId: string) => {
+    if (tokenRequestsForId === discussionId) {
+      setTokenRequestsForId(null);
+      return;
+    }
+    try {
+      const res = await discussionsApi.getTokenRequests(discussionId);
+      setTokenRequests(res.data);
+      setTokenRequestsForId(discussionId);
+    } catch {
+      setTokenRequests([]);
+      setTokenRequestsForId(discussionId);
+    }
+  };
+
+  const handleGrantTokens = async (discussionId: string, userId: string) => {
+    try {
+      await discussionsApi.grantTokens(discussionId, userId, 5);
+      alert('발언권 5개를 지급했습니다');
+      handleViewTokenRequests(discussionId);
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || '지급에 실패했습니다');
     }
   };
 
@@ -301,11 +328,11 @@ function DashboardPage() {
       case 'threads':
         return (
           <div style={styles.section}>
-            <div style={styles.sectionTitle}>📚 스레드 관리</div>
-            <div style={{ fontSize: 13, color: '#718096', marginBottom: 16 }}>스레드 종료일 수정, 대표 스레드 설정/해제를 관리합니다.</div>
+            <div style={styles.sectionTitle}>📚 책수다 관리</div>
+            <div style={{ fontSize: 13, color: '#718096', marginBottom: 16 }}>스레드 종료일 수정, 대표 수다 설정/해제, 발언권 관리를 합니다.</div>
 
             {threads.length === 0 ? (
-              <div style={{ color: '#a0aec0', fontSize: 13 }}>아직 생성된 스레드가 없습니다</div>
+              <div style={{ color: '#a0aec0', fontSize: 13 }}>아직 생성된 수다가 없습니다</div>
             ) : threads.map((d: any) => (
               <div key={d.id} style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -326,6 +353,7 @@ function DashboardPage() {
                     ) : (
                       <button style={{ ...styles.btn, ...styles.btnPrimary, padding: '4px 8px', fontSize: 11 }} onClick={() => handlePinThread(d.id)}>대표 설정</button>
                     )}
+                    <button style={{ ...styles.btn, ...styles.btnSecondary, padding: '4px 8px', fontSize: 11 }} onClick={() => handleViewTokenRequests(d.id)}>🎫 발언권</button>
                   </div>
                 </div>
                 {editingEndDateId === d.id && (
@@ -333,6 +361,20 @@ function DashboardPage() {
                     <input type="date" style={{ ...styles.input, marginBottom: 0, flex: 1 }} value={editingEndDateValue} onChange={e => setEditingEndDateValue(e.target.value)} />
                     <button style={{ ...styles.btn, ...styles.btnPrimary, padding: '6px 12px', fontSize: 12 }} onClick={handleSaveEndDate}>저장</button>
                     <button style={{ ...styles.btn, ...styles.btnSecondary, padding: '6px 12px', fontSize: 12 }} onClick={() => setEditingEndDateId(null)}>취소</button>
+                  </div>
+                )}
+                {tokenRequestsForId === d.id && (
+                  <div style={{ marginTop: 8, padding: '12px', backgroundColor: '#f7fafc', borderRadius: 6 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>🎫 발언권 요청 목록</div>
+                    {tokenRequests.length === 0 ? (
+                      <div style={{ fontSize: 12, color: '#a0aec0' }}>요청이 없습니다</div>
+                    ) : tokenRequests.map((req: any) => (
+                      <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', fontSize: 12 }}>
+                        <span>{req.user.nickname} (남은 발언권: {req.remaining})</span>
+                        <button style={{ ...styles.btn, ...styles.btnPrimary, padding: '2px 8px', fontSize: 11 }} onClick={() => handleGrantTokens(d.id, req.userId)}>+5 지급</button>
+                      </div>
+                    ))}
+                    <button style={{ ...styles.btn, ...styles.btnSecondary, padding: '4px 8px', fontSize: 11, marginTop: 8 }} onClick={() => setTokenRequestsForId(null)}>닫기</button>
                   </div>
                 )}
               </div>
