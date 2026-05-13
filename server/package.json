@@ -7,6 +7,7 @@
     "dev": "ts-node-dev --respawn src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "seed:api": "node scripts/seed-api-automation.mjs",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:pbt": "vitest --run --grep \"Property\""
