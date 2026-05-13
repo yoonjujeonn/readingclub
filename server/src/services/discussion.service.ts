@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { AppError } from './auth.service';
 import { CreateDiscussionInput, CreateCommentInput } from '../validators';
+import { tokenService } from './token.service';
 
 const prisma = new PrismaClient();
 
@@ -130,6 +131,9 @@ export const discussionService = {
       throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드에는 의견을 작성할 수 없습니다');
     }
 
+    // 발언권 차감
+    await tokenService.consume(discussionId, userId);
+
     // Verify user is a member of the group
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId: discussion.groupId, userId } },
@@ -165,6 +169,11 @@ export const discussionService = {
     // 종료된 스레드에는 댓글 작성 불가
     if (comment.discussion && comment.discussion.status === 'closed') {
       throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드에는 댓글을 작성할 수 없습니다');
+    }
+
+    // 발언권 차감
+    if (comment.discussion) {
+      await tokenService.consume(comment.discussion.id, userId);
     }
 
     // Verify user is a member of the group

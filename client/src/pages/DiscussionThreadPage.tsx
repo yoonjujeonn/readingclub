@@ -219,6 +219,8 @@ function DiscussionThreadPage() {
   // Comment form
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [tokenRemaining, setTokenRemaining] = useState<number | null>(null);
+  const [tokenRequested, setTokenRequested] = useState(false);
 
   // Reply forms
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -239,6 +241,13 @@ function DiscussionThreadPage() {
       ]);
       setTopic(topicRes.data);
       setComments(commentsRes.data);
+
+      // 발언권 조회
+      if (discussionId) {
+        const tokenRes = await discussionsApi.getTokens(discussionId).catch(() => ({ data: { remaining: 10, requested: false } }));
+        setTokenRemaining(tokenRes.data.remaining);
+        setTokenRequested(tokenRes.data.requested);
+      }
 
       // Check if current user is group owner
       if (topicRes.data?.groupId) {
@@ -432,25 +441,62 @@ function DiscussionThreadPage() {
         </div>
       ) : (
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>의견 작성</div>
-          <form onSubmit={handleAddComment}>
-            <textarea
-              style={styles.textarea}
-              rows={3}
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="의견을 작성해주세요"
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-              <button
-                type="submit"
-                style={styles.submitBtn}
-                disabled={submittingComment}
-              >
-                {submittingComment ? '작성 중...' : '의견 작성'}
-              </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={styles.sectionTitle}>의견 작성</div>
+            {!isOwner && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, color: tokenRemaining && tokenRemaining > 3 ? '#48bb78' : '#e53e3e' }}>
+                🎫 내 발언권: {tokenRemaining ?? '...'}개
+                <span style={{ position: 'relative', display: 'inline-block', cursor: 'help' }}
+                  onMouseEnter={e => { const tip = e.currentTarget.querySelector('[data-tip]') as HTMLElement; if (tip) tip.style.display = 'block'; }}
+                  onMouseLeave={e => { const tip = e.currentTarget.querySelector('[data-tip]') as HTMLElement; if (tip) tip.style.display = 'none'; }}
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', backgroundColor: '#e2e8f0', color: '#4a5568', fontSize: 11, fontWeight: 700 }}>?</span>
+                  <span data-tip="" style={{ display: 'none', position: 'absolute', bottom: '130%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#2d3748', color: '#fff', padding: '8px 12px', borderRadius: 8, fontSize: 12, lineHeight: 1.5, whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10 }}>
+                    의견/댓글 작성 시 발언권이 차감되며,<br/>삭제해도 돌려받을 수 없으니 신중하게 작성해주세요!
+                  </span>
+                </span>
+                {tokenRemaining !== null && tokenRemaining <= 0 && !tokenRequested && (
+                  <button
+                    style={{ marginLeft: 6, padding: '2px 8px', fontSize: 11, border: '1px solid #3182ce', borderRadius: 4, backgroundColor: '#fff', color: '#3182ce', cursor: 'pointer' }}
+                    onClick={async () => {
+                      try {
+                        await discussionsApi.requestTokens(discussionId!);
+                        setTokenRequested(true);
+                        alert('발언권 추가를 요청했습니다.');
+                      } catch { alert('이미 요청했습니다.'); }
+                    }}
+                  >
+                    추가 요청
+                  </button>
+                )}
+                {tokenRequested && <span style={{ marginLeft: 4, fontSize: 11, color: '#718096' }}>(요청됨)</span>}
+              </div>
+            )}
+          </div>
+          {!isOwner && tokenRemaining !== null && tokenRemaining <= 0 ? (
+            <div style={{ textAlign: 'center', padding: '16px', color: '#e53e3e', fontSize: 13 }}>
+              발언권이 부족합니다. 모임장에게 추가 요청하세요.
             </div>
-          </form>
+          ) : (
+            <form onSubmit={handleAddComment}>
+              <textarea
+                style={styles.textarea}
+                rows={3}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="의견을 작성해주세요"
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                <button
+                  type="submit"
+                  style={styles.submitBtn}
+                  disabled={submittingComment}
+                >
+                  {submittingComment ? '작성 중...' : '의견 작성'}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       )}
 

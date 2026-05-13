@@ -29,6 +29,7 @@ model User {
   replies      Reply[]
   ownedGroups  Group[]      @relation("GroupOwner")
   bans         GroupBan[]
+  tokens       DiscussionToken[]
 
   @@map("users")
 }
@@ -123,12 +124,28 @@ model Discussion {
   endDate       DateTime? @map("end_date") @db.Date
   createdAt     DateTime  @default(now()) @map("created_at")
 
-  group    Group     @relation(fields: [groupId], references: [id])
-  author   User      @relation(fields: [authorId], references: [id])
-  memo     Memo?     @relation(fields: [memoId], references: [id])
+  group    Group              @relation(fields: [groupId], references: [id])
+  author   User               @relation(fields: [authorId], references: [id])
+  memo     Memo?              @relation(fields: [memoId], references: [id])
   comments Comment[]
+  tokens   DiscussionToken[]
 
   @@map("discussions")
+}
+
+model DiscussionToken {
+  id           String   @id @default(uuid())
+  discussionId String   @map("discussion_id")
+  userId       String   @map("user_id")
+  remaining    Int      @default(10)
+  requested    Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  discussion Discussion @relation(fields: [discussionId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@unique([discussionId, userId])
+  @@map("discussion_tokens")
 }
 
 model Comment {
