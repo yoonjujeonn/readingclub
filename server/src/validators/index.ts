@@ -25,7 +25,6 @@ export const CreateGroupSchema = z.object({
   maxMembers: z.number().int().positive('모집 인원은 1명 이상이어야 합니다'),
   readingStartDate: z.string().date(),
   readingEndDate: z.string().date(),
-  discussionDate: z.string().date().optional(),
   isPrivate: z.boolean().default(false),
   password: z.string().regex(/^\d{6}$/, '비밀번호는 숫자 6자리여야 합니다').optional(),
 }).refine(data => {
@@ -84,7 +83,6 @@ export const UpdateGroupSchema = z.object({
   maxMembers: z.number().int().positive('모집 인원은 1명 이상이어야 합니다').optional(),
   readingStartDate: z.string().date().optional(),
   readingEndDate: z.string().date().optional(),
-  discussionDate: z.string().date().optional(),
   isPrivate: z.boolean().optional(),
   password: z.string().regex(/^\d{6}$/, '비밀번호는 숫자 6자리여야 합니다').optional().nullable(),
 }).refine(data => {

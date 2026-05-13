@@ -169,7 +169,6 @@ function GroupDetailPage() {
   const [editMaxMembers, setEditMaxMembers] = useState('');
   const [editReadingStart, setEditReadingStart] = useState('');
   const [editReadingEnd, setEditReadingEnd] = useState('');
-  const [editDiscussionDate, setEditDiscussionDate] = useState('');
   const [editError, setEditError] = useState('');
   const [saving, setSaving] = useState(false);
   const [editIsPrivate, setEditIsPrivate] = useState(false);
@@ -212,7 +211,6 @@ function GroupDetailPage() {
     setEditMaxMembers(String(group.maxMembers));
     setEditReadingStart(group.readingStartDate?.slice(0, 10) || '');
     setEditReadingEnd(group.readingEndDate?.slice(0, 10) || '');
-    setEditDiscussionDate(group.discussionDate?.slice(0, 10) || '');
     setEditError('');
     setEditing(true);
     setEditIsPrivate((group as any).isPrivate || false);
@@ -231,7 +229,6 @@ function GroupDetailPage() {
         maxMembers: parseInt(editMaxMembers),
         readingStartDate: editReadingStart,
         readingEndDate: editReadingEnd,
-        discussionDate: editDiscussionDate,
         isPrivate: editIsPrivate,
         password: editIsPrivate ? (editPassword || undefined) : null,
       } as any);
