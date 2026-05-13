@@ -10,6 +10,7 @@ function MyPage() {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
   const accessToken = useAuthStore((s) => s.accessToken);
+  const setUser = useAuthStore((s) => s.setUser);
 
   useEffect(() => {
     if (!accessToken) navigate('/login');
@@ -45,6 +46,7 @@ function MyPage() {
           mypageApi.getRecommendedGroups().catch(() => ({ data: [] })),
         ]);
         setProfile(pRes.data);
+        if (pRes.data) setUser(pRes.data);
         setGroups(gRes.data);
         setMemos(mRes.data);
         setDiscussions(dRes.data);
@@ -154,6 +156,18 @@ function MyPage() {
             <div style={s.statItem}><div style={s.statNum}>{groups.length}</div><div style={s.statLabel}>참여 모임</div></div>
             <div style={s.statItem}><div style={s.statNum}>{groups.filter((g: any) => g.role === 'owner').length}</div><div style={s.statLabel}>주관 모임</div></div>
             <div style={s.statItem}><div style={s.statNum}>{formatDate(profile.createdAt || '')}</div><div style={s.statLabel}>가입일</div></div>
+          </div>
+        </div>
+      )}
+
+      {!profile && (
+        <div style={s.profileCard}>
+          <div style={s.profileTop}>
+            <div style={{ flex: 1 }}>
+              <div style={s.nickname}>로그인 정보를 확인할 수 없습니다</div>
+              <div style={s.email}>다시 로그인해주세요.</div>
+            </div>
+            <button style={s.logoutBtn} onClick={handleLogout}>로그아웃</button>
           </div>
         </div>
       )}
