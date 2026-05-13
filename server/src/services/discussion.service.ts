@@ -22,6 +22,12 @@ export const discussionService = {
       throw new AppError(403, 'FORBIDDEN', '모임 참여자만 토론 주제를 생성할 수 있습니다');
     }
 
+    // 일일 생성 횟수 제한 (모임별 3회, KST 기준)
+    const todayCount = await this.getTodayCreateCount(groupId, userId);
+    if (todayCount >= 3) {
+      throw new AppError(429, 'DAILY_LIMIT_EXCEEDED', '오늘 생성 가능한 횟수를 초과했습니다. 내일 다시 시도해 주세요.');
+    }
+
     // If memoId is provided, verify it exists and belongs to this group
     if (data.memoId) {
       const memo = await prisma.memo.findUnique({ where: { id: data.memoId } });
@@ -42,7 +48,7 @@ export const discussionService = {
         content: data.content ?? null,
         isRecommended: false,
         status: 'active',
-        endDate: data.endDate ? new Date(data.endDate) : null,
+        endDate: data.endDate ? (() => { const d = new Date(data.endDate); d.setHours(23, 59, 59, 999); return d; })() : null,
       },
       include: {
         author: { select: { id: true, nickname: true } },
@@ -320,6 +326,7 @@ export const discussionService = {
     }
 
     const newEndDate = new Date(endDate);
+    newEndDate.setHours(23, 59, 59, 999);
     const newStatus = newEndDate >= new Date() ? 'active' : 'closed';
 
     return prisma.discussion.update({
@@ -366,6 +373,33 @@ export const discussionService = {
       where: { id: discussionId },
       data: { isPinned: false },
     });
+  },
+
+  // KST 기준 오늘 시작 시각 계산
+  _getTodayStartKST(): Date {
+    const now = new Date();
+    const kstOffset = 9 * 60 * 60 * 1000;
+    const kstNow = new Date(now.getTime() + kstOffset);
+    const kstToday = new Date(kstNow.getFullYear(), kstNow.getMonth(), kstNow.getDate());
+    return new Date(kstToday.getTime() - kstOffset);
+  },
+
+  // 오늘 해당 모임에서 사용자가 생성한 스레드 수
+  async getTodayCreateCount(groupId: string, userId: string): Promise<number> {
+    const todayStart = this._getTodayStartKST();
+    return prisma.discussion.count({
+      where: {
+        groupId,
+        authorId: userId,
+        createdAt: { gte: todayStart },
+      },
+    });
+  },
+
+  // 남은 생성 횟수 조회
+  async getRemainingCount(groupId: string, userId: string): Promise<{ used: number; remaining: number; limit: number }> {
+    const used = await this.getTodayCreateCount(groupId, userId);
+    return { used, remaining: Math.max(0, 3 - used), limit: 3 };
   },
 };
 
