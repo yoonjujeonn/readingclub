@@ -304,12 +304,14 @@ function MyPage() {
                 <div>
                   <div style={s.listItemTitle}>
                     {g.book.title} — {g.name}
-                    {g.score > 0 && (() => {
+                    {g.score > 0 ? (() => {
                       const label = g.score >= 5 ? '높음' : g.score >= 2 ? '보통' : '낮음';
                       const color = g.score >= 5 ? '#276749' : g.score >= 2 ? '#2b6cb0' : '#718096';
                       const bg = g.score >= 5 ? '#f0fff4' : g.score >= 2 ? '#ebf8ff' : '#f7fafc';
                       return <span style={{ display: 'inline-block', backgroundColor: bg, color, padding: '1px 8px', borderRadius: 12, fontSize: 11, fontWeight: 500, marginLeft: 8 }}>유사도 {label}</span>;
-                    })()}
+                    })() : (
+                      <span style={{ display: 'inline-block', backgroundColor: '#f0fff4', color: '#38a169', padding: '1px 8px', borderRadius: 12, fontSize: 11, fontWeight: 500, marginLeft: 8 }}>새로운 분야</span>
+                    )}
                   </div>
                   <div style={s.listItemMeta}>{g.book.author && `${g.book.author} · `}👥 {g.currentMembers}/{g.maxMembers}명 · 📅 {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}</div>
                 </div>
