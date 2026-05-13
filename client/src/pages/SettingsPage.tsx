@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { mypageApi } from '../api/mypage';
+import { showToast } from '../api/client';
 import type { User } from '../types';
 
 function SettingsPage() {

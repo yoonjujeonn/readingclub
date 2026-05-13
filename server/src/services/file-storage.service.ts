@@ -45,7 +45,7 @@ export async function saveProfileImage(file: Express.Multer.File) {
     return buildS3PublicUrl(key);
   }
 
-  const uploadsDir = path.join(__dirname, '../uploads');
+  const uploadsDir = path.join(__dirname, '../../uploads');
   await fs.mkdir(uploadsDir, { recursive: true });
   await fs.writeFile(path.join(uploadsDir, filename), file.buffer);
   return `/uploads/${filename}`;
