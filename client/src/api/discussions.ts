@@ -41,6 +41,9 @@ export const discussionsApi = {
   getRecommendations: (groupId: string) =>
     apiClient.get<RecommendedTopic[]>(`/groups/${groupId}/discussions/recommendations`),
 
+  getRemainingCount: (groupId: string) =>
+    apiClient.get<{ used: number; remaining: number; limit: number }>(`/groups/${groupId}/discussions/remaining`),
+
   updateEndDate: (discussionId: string, endDate: string) =>
     apiClient.patch(`/discussions/${discussionId}/end-date`, { endDate }),
 

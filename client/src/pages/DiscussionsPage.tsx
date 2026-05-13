@@ -259,6 +259,9 @@ function DiscussionsPage() {
   const [serverError, setServerError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // 일일 생성 횟수
+  const [remainingCount, setRemainingCount] = useState<{ used: number; remaining: number; limit: number } | null>(null);
+
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
     try {
@@ -288,6 +291,9 @@ function DiscussionsPage() {
         if (groupRes.data) {
           setIsOwner(groupRes.data.ownerId === currentUserId);
         }
+        // 남은 생성 횟수 조회
+        const remRes = await discussionsApi.getRemainingCount(groupId!).catch(() => ({ data: null }));
+        if (remRes.data) setRemainingCount(remRes.data);
       }
     } catch {
       setDiscussions([]);
@@ -408,9 +414,14 @@ function DiscussionsPage() {
             내 작성
           </button>
         </div>
-        <button style={styles.createBtn} onClick={() => setShowCreateModal(true)}>
-          + 스레드 만들기
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            style={styles.createBtn}
+            onClick={() => setShowCreateModal(true)}
+          >
+            + 스레드 만들기
+          </button>
+        </div>
       </div>
 
       {/* 📌 대표 스레드 (고정) */}
@@ -504,6 +515,11 @@ function DiscussionsPage() {
             {/* 직접 작성 폼 */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ ...styles.sectionTitle, marginBottom: 12 }}>✏️ 직접 작성</div>
+              {remainingCount && (
+                <div style={{ fontSize: 13, marginBottom: 12, padding: '8px 12px', borderRadius: 6, backgroundColor: remainingCount.remaining > 0 ? '#f0fff4' : '#fff5f5', color: remainingCount.remaining > 0 ? '#38a169' : '#e53e3e' }}>
+                  오늘 남은 생성 횟수: {remainingCount.remaining}/{remainingCount.limit}회
+                </div>
+              )}
               <form onSubmit={handleSubmit} noValidate>
                 {serverError && <div style={styles.serverError}>{serverError}</div>}
 
@@ -550,6 +566,7 @@ function DiscussionsPage() {
                   <label style={styles.label}>종료일 *</label>
                   <input
                     type="date"
+                    min={new Date().toISOString().split('T')[0]}
                     style={{ ...styles.input, ...(formErrors.endDate ? styles.inputError : {}) }}
                     value={formEndDate}
                     onChange={(e) => setFormEndDate(e.target.value)}

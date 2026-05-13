@@ -6,6 +6,20 @@ import { CreateDiscussionSchema, CreateCommentSchema } from '../validators';
 
 const router = Router();
 
+// GET /api/groups/:groupId/discussions/remaining
+router.get('/groups/:groupId/discussions/remaining', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await discussionService.getRemainingCount(req.params.groupId as string, req.user!.userId);
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
 // GET /api/groups/:groupId/discussions
 router.get('/groups/:groupId/discussions', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
