@@ -329,7 +329,7 @@ function DiscussionThreadPage() {
         to={topic?.groupId ? `/groups/${topic.groupId}/discussions` : '/'}
         style={styles.backLink}
       >
-        ← 책수다 목록으로
+        ← 목록으로
       </Link>
 
       {/* Topic Header */}
