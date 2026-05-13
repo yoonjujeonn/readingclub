@@ -47,7 +47,7 @@ export const groupService = {
           maxMembers: data.maxMembers,
           readingStartDate: new Date(data.readingStartDate),
           readingEndDate: new Date(data.readingEndDate),
-          discussionDate: data.discussionDate ? new Date(data.discussionDate) : null,
+          discussionDate: null,
           isPrivate: data.isPrivate ?? false,
           password: data.password ?? null,
         },
@@ -103,7 +103,6 @@ export const groupService = {
       maxMembers: g.maxMembers,
       readingStartDate: g.readingStartDate,
       readingEndDate: g.readingEndDate,
-      discussionDate: g.discussionDate,
       createdAt: g.createdAt,
       ownerId: g.ownerId,
       isPrivate: g.isPrivate,
@@ -308,7 +307,6 @@ export const groupService = {
     if (data.maxMembers !== undefined) updateData.maxMembers = data.maxMembers;
     if (data.readingStartDate !== undefined) updateData.readingStartDate = new Date(data.readingStartDate);
     if (data.readingEndDate !== undefined) updateData.readingEndDate = new Date(data.readingEndDate);
-    if (data.discussionDate !== undefined) updateData.discussionDate = new Date(data.discussionDate);
     if (data.isPrivate !== undefined) {
       updateData.isPrivate = data.isPrivate;
       if (data.isPrivate === false) {

@@ -159,7 +159,6 @@ interface FormErrors {
   maxMembers?: string;
   readingStartDate?: string;
   readingEndDate?: string;
-  discussionDate?: string;
 }
 
 function CreateGroupPage() {
@@ -181,7 +180,6 @@ function CreateGroupPage() {
   const [maxMembers, setMaxMembers] = useState('');
   const [readingStartDate, setReadingStartDate] = useState('');
   const [readingEndDate, setReadingEndDate] = useState('');
-  const [discussionDate, setDiscussionDate] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [password, setPassword] = useState('');
 
@@ -256,7 +254,6 @@ function CreateGroupPage() {
         maxMembers: parseInt(maxMembers),
         readingStartDate,
         readingEndDate,
-        discussionDate,
         isPrivate,
         password: isPrivate ? password : undefined,
       });
