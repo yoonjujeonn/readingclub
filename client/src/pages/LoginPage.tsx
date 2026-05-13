@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { authApi } from '../api/auth';
+import { mypageApi } from '../api/mypage';
 import { useAuthStore } from '../stores/authStore';
 import type { ApiError } from '../types';
 import { AxiosError } from 'axios';
@@ -118,6 +119,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const setTokens = useAuthStore((s) => s.setTokens);
+  const setUser = useAuthStore((s) => s.setUser);
   const redirectPath = searchParams.get('redirect') || '/';
   const [email, setEmail] = useState('');
 
@@ -129,7 +131,9 @@ function LoginPage() {
 
     if (accessToken && refreshToken) {
       setTokens(accessToken, refreshToken);
-      navigate(redirectPath);
+      mypageApi.getProfile()
+        .then((res) => setUser(res.data))
+        .finally(() => navigate(redirectPath));
     } else if (error) {
       setServerError('카카오 로그인에 실패했습니다. 다시 시도해주세요.');
     }
@@ -151,6 +155,8 @@ function LoginPage() {
     try {
       const { data } = await authApi.login({ email, password });
       setTokens(data.accessToken, data.refreshToken);
+      const profile = await mypageApi.getProfile();
+      setUser(profile.data);
       navigate(redirectPath);
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;

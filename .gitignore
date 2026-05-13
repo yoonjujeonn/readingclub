@@ -7,7 +7,9 @@ client/dist/
 
 # Environment variables (민감 정보)
 .env
+.env.local
 server/.env
+server/.env.local
 
 # IDE
 .vscode/
