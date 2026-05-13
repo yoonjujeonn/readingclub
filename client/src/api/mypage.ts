@@ -26,9 +26,7 @@ export const mypageApi = {
   updateProfileImage: (file: File) => {
     const formData = new FormData();
     formData.append('profileImage', file);
-    return apiClient.patch<User>('/me/profile-image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return apiClient.patch<User>('/me/profile-image', formData);
   },
 
   changePassword: (currentPassword: string, newPassword: string) =>

@@ -45,7 +45,9 @@ function SettingsPage() {
       setProfile(res.data);
       setImagePreview((res.data as any).profileImageUrl || '');
       setImageFile(null);
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      showToast(err.response?.data?.error?.message || '프로필 이미지 변경에 실패했습니다');
+    }
     finally { setImageSaving(false); }
   };
 
@@ -138,7 +140,9 @@ function SettingsPage() {
                     const res = await apiClient.patch('/me/profile-image-reset');
                     setProfile(res.data);
                     setImagePreview('');
-                  } catch { /* ignore */ }
+                  } catch (err: any) {
+      showToast(err.response?.data?.error?.message || '프로필 이미지 변경에 실패했습니다');
+    }
                   finally { setImageSaving(false); }
                 }}
                 style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#e53e3e', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 8, cursor: 'pointer' }}
