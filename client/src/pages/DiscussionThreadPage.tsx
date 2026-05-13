@@ -325,7 +325,12 @@ function DiscussionThreadPage() {
 
   return (
     <div style={styles.container}>
-      <Link to="/" style={styles.backLink}>← 홈으로</Link>
+      <Link
+        to={topic?.groupId ? `/groups/${topic.groupId}/discussions` : '/'}
+        style={styles.backLink}
+      >
+        ← 책수다 목록으로
+      </Link>
 
       {/* Topic Header */}
       <div style={styles.topicSection}>
