@@ -52,6 +52,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   body: {
     padding: '16px 24px 24px',
+    flex: 1,
+    overflowY: 'auto' as const,
+    minHeight: 0,
   },
   bookInfo: {
     display: 'flex',
@@ -87,6 +90,16 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     color: '#4a5568',
     lineHeight: 1.6,
+    marginBottom: 16,
+  },
+  summaryBox: {
+    fontSize: 13,
+    color: '#718096',
+    lineHeight: 1.6,
+    whiteSpace: 'pre-wrap' as const,
+    maxHeight: '8.2em',
+    overflowY: 'auto' as const,
+    paddingRight: 4,
     marginBottom: 16,
   },
   meta: {
@@ -247,20 +260,25 @@ function GroupJoinModal({ group, onClose, onJoin, joining, joinMsg }: GroupJoinM
             <div style={styles.description}>{group.description}</div>
           )}
 
-          {/* Book Summary */}
-          {group.book.summary && (
-            <div style={{ ...styles.description, color: '#718096', fontSize: 13 }}>
-              {group.book.summary.length > 150
-                ? group.book.summary.slice(0, 150) + '…'
-                : group.book.summary}
-            </div>
-          )}
-
           {/* Meta Info */}
           <div style={styles.meta}>
-            📅 독서 기간: {formatDate(group.readingStartDate)} ~ {formatDate(group.readingEndDate)}<br />
-            <span style={styles.members}>👥 {group.currentMembers}/{group.maxMembers}명</span>
+            📅 독서 기간: {formatDate(group.readingStartDate)} ~ {formatDate(group.readingEndDate)}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10, alignItems: 'center' }}>
+              {group.ownerNickname && (
+                <span style={{ display: 'inline-block', background: '#edf2ff', color: '#4c51bf', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
+                  👤 {group.ownerNickname}
+                </span>
+              )}
+              <span style={styles.members}>👥 {group.currentMembers}/{group.maxMembers}명</span>
+            </div>
           </div>
+
+          {/* Book Summary */}
+          {group.book.summary && (
+            <div style={styles.summaryBox}>
+              {group.book.summary}
+            </div>
+          )}
         </div>
 
         {/* Footer */}

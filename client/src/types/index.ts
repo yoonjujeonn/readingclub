@@ -54,6 +54,7 @@ export interface GroupCard {
   discussionDate: string;
   isPrivate?: boolean;
   ownerId?: string;
+  ownerNickname?: string | null;
   isMember?: boolean;
 }
 

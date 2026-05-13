@@ -349,10 +349,10 @@ function HomePage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={styles.bookTitle}>{g.book?.title || '제목 없음'}</div>
                   <div style={styles.groupName}>{g.name}</div>
-                  {g.book?.summary && <div style={styles.summary}>{g.book.summary}</div>}
                   {g.description && <div style={{ ...styles.summary, marginBottom: 8 }}>{g.description}</div>}
                   <div style={styles.meta}>
                     📅 독서 기간: {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}<br />
+                    {g.ownerNickname && <span style={{ display: 'inline-block', background: '#edf2ff', color: '#4c51bf', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginRight: 6 }}>👤 {g.ownerNickname}</span>}
                     <span style={styles.members}>👥 {g.currentMembers}/{g.maxMembers}명</span>
                     {(g as any).isPrivate && <span style={{ display: 'inline-block', background: '#fefcbf', color: '#975a16', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginLeft: 6 }}>🔒 비공개</span>}
                   </div>

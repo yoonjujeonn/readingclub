@@ -38,6 +38,11 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     color: '#4a5568',
     lineHeight: 1.6,
+    maxHeight: 220,
+    overflowY: 'auto' as const,
+    whiteSpace: 'pre-wrap' as const,
+    wordBreak: 'break-word' as const,
+    paddingRight: 4,
   },
   section: {
     backgroundColor: '#fff',
@@ -156,7 +161,6 @@ function GroupDetailPage() {
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [joining, setJoining] = useState(false);
   const [joinMsg, setJoinMsg] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -306,33 +310,9 @@ function GroupDetailPage() {
             <div style={styles.bookTitle}>📖 {group.book.title}</div>
             {group.book.author && <div style={styles.bookAuthor}>{group.book.author}</div>}
             {group.book.summary && (
-              <>
-                <div style={styles.bookSummary}>
-                  {summaryExpanded
-                    ? group.book.summary
-                    : (() => {
-                        const text = group.book.summary!;
-                        // 첫 2~3문장까지만 보여주기 (마침표 기준)
-                        const sentences = text.match(/[^.!?]+[.!?]+/g);
-                        if (!sentences || sentences.length <= 2) return text;
-                        const preview = sentences.slice(0, 2).join('').trim();
-                        return preview.length < text.length ? preview + '…' : text;
-                      })()
-                  }
-                </div>
-                {(() => {
-                  const text = group.book.summary!;
-                  const sentences = text.match(/[^.!?]+[.!?]+/g);
-                  return sentences && sentences.length > 2;
-                })() && (
-                  <button
-                    onClick={() => setSummaryExpanded(!summaryExpanded)}
-                    style={{ background: 'none', border: 'none', color: '#3182ce', fontSize: 13, cursor: 'pointer', padding: '4px 0' }}
-                  >
-                    {summaryExpanded ? '접기' : '더보기'}
-                  </button>
-                )}
-              </>
+              <div style={styles.bookSummary}>
+                {group.book.summary}
+              </div>
             )}
           </div>
         </div>

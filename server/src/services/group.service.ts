@@ -89,6 +89,7 @@ export const groupService = {
         orderBy: { createdAt: 'desc' },
         include: {
           book: true,
+          owner: { select: { id: true, nickname: true } },
           _count: { select: { members: true } },
           members: userId ? { where: { userId }, select: { userId: true } } : false,
         },
@@ -105,6 +106,7 @@ export const groupService = {
       readingEndDate: g.readingEndDate,
       createdAt: g.createdAt,
       ownerId: g.ownerId,
+      ownerNickname: g.owner?.nickname || null,
       isPrivate: g.isPrivate,
       memberCount: g._count.members,
       isMember: userId ? (g as any).members?.length > 0 : false,
