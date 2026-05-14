@@ -23,6 +23,12 @@ export const mypageApi = {
   getRecommendedGroups: () =>
     apiClient.get<any[]>('/me/recommended-groups'),
 
+  getDailyQuests: () =>
+    apiClient.get<any>('/me/daily-quests'),
+
+  getGrade: () =>
+    apiClient.get<any>('/me/grade'),
+
   updateProfileImage: (file: File) => {
     const formData = new FormData();
     formData.append('profileImage', file);

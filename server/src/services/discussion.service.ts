@@ -61,6 +61,10 @@ export const discussionService = {
       },
     });
 
+    // 활동 점수 추가
+    const { activityService } = await import('./activity.service');
+    await activityService.addPoint(userId, 'thread');
+
     return discussion;
   },
 
@@ -190,6 +194,10 @@ export const discussionService = {
       },
     });
 
+    // 활동 점수 추가
+    const { activityService } = await import('./activity.service');
+    await activityService.addPoint(userId, 'comment');
+
     return comment;
   },
 
@@ -232,6 +240,10 @@ export const discussionService = {
         author: { select: { id: true, nickname: true } },
       },
     });
+
+    // 활동 점수 추가
+    const { activityService } = await import('./activity.service');
+    await activityService.addPoint(userId, 'reply');
 
     return reply;
   },

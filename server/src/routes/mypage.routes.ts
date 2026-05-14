@@ -68,6 +68,29 @@ router.patch('/nickname', authMiddleware, async (req: AuthRequest, res: Response
   }
 });
 
+// GET /api/me/grade - 등급 정보
+router.get('/grade', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { activityService } = await import('../services/activity.service');
+    const gradeInfo = await activityService.getUserGradeInfo(req.user!.userId);
+    res.json(gradeInfo);
+  } catch (err) {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// GET /api/me/daily-quests - 일일 퀘스트 진행도
+router.get('/daily-quests', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { activityService } = await import('../services/activity.service');
+    const quests = await activityService.getDailyQuests(req.user!.userId);
+    const gradeInfo = await activityService.getUserGradeInfo(req.user!.userId);
+    res.json({ quests, ...gradeInfo });
+  } catch (err) {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
 // GET /api/me/profile
 router.get('/profile', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
