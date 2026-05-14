@@ -8,12 +8,16 @@ export const mypageService = {
   async getProfile(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new AppError(404, 'NOT_FOUND', '사용자를 찾을 수 없습니다');
+    const { activityService } = await import('./activity.service');
+    const grade = activityService.getGrade(user.activityScore);
     return {
       id: user.id,
       email: user.email,
       nickname: user.nickname,
       profileImageUrl: user.profileImageUrl,
       provider: user.provider,
+      activityScore: user.activityScore,
+      grade: { name: grade.name, emoji: grade.emoji },
       createdAt: user.createdAt,
     };
   },

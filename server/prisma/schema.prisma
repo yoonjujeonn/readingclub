@@ -20,6 +20,7 @@ model User {
   provider        String   @default("local") @db.VarChar(20)
   isDeleted       Boolean  @default(false) @map("is_deleted")
   deletedAt       DateTime? @map("deleted_at")
+  activityScore   Int      @default(0) @map("activity_score")
   createdAt       DateTime @default(now()) @map("created_at")
 
   groupMembers GroupMember[]

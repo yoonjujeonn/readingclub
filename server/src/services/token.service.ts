@@ -2,17 +2,19 @@ import { PrismaClient } from '@prisma/client';
 import { AppError } from './auth.service';
 
 const prisma = new PrismaClient();
-const DEFAULT_TOKENS = 10;
 
 export const tokenService = {
-  // 발언권 조회 (없으면 자동 생성)
+  // 발언권 조회 (없으면 등급 기반으로 자동 생성)
   async getOrCreate(discussionId: string, userId: string) {
     let token = await prisma.discussionToken.findUnique({
       where: { discussionId_userId: { discussionId, userId } },
     });
     if (!token) {
+      const { activityService } = await import('./activity.service');
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { activityScore: true } });
+      const defaultTokens = activityService.getDefaultTokens(user?.activityScore || 0);
       token = await prisma.discussionToken.create({
-        data: { discussionId, userId, remaining: DEFAULT_TOKENS },
+        data: { discussionId, userId, remaining: defaultTokens },
       });
     }
     return token;

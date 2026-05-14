@@ -22,6 +22,8 @@ function MyPage() {
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [recommendedGroups, setRecommendedGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showQuests, setShowQuests] = useState(false);
+  const [questData, setQuestData] = useState<any>(null);
   const [insightGroupId, setInsightGroupId] = useState<string | null>(null);
   const [insight, setInsight] = useState<any>(null);
   const [insightLoading, setInsightLoading] = useState(false);
@@ -59,6 +61,12 @@ function MyPage() {
     logout();
     navigate('/');
   };
+
+  useEffect(() => {
+    if (showQuests && !questData) {
+      mypageApi.getDailyQuests().then(res => setQuestData(res.data)).catch(() => {});
+    }
+  }, [showQuests]);
 
   const handleGenerateInsight = async (groupId: string) => {
     setInsightGroupId(groupId);
@@ -123,9 +131,17 @@ function MyPage() {
               )}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={s.nickname}>{profile.nickname}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={s.nickname}>{profile.nickname}</div>
+                {(profile as any).grade && (
+                  <span style={{ fontSize: 14 }} title={`${(profile as any).grade.name} (${(profile as any).activityScore}점)`}>
+                    {(profile as any).grade.emoji}
+                  </span>
+                )}
+              </div>
               <div style={s.email}>{profile.email}</div>
             </div>
+            <button onClick={() => setShowQuests(!showQuests)} style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, background: showQuests ? '#805ad5' : '#faf5ff', border: '2px solid #e9d8fd', cursor: 'pointer', transition: 'all 0.2s' }} title="일일 퀘스트">🎯</button>
             <button style={s.logoutBtn} onClick={handleLogout}>로그아웃</button>
             <button onClick={() => navigate('/settings')} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', padding: 4 }} title="설정">⚙️</button>
           </div>
@@ -133,6 +149,41 @@ function MyPage() {
             <div style={s.statItem}><div style={s.statNum}>{groups.length}</div><div style={s.statLabel}>참여 모임</div></div>
             <div style={s.statItem}><div style={s.statNum}>{groups.filter((g: any) => g.role === 'owner').length}</div><div style={s.statLabel}>주관 모임</div></div>
             <div style={s.statItem}><div style={s.statNum}>{formatDate(profile.createdAt || '')}</div><div style={s.statLabel}>가입일</div></div>
+          </div>
+        </div>
+      )}
+
+      {/* 일일 퀘스트 패널 */}
+      {showQuests && questData && (
+        <div style={{ backgroundColor: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid #e9d8fd', marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#553c9a' }}>🎯 일일 퀘스트</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#805ad5' }}>
+              {questData.grade?.emoji} {questData.grade?.name} · {questData.score}점
+              {questData.nextGrade && <span style={{ color: '#a0aec0', marginLeft: 4 }}>→ {questData.nextGrade.emoji} {questData.nextGrade.name}까지 {questData.nextGrade.pointsNeeded}점 남음</span>}
+              <span style={{ position: 'relative', display: 'inline-block', cursor: 'help' }}
+                onMouseEnter={e => { const tip = e.currentTarget.querySelector('[data-tip]') as HTMLElement; if (tip) tip.style.display = 'block'; }}
+                onMouseLeave={e => { const tip = e.currentTarget.querySelector('[data-tip]') as HTMLElement; if (tip) tip.style.display = 'none'; }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', backgroundColor: '#e2e8f0', color: '#4a5568', fontSize: 11, fontWeight: 700 }}>!</span>
+                <span data-tip="" style={{ display: 'none', position: 'absolute', bottom: '130%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#2d3748', color: '#fff', padding: '10px 14px', borderRadius: 8, fontSize: 12, lineHeight: 1.6, whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10 }}>
+                  🌱 새싹 (0~19점): 발언권 10개<br/>📖 독서가 (20~49점): 발언권 13개<br/>💬 전문가 (50~99점): 발언권 16개<br/>⭐ 마스터 (100점+): 발언권 20개
+                </span>
+              </span>
+            </div>
+          </div>
+          {questData.quests?.map((q: any) => (
+            <div key={q.type} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f7f8fc' }}>
+              <span style={{ fontSize: 14, color: q.done ? '#38a169' : '#4a5568' }}>
+                {q.done ? '✅' : '⬜'} {q.label}
+              </span>
+              <span style={{ fontSize: 12, color: q.done ? '#38a169' : '#a0aec0' }}>
+                {q.done ? '+1' : '0'}/1
+              </span>
+            </div>
+          ))}
+          <div style={{ marginTop: 12, fontSize: 12, color: '#a0aec0', textAlign: 'center' as const }}>
+            오늘 획득: {questData.quests?.filter((q: any) => q.done).length || 0}/5점 · 매일 00:00 초기화
           </div>
         </div>
       )}
