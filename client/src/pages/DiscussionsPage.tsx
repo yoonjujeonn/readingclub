@@ -381,6 +381,8 @@ function DiscussionsPage() {
       setSimilarLoading(false);
       setSimilarSearched(true);
     }
+  };
+
   // 수정 모달 열릴 때 값 세팅
   useEffect(() => {
     if (editingDiscussion) {
