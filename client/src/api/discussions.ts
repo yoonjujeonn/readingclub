@@ -92,6 +92,9 @@ export const discussionsApi = {
   grantTokens: (discussionId: string, userId: string, amount: number) =>
     apiClient.post(`/discussions/${discussionId}/tokens/grant`, { userId, amount }),
 
+  // 유사 스레드 검색
+  findSimilar: (groupId: string, title: string, content?: string) =>
+    apiClient.post<any[]>(`/groups/${groupId}/discussions/similar`, { title, content }),
   getRequestedThreads: (groupId: string) =>
     apiClient.get<any[]>(`/groups/${groupId}/tokens/requested-threads`),
 };
