@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { dashboardApi, type Announcement, type DiscussionSchedule } from '../api/dashboard';
+import { dashboardApi, type Announcement } from '../api/dashboard';
 import { groupsApi } from '../api/groups';
 import { discussionsApi } from '../api/discussions';
 import { useAuthStore } from '../stores/authStore';
@@ -47,12 +47,9 @@ function DashboardPage() {
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [inviteExpiresAt, setInviteExpiresAt] = useState<string | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [schedules, setSchedules] = useState<DiscussionSchedule[]>([]);
   const [threads, setThreads] = useState<Discussion[]>([]);
   const [editingEndDateId, setEditingEndDateId] = useState<string | null>(null);
   const [editingEndDateValue, setEditingEndDateValue] = useState('');
-  const [tokenRequestsForId, setTokenRequestsForId] = useState<string | null>(null);
-  const [tokenRequests, setTokenRequests] = useState<any[]>([]);
   const [threadMgmtTab, setThreadMgmtTab] = useState<'active' | 'closed' | 'tokenRequests'>('active');
   const [threadMgmtSort, setThreadMgmtSort] = useState<'newest' | 'oldest' | 'popular'>('newest');
   const [threadMgmtClosedSort, setThreadMgmtClosedSort] = useState<'newest' | 'oldest' | 'popular'>('popular');
@@ -61,10 +58,6 @@ function DashboardPage() {
   const MGMT_PAGE_SIZE = 5;
   const [newAnnTitle, setNewAnnTitle] = useState('');
   const [newAnnContent, setNewAnnContent] = useState('');
-  const [newSchedTitle, setNewSchedTitle] = useState('');
-  const [newSchedStart, setNewSchedStart] = useState('');
-  const [newSchedEnd, setNewSchedEnd] = useState('');
-  const [calMonth, setCalMonth] = useState(new Date());
   const [copied, setCopied] = useState(false);
 
   let currentUserId = user?.id || '';
@@ -75,18 +68,16 @@ function DashboardPage() {
   const fetchAll = async () => {
     if (!groupId) return;
     try {
-      const [gRes, invRes, annRes, schedRes, threadsRes] = await Promise.all([
+      const [gRes, invRes, annRes, threadsRes] = await Promise.all([
         groupsApi.getDetail(groupId),
         dashboardApi.getInviteCode(groupId).catch(() => ({ data: { inviteCode: null, expiresAt: null } })),
         dashboardApi.listAnnouncements(groupId).catch(() => ({ data: [] })),
-        dashboardApi.listSchedules(groupId).catch(() => ({ data: [] })),
         discussionsApi.listByGroup(groupId).catch(() => ({ data: [] })),
       ]);
       setGroup(gRes.data);
       setInviteCode(invRes.data.inviteCode);
       setInviteExpiresAt(invRes.data.expiresAt || null);
       setAnnouncements(annRes.data);
-      setSchedules(schedRes.data);
       setThreads(threadsRes.data);
 
       // 발언권 요청 스레드 조회
@@ -145,17 +136,6 @@ function DashboardPage() {
     await dashboardApi.deleteAnnouncement(groupId, annId); fetchAll();
   };
 
-  const handleCreateSchedule = async () => {
-    if (!groupId || !newSchedTitle.trim() || !newSchedStart || !newSchedEnd) return;
-    await dashboardApi.createSchedule(groupId, { title: newSchedTitle.trim(), startDate: newSchedStart, endDate: newSchedEnd });
-    setNewSchedTitle(''); setNewSchedStart(''); setNewSchedEnd(''); fetchAll();
-  };
-
-  const handleDeleteSchedule = async (scheduleId: string) => {
-    if (!groupId || !confirm('이 일정을 삭제하시겠습니까?')) return;
-    await dashboardApi.deleteSchedule(groupId, scheduleId); fetchAll();
-  };
-
   const handleUpdateEndDate = async (discussionId: string) => {
     setEditingEndDateId(discussionId);
     const thread = threads.find((t: any) => t.id === discussionId);
@@ -194,57 +174,14 @@ function DashboardPage() {
     }
   };
 
-  const handleViewTokenRequests = async (discussionId: string) => {
-    if (tokenRequestsForId === discussionId) {
-      setTokenRequestsForId(null);
-      return;
-    }
-    try {
-      const res = await discussionsApi.getTokenRequests(discussionId);
-      setTokenRequests(res.data);
-      setTokenRequestsForId(discussionId);
-    } catch {
-      setTokenRequests([]);
-      setTokenRequestsForId(discussionId);
-    }
-  };
-
   const handleGrantTokens = async (discussionId: string, userId: string) => {
     try {
       await discussionsApi.grantTokens(discussionId, userId, 5);
       alert('발언권 5개를 지급했습니다');
-      handleViewTokenRequests(discussionId);
+      fetchAll();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || '지급에 실패했습니다');
     }
-  };
-
-  // Calendar helpers
-  const daysInMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-  const firstDayOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1).getDay();
-
-  const renderCalendar = () => {
-    const days = daysInMonth(calMonth);
-    const startDay = firstDayOfMonth(calMonth);
-    const cells = [];
-    const readStart = group?.readingStartDate ? new Date(group.readingStartDate) : null;
-    const readEnd = group?.readingEndDate ? new Date(group.readingEndDate) : null;
-
-    for (let i = 0; i < startDay; i++) cells.push(<div key={`e${i}`} style={styles.calCell} />);
-    for (let d = 1; d <= days; d++) {
-      const date = new Date(calMonth.getFullYear(), calMonth.getMonth(), d);
-      let bg = 'transparent';
-      let color = '#333';
-      const hasSchedule = schedules.some(s => {
-        const start = new Date(s.startDate);
-        const end = new Date(s.endDate);
-        return date >= start && date <= end;
-      });
-      if (hasSchedule) { bg = '#c6f6d5'; }
-      else if (readStart && readEnd && date >= readStart && date <= readEnd) { bg = '#ebf8ff'; }
-      cells.push(<div key={d} style={{ ...styles.calCell, backgroundColor: bg, color }}>{d}</div>);
-    }
-    return cells;
   };
 
   if (!group) return <div style={{ textAlign: 'center', padding: 60, color: '#a0aec0' }}>불러오는 중...</div>;
