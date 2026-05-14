@@ -2,12 +2,13 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { discussionsApi } from '../api/discussions';
 import { memosApi } from '../api/memos';
+import { groupsApi } from '../api/groups';
 import { aiApi, type AiTopic } from '../api/ai';
 import { showToast } from '../api/client';
 import { useAuthStore } from '../stores/authStore';
-import type { Discussion, Memo, RecommendedTopic, ApiError } from '../types';
+import type { Discussion, Memo, RecommendedTopic, ApiError, GroupDetail } from '../types';
 import { AxiosError } from 'axios';
-import { showToast } from '../api/client';
+import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
 
 const MAX_THREAD_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_THREAD_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -273,6 +274,7 @@ function DiscussionsPage() {
   const [aiTopics, setAiTopics] = useState<AiTopic[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [myMemos, setMyMemos] = useState<Memo[]>([]);
+  const [groupInfo, setGroupInfo] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [filterMine, setFilterMine] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -297,6 +299,8 @@ function DiscussionsPage() {
   const [editContent, setEditContent] = useState('');
   const [editEndDate, setEditEndDate] = useState('');
   const [editSaving, setEditSaving] = useState(false);
+  const isReadOnly = isOutsideReadingPeriod(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
+  const readOnlyMessage = getReadingPeriodWriteBlockMessage(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
 
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
@@ -313,14 +317,16 @@ function DiscussionsPage() {
     setLoading(true);
     try {
       const params = filterMine && currentUserId ? { authorId: currentUserId } : undefined;
-      const [discRes, recRes, memoRes] = await Promise.all([
+      const [discRes, recRes, memoRes, groupRes] = await Promise.all([
         discussionsApi.listByGroup(groupId!, params),
         discussionsApi.getRecommendations(groupId!).catch(() => ({ data: [] as RecommendedTopic[] })),
         memosApi.listByGroup(groupId!).catch(() => ({ data: { myMemos: [] as Memo[], publicMemos: [] as Memo[] } })),
+        groupsApi.getDetail(groupId!).catch(() => ({ data: null })),
       ]);
       setDiscussions(discRes.data);
       setRecommendations(recRes.data);
       setMyMemos(memoRes.data.myMemos || []);
+      setGroupInfo(groupRes.data);
 
       if (currentUserId) {
         // 남은 생성 횟수 조회
@@ -353,12 +359,17 @@ function DiscussionsPage() {
     if (editingDiscussion) {
       setEditTitle(editingDiscussion.title);
       setEditContent((editingDiscussion as any).content || '');
-      setEditEndDate((editingDiscussion as any).endDate ? new Date((editingDiscussion as any).endDate).toISOString().split('T')[0] : '');
+      setEditEndDate((editingDiscussion as any).endDate ? (new Date((editingDiscussion as any).endDate).toISOString().split('T')[0] ?? '') : '');
     }
   }, [editingDiscussion]);
 
   const handleEditSubmit = async () => {
     if (!editingDiscussion || !editTitle.trim()) return;
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
+      setEditingDiscussion(null);
+      return;
+    }
     setEditSaving(true);
     try {
       await discussionsApi.updateTopic(editingDiscussion.id, {
@@ -377,6 +388,10 @@ function DiscussionsPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setServerError('');
+    if (isReadOnly) {
+      setServerError(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
+      return;
+    }
     const errs: Record<string, string> = {};
     if (!formTitle.trim()) errs.title = '제목을 입력해주세요';
     if (!formContent.trim()) errs.content = '내용을 입력해주세요';
@@ -412,6 +427,10 @@ function DiscussionsPage() {
 
   const handleSelectRecommendation = async (rec: RecommendedTopic) => {
     if (!groupId) return;
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
+      return;
+    }
     try {
       await discussionsApi.create(groupId!, {
         title: rec.title,
@@ -424,6 +443,10 @@ function DiscussionsPage() {
 
   const handleAiSuggest = async () => {
     if (!groupId) return;
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
+      return;
+    }
     setAiLoading(true);
     try {
       const res = await aiApi.suggestTopics(groupId);
@@ -437,6 +460,10 @@ function DiscussionsPage() {
 
   const handleSelectAiTopic = async (topic: AiTopic) => {
     if (!groupId) return;
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
+      return;
+    }
     try {
       await discussionsApi.create(groupId, {
         title: topic.title,
@@ -499,8 +526,13 @@ function DiscussionsPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
-            style={styles.createBtn}
+            style={{ ...styles.createBtn, ...(isReadOnly ? styles.buttonDisabled : {}) }}
+            disabled={isReadOnly}
             onClick={() => {
+              if (isReadOnly) {
+                showToast(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
+                return;
+              }
               if (remainingCount && remainingCount.remaining <= 0) {
                 showToast('오늘 생성 가능한 횟수를 초과했습니다. 내일 다시 시도해 주세요.');
                 return;
@@ -560,7 +592,7 @@ function DiscussionsPage() {
                   {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
                 </div>
               </div>
-              {d.authorId === currentUserId && (
+              {d.authorId === currentUserId && !isReadOnly && (
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button
                     onClick={(e) => { e.stopPropagation(); setEditingDiscussion(d); }}
@@ -569,6 +601,10 @@ function DiscussionsPage() {
                   <button
                     onClick={async (e) => {
                       e.stopPropagation();
+                      if (isReadOnly) {
+                        showToast(readOnlyMessage || '독서기간 중에만 삭제할 수 있습니다');
+                        return;
+                      }
                       if (!confirm('이 스레드를 삭제하시겠습니까?')) return;
                       try {
                         await discussionsApi.deleteTopic(d.id);

@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { AppError } from './auth.service';
 import { CreateMemoInput, UpdateMemoInput } from '../validators';
+import { assertReadingPeriodOpen } from './reading-period.service';
 
 const prisma = new PrismaClient();
 
@@ -8,10 +9,12 @@ export const memoService = {
   async create(groupId: string, userId: string, data: CreateMemoInput, imageUrl?: string) {
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
+      include: { group: { select: { readingStartDate: true, readingEndDate: true } } },
     });
     if (!member) {
       throw new AppError(403, 'FORBIDDEN', '모임 참여자만 메모를 작성할 수 있습니다');
     }
+    assertReadingPeriodOpen(member.group.readingStartDate, member.group.readingEndDate);
 
     // visibility에서 isPublic 동기화
     const visibility = data.visibility ?? 'private';
@@ -40,13 +43,17 @@ export const memoService = {
   },
 
   async update(memoId: string, userId: string, data: UpdateMemoInput) {
-    const memo = await prisma.memo.findUnique({ where: { id: memoId } });
+    const memo = await prisma.memo.findUnique({
+      where: { id: memoId },
+      include: { group: { select: { readingStartDate: true, readingEndDate: true } } },
+    });
     if (!memo) {
       throw new AppError(404, 'NOT_FOUND', '메모를 찾을 수 없습니다');
     }
     if (memo.userId !== userId) {
       throw new AppError(403, 'FORBIDDEN', '본인의 메모만 수정할 수 있습니다');
     }
+    assertReadingPeriodOpen(memo.group.readingStartDate, memo.group.readingEndDate);
 
     const updateData: any = {};
     if (data.pageStart !== undefined) updateData.pageStart = data.pageStart;
@@ -71,25 +78,33 @@ export const memoService = {
   },
 
   async delete(memoId: string, userId: string) {
-    const memo = await prisma.memo.findUnique({ where: { id: memoId } });
+    const memo = await prisma.memo.findUnique({
+      where: { id: memoId },
+      include: { group: { select: { readingStartDate: true, readingEndDate: true } } },
+    });
     if (!memo) {
       throw new AppError(404, 'NOT_FOUND', '메모를 찾을 수 없습니다');
     }
     if (memo.userId !== userId) {
       throw new AppError(403, 'FORBIDDEN', '본인의 메모만 삭제할 수 있습니다');
     }
+    assertReadingPeriodOpen(memo.group.readingStartDate, memo.group.readingEndDate);
 
     await prisma.memo.delete({ where: { id: memoId } });
   },
 
   async updateVisibility(memoId: string, userId: string, visibility: string) {
-    const memo = await prisma.memo.findUnique({ where: { id: memoId } });
+    const memo = await prisma.memo.findUnique({
+      where: { id: memoId },
+      include: { group: { select: { readingStartDate: true, readingEndDate: true } } },
+    });
     if (!memo) {
       throw new AppError(404, 'NOT_FOUND', '메모를 찾을 수 없습니다');
     }
     if (memo.userId !== userId) {
       throw new AppError(403, 'FORBIDDEN', '본인의 메모만 공개 여부를 변경할 수 있습니다');
     }
+    assertReadingPeriodOpen(memo.group.readingStartDate, memo.group.readingEndDate);
 
     // 비공개/스포일러 → 공개 전환 시, 본인의 독서 진행도가 메모의 pageEnd 이상이어야 함
     if (visibility === 'public' && memo.visibility !== 'public') {

@@ -6,6 +6,7 @@ import { showToast } from '../api/client';
 import { useAuthStore } from '../stores/authStore';
 import type { Memo, ApiError, GroupDetail, MemoVisibility, GroupMember } from '../types';
 import { AxiosError } from 'axios';
+import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
 
 const MAX_MEMO_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_MEMO_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -154,6 +155,8 @@ function MemosPage() {
 
   const sortedPublicMemos = sortMemos(publicMemos, publicSort);
   const sortedSpoilerMemos = sortMemos(spoilerMemos, spoilerSort);
+  const isReadOnly = isOutsideReadingPeriod(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
+  const readOnlyMessage = getReadingPeriodWriteBlockMessage(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
     try {
@@ -204,6 +207,10 @@ function MemosPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isReadOnly) {
+      setServerError(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
+      return;
+    }
     setServerError('');
     const errs = validateForm();
     setFormErrors(errs);
@@ -236,6 +243,10 @@ function MemosPage() {
   };
 
   const handleDelete = async (memoId: string) => {
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 삭제할 수 있습니다');
+      return;
+    }
     if (!confirm('메모를 삭제하시겠습니까?')) return;
     try { await memosApi.delete(memoId); fetchMemos(); } catch { /* ignore */ }
   };
@@ -257,6 +268,10 @@ function MemosPage() {
   };
 
   const handleChangeVisibility = async (memo: Memo, newVis: MemoVisibility) => {
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
+      return;
+    }
     try {
       await memosApi.updateVisibility(memo.id, newVis);
       fetchMemos();
@@ -268,6 +283,10 @@ function MemosPage() {
   };
 
   const startEdit = (memo: Memo) => {
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
+      return;
+    }
     setEditingId(memo.id);
     setEditContent(memo.content);
     setEditPageStart(String(memo.pageStart));
@@ -276,6 +295,11 @@ function MemosPage() {
 
   const handleUpdate = async () => {
     if (!editingId) return;
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
+      setEditingId(null);
+      return;
+    }
     try {
       await memosApi.update(editingId, {
         pageStart: parseInt(editPageStart),
@@ -338,18 +362,24 @@ function MemosPage() {
           <div style={styles.memoHeader}>
             <span style={styles.memoRange}>p.{memo.pageStart} ~ p.{memo.pageEnd}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <select
-                style={styles.visSelect}
-                value={memo.visibility || (memo.isPublic ? 'public' : 'private')}
-                onChange={(e) => handleChangeVisibility(memo, e.target.value as MemoVisibility)}
-              >
-                <option value="private">🔒 비공개</option>
-                <option value="public">🔓 공개</option>
-                <option value="spoiler">⚠️ 스포일러</option>
-              </select>
+              {!isReadOnly && (
+                <select
+                  style={styles.visSelect}
+                  value={memo.visibility || (memo.isPublic ? 'public' : 'private')}
+                  onChange={(e) => handleChangeVisibility(memo, e.target.value as MemoVisibility)}
+                >
+                  <option value="private">🔒 비공개</option>
+                  <option value="public">🔓 공개</option>
+                  <option value="spoiler">⚠️ 스포일러</option>
+                </select>
+              )}
               <button style={styles.actionBtn} onClick={() => setDetailMemo(memo)}>자세히</button>
-              <button style={styles.actionBtn} onClick={() => startEdit(memo)}>수정</button>
-              <button style={styles.deleteBtn} onClick={() => handleDelete(memo.id)}>삭제</button>
+              {!isReadOnly && (
+                <>
+                  <button style={styles.actionBtn} onClick={() => startEdit(memo)}>수정</button>
+                  <button style={styles.deleteBtn} onClick={() => handleDelete(memo.id)}>삭제</button>
+                </>
+              )}
             </div>
           </div>
           <div style={{ ...styles.memoContent, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const, whiteSpace: 'pre-wrap' }}>
@@ -632,11 +662,24 @@ function MemosPage() {
       {/* 4개 메뉴 버튼 */}
       <div style={styles.buttonGrid}>
         <div
-          style={{ ...styles.menuCard, borderColor: '#3182ce' }}
-          onClick={() => setActiveModal('create')}
+          style={{ ...styles.menuCard, borderColor: isReadOnly ? '#e2e8f0' : '#3182ce', ...(isReadOnly ? styles.buttonDisabled : {}) }}
+          onClick={() => {
+            if (isReadOnly) {
+              showToast(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
+              return;
+            }
+            setActiveModal('create');
+          }}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setActiveModal('create')}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return;
+            if (isReadOnly) {
+              showToast(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
+              return;
+            }
+            setActiveModal('create');
+          }}
         >
           <div style={styles.menuIcon}>✏️</div>
           <div style={styles.menuLabel}>메모 작성</div>
