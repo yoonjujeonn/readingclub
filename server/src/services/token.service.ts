@@ -81,4 +81,34 @@ export const tokenService = {
       include: { user: { select: { id: true, nickname: true } } },
     });
   },
+
+  // 그룹 전체에서 발언권 요청이 있는 스레드 목록 (모임장용)
+  async listRequestedThreads(groupId: string, ownerId: string) {
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group || group.ownerId !== ownerId) {
+      throw new AppError(403, 'FORBIDDEN', '방장만 조회할 수 있습니다');
+    }
+
+    const tokens = await prisma.discussionToken.findMany({
+      where: {
+        requested: true,
+        discussion: { groupId },
+      },
+      include: {
+        user: { select: { id: true, nickname: true } },
+        discussion: { select: { id: true, title: true, status: true } },
+      },
+    });
+
+    // 스레드별로 그룹핑
+    const grouped: Record<string, { discussion: any; requests: any[] }> = {};
+    for (const t of tokens) {
+      if (!grouped[t.discussionId]) {
+        grouped[t.discussionId] = { discussion: t.discussion, requests: [] };
+      }
+      grouped[t.discussionId].requests.push({ id: t.id, userId: t.userId, nickname: t.user.nickname, remaining: t.remaining });
+    }
+
+    return Object.values(grouped);
+  },
 };
