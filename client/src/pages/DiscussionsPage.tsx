@@ -1,7 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { discussionsApi } from '../api/discussions';
-import { groupsApi } from '../api/groups';
 import { memosApi } from '../api/memos';
 import { aiApi, type AiTopic } from '../api/ai';
 import { useAuthStore } from '../stores/authStore';
@@ -241,7 +240,6 @@ function DiscussionsPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
-  const [isOwner, setIsOwner] = useState(false);
   const [recommendations, setRecommendations] = useState<RecommendedTopic[]>([]);
   const [aiTopics, setAiTopics] = useState<AiTopic[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -287,10 +285,6 @@ function DiscussionsPage() {
       setMyMemos(memoRes.data.myMemos || []);
 
       if (currentUserId) {
-        const groupRes = await groupsApi.getDetail(groupId!).catch(() => ({ data: null }));
-        if (groupRes.data) {
-          setIsOwner(groupRes.data.ownerId === currentUserId);
-        }
         // 남은 생성 횟수 조회
         const remRes = await discussionsApi.getRemainingCount(groupId!).catch(() => ({ data: null }));
         if (remRes.data) setRemainingCount(remRes.data);
