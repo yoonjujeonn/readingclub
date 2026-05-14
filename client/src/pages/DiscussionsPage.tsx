@@ -8,7 +8,7 @@ import { showToast } from '../api/client';
 import { useAuthStore } from '../stores/authStore';
 import type { Discussion, Memo, RecommendedTopic, ApiError, GroupDetail } from '../types';
 import { AxiosError } from 'axios';
-import { hasReadingPeriodEnded } from '../utils/readingPeriod';
+import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
 
 const MAX_THREAD_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_THREAD_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -299,7 +299,8 @@ function DiscussionsPage() {
   const [editContent, setEditContent] = useState('');
   const [editEndDate, setEditEndDate] = useState('');
   const [editSaving, setEditSaving] = useState(false);
-  const isReadOnly = hasReadingPeriodEnded(groupInfo?.readingEndDate);
+  const isReadOnly = isOutsideReadingPeriod(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
+  const readOnlyMessage = getReadingPeriodWriteBlockMessage(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
 
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
@@ -365,7 +366,7 @@ function DiscussionsPage() {
   const handleEditSubmit = async () => {
     if (!editingDiscussion || !editTitle.trim()) return;
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 수정할 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
       setEditingDiscussion(null);
       return;
     }
@@ -388,7 +389,7 @@ function DiscussionsPage() {
     e.preventDefault();
     setServerError('');
     if (isReadOnly) {
-      setServerError('독서기간이 종료되어 스레드를 만들 수 없습니다');
+      setServerError(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
       return;
     }
     const errs: Record<string, string> = {};
@@ -427,7 +428,7 @@ function DiscussionsPage() {
   const handleSelectRecommendation = async (rec: RecommendedTopic) => {
     if (!groupId) return;
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 스레드를 만들 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
       return;
     }
     try {
@@ -443,7 +444,7 @@ function DiscussionsPage() {
   const handleAiSuggest = async () => {
     if (!groupId) return;
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 스레드를 만들 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
       return;
     }
     setAiLoading(true);
@@ -460,7 +461,7 @@ function DiscussionsPage() {
   const handleSelectAiTopic = async (topic: AiTopic) => {
     if (!groupId) return;
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 스레드를 만들 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
       return;
     }
     try {
@@ -529,7 +530,7 @@ function DiscussionsPage() {
             disabled={isReadOnly}
             onClick={() => {
               if (isReadOnly) {
-                showToast('독서기간이 종료되어 스레드를 만들 수 없습니다');
+                showToast(readOnlyMessage || '독서기간 중에만 스레드를 만들 수 있습니다');
                 return;
               }
               if (remainingCount && remainingCount.remaining <= 0) {
@@ -601,7 +602,7 @@ function DiscussionsPage() {
                     onClick={async (e) => {
                       e.stopPropagation();
                       if (isReadOnly) {
-                        showToast('독서기간이 종료되어 삭제할 수 없습니다');
+                        showToast(readOnlyMessage || '독서기간 중에만 삭제할 수 있습니다');
                         return;
                       }
                       if (!confirm('이 스레드를 삭제하시겠습니까?')) return;

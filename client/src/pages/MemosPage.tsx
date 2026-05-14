@@ -6,7 +6,7 @@ import { showToast } from '../api/client';
 import { useAuthStore } from '../stores/authStore';
 import type { Memo, ApiError, GroupDetail, MemoVisibility, GroupMember } from '../types';
 import { AxiosError } from 'axios';
-import { hasReadingPeriodEnded } from '../utils/readingPeriod';
+import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
 
 const MAX_MEMO_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_MEMO_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -155,7 +155,8 @@ function MemosPage() {
 
   const sortedPublicMemos = sortMemos(publicMemos, publicSort);
   const sortedSpoilerMemos = sortMemos(spoilerMemos, spoilerSort);
-  const isReadOnly = hasReadingPeriodEnded(groupInfo?.readingEndDate);
+  const isReadOnly = isOutsideReadingPeriod(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
+  const readOnlyMessage = getReadingPeriodWriteBlockMessage(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
     try {
@@ -207,7 +208,7 @@ function MemosPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (isReadOnly) {
-      setServerError('독서기간이 종료되어 메모를 작성할 수 없습니다');
+      setServerError(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
       return;
     }
     setServerError('');
@@ -243,7 +244,7 @@ function MemosPage() {
 
   const handleDelete = async (memoId: string) => {
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 삭제할 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 삭제할 수 있습니다');
       return;
     }
     if (!confirm('메모를 삭제하시겠습니까?')) return;
@@ -268,7 +269,7 @@ function MemosPage() {
 
   const handleChangeVisibility = async (memo: Memo, newVis: MemoVisibility) => {
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 수정할 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
       return;
     }
     try {
@@ -283,7 +284,7 @@ function MemosPage() {
 
   const startEdit = (memo: Memo) => {
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 수정할 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
       return;
     }
     setEditingId(memo.id);
@@ -295,7 +296,7 @@ function MemosPage() {
   const handleUpdate = async () => {
     if (!editingId) return;
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 수정할 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
       setEditingId(null);
       return;
     }
@@ -664,7 +665,7 @@ function MemosPage() {
           style={{ ...styles.menuCard, borderColor: isReadOnly ? '#e2e8f0' : '#3182ce', ...(isReadOnly ? styles.buttonDisabled : {}) }}
           onClick={() => {
             if (isReadOnly) {
-              showToast('독서기간이 종료되어 메모를 작성할 수 없습니다');
+              showToast(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
               return;
             }
             setActiveModal('create');
@@ -674,7 +675,7 @@ function MemosPage() {
           onKeyDown={(e) => {
             if (e.key !== 'Enter') return;
             if (isReadOnly) {
-              showToast('독서기간이 종료되어 메모를 작성할 수 없습니다');
+              showToast(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
               return;
             }
             setActiveModal('create');

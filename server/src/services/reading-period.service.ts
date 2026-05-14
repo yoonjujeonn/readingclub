@@ -1,6 +1,13 @@
 import { AppError } from './auth.service';
 
+const READING_PERIOD_NOT_STARTED_MESSAGE = '독서기간이 시작되지 않아 아직 작성, 수정, 삭제할 수 없습니다';
 const READING_PERIOD_ENDED_MESSAGE = '독서기간이 종료되어 더 이상 작성, 수정, 삭제할 수 없습니다';
+
+export function hasReadingPeriodNotStarted(readingStartDate: Date, now = new Date()): boolean {
+  const startOfReadingDay = new Date(readingStartDate);
+  startOfReadingDay.setHours(0, 0, 0, 0);
+  return startOfReadingDay > now;
+}
 
 export function hasReadingPeriodEnded(readingEndDate: Date, now = new Date()): boolean {
   const endOfReadingDay = new Date(readingEndDate);
@@ -8,7 +15,10 @@ export function hasReadingPeriodEnded(readingEndDate: Date, now = new Date()): b
   return endOfReadingDay < now;
 }
 
-export function assertReadingPeriodOpen(readingEndDate: Date): void {
+export function assertReadingPeriodOpen(readingStartDate: Date, readingEndDate: Date): void {
+  if (hasReadingPeriodNotStarted(readingStartDate)) {
+    throw new AppError(403, 'READING_PERIOD_NOT_STARTED', READING_PERIOD_NOT_STARTED_MESSAGE);
+  }
   if (hasReadingPeriodEnded(readingEndDate)) {
     throw new AppError(403, 'READING_PERIOD_ENDED', READING_PERIOD_ENDED_MESSAGE);
   }

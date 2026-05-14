@@ -9,7 +9,7 @@ import { showToast } from '../api/client';
 import { Markdown } from '../components/Markdown';
 import { InsightCard } from '../components/InsightCard';
 import { timeAgo } from '../utils/timeAgo';
-import { hasReadingPeriodEnded } from '../utils/readingPeriod';
+import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
 import type { Comment as CommentType, Discussion } from '../types';
 
 const MAX_COMMENT_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -260,6 +260,7 @@ function DiscussionThreadPage() {
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [readOnlyMessage, setReadOnlyMessage] = useState('');
 
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
@@ -309,7 +310,8 @@ function DiscussionThreadPage() {
         const groupRes = await groupsApi.getDetail(topicRes.data.groupId).catch(() => ({ data: null }));
         if (groupRes.data) {
           setIsOwner(groupRes.data.ownerId === currentUserId);
-          setIsReadOnly(hasReadingPeriodEnded(groupRes.data.readingEndDate));
+          setIsReadOnly(isOutsideReadingPeriod(groupRes.data.readingStartDate, groupRes.data.readingEndDate));
+          setReadOnlyMessage(getReadingPeriodWriteBlockMessage(groupRes.data.readingStartDate, groupRes.data.readingEndDate));
         }
 
         // 종료된 스레드면 인사이트 불러오기
@@ -331,7 +333,7 @@ function DiscussionThreadPage() {
   const handleAddComment = async (e: FormEvent) => {
     e.preventDefault();
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 의견을 작성할 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 의견을 작성할 수 있습니다');
       return;
     }
     if (!newComment.trim() || !discussionId) return;
@@ -350,7 +352,7 @@ function DiscussionThreadPage() {
 
   const handleAddReply = async (commentId: string) => {
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 댓글을 작성할 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 댓글을 작성할 수 있습니다');
       return;
     }
     if (!replyContent.trim()) return;
@@ -368,7 +370,7 @@ function DiscussionThreadPage() {
 
   const handleDeleteComment = async (commentId: string) => {
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 삭제할 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 삭제할 수 있습니다');
       return;
     }
     if (!confirm('이 의견을 삭제하시겠습니까?')) return;
@@ -380,7 +382,7 @@ function DiscussionThreadPage() {
 
   const handleDeleteReply = async (replyId: string) => {
     if (isReadOnly) {
-      showToast('독서기간이 종료되어 삭제할 수 없습니다');
+      showToast(readOnlyMessage || '독서기간 중에만 삭제할 수 있습니다');
       return;
     }
     if (!confirm('이 답글을 삭제하시겠습니까?')) return;
@@ -561,7 +563,7 @@ function DiscussionThreadPage() {
       {/* Add Comment */}
       {isReadOnly ? (
         <div style={{ ...styles.section, backgroundColor: '#f7f8fc', textAlign: 'center' as const }}>
-          <div style={{ color: '#4a5568', fontSize: 14, fontWeight: 500 }}>독서기간이 종료되어 읽기만 가능합니다.</div>
+          <div style={{ color: '#4a5568', fontSize: 14, fontWeight: 500 }}>{readOnlyMessage || '독서기간 중에만 작성할 수 있습니다'}</div>
         </div>
       ) : (topic as any)?.status === 'closed' ? (
         <div style={{ ...styles.section, backgroundColor: '#fff5f5', textAlign: 'center' as const }}>

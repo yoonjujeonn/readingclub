@@ -194,7 +194,7 @@ export const dashboardService = {
     if (comment.authorId !== userId && group.ownerId !== userId) {
       throw new AppError(403, 'FORBIDDEN', '본인의 의견이거나 방장만 삭제할 수 있습니다');
     }
-    assertReadingPeriodOpen(group.readingEndDate);
+    assertReadingPeriodOpen(group.readingStartDate, group.readingEndDate);
 
     // 답글 먼저 삭제 후 댓글 삭제
     await prisma.reply.deleteMany({ where: { commentId } });
@@ -214,7 +214,7 @@ export const dashboardService = {
     if (reply.authorId !== userId && group.ownerId !== userId) {
       throw new AppError(403, 'FORBIDDEN', '본인의 답글이거나 방장만 삭제할 수 있습니다');
     }
-    assertReadingPeriodOpen(group.readingEndDate);
+    assertReadingPeriodOpen(group.readingStartDate, group.readingEndDate);
 
     await prisma.reply.delete({ where: { id: replyId } });
   },

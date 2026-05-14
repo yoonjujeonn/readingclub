@@ -38,7 +38,10 @@ vi.mock('@prisma/client', () => ({
 import { discussionService } from './discussion.service';
 import { AppError } from './auth.service';
 
-const openGroup = { readingEndDate: new Date('2999-12-31T00:00:00.000Z') };
+const openGroup = {
+  readingStartDate: new Date('2000-01-01T00:00:00.000Z'),
+  readingEndDate: new Date('2999-12-31T00:00:00.000Z'),
+};
 
 describe('DiscussionService', () => {
   beforeEach(() => {
