@@ -7,12 +7,15 @@
     "dev": "ts-node-dev --respawn src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "bedrock:check": "node -r dotenv/config scripts/check-bedrock.mjs",
     "seed:api": "node scripts/seed-api-automation.mjs",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:pbt": "vitest --run --grep \"Property\""
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock": "^3.1046.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.1046.0",
     "@aws-sdk/client-s3": "^3.817.0",
     "@prisma/client": "^6.9.0",
     "@types/multer": "^2.1.0",

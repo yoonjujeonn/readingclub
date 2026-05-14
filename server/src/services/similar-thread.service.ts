@@ -1,10 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-import axios from 'axios';
+import { generateAiText } from './ai-provider.service';
 
 const prisma = new PrismaClient();
-
-const getApiKey = () => process.env.GEMINI_API_KEY || '';
-const getModel = () => process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
 // 키워드 추출
 function extractKeywords(text: string): string[] {
@@ -51,22 +48,6 @@ function cosineSimilarity(vecA: Map<string, number>, vecB: Map<string, number>):
 
   if (normA === 0 || normB === 0) return 0;
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-}
-
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
-  const apiKey = getApiKey();
-  if (!apiKey) return '';
-
-  const model = getModel();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-  const response = await axios.post(url, {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: [{ parts: [{ text: userPrompt }] }],
-    generationConfig: { temperature: 0.3, maxOutputTokens: 1000 },
-  }, { timeout: 15000 });
-
-  return response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
 export interface SimilarThread {
@@ -139,7 +120,7 @@ ${top5.map((s, i) => `${i + 1}. 제목: ${s.thread.title} / 내용: ${(s.thread.
 위 후보 중 새 스레드와 실제로 유사한 주제를 다루는 것만 선택해주세요.
 응답 형식 (유사한 스레드 번호 배열만): [1, 3, 5] 형태로 응답. 유사한 게 없으면 []`;
 
-      const raw = await callGemini(systemPrompt, userPrompt);
+      const raw = await generateAiText(systemPrompt, userPrompt, { temperature: 0.3, maxOutputTokens: 1000 });
       const match = raw.match(/\[[\s\S]*?\]/);
       if (match) {
         const indices: number[] = JSON.parse(match[0]);

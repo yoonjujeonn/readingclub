@@ -1,32 +1,8 @@
-import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
 import { AppError } from './auth.service';
+import { generateAiText } from './ai-provider.service';
 
 const prisma = new PrismaClient();
-
-const getApiKey = () => process.env.GEMINI_API_KEY || '';
-const getModel = () => process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new AppError(500, 'AI_NOT_CONFIGURED', 'Gemini API 키가 설정되지 않았습니다');
-  }
-
-  const model = getModel();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-  const response = await axios.post(url, {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: [{ parts: [{ text: userPrompt }] }],
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 4096,
-    },
-  }, { timeout: 30000 });
-
-  return response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-}
 
 export const aiService = {
   async suggestTopics(groupId: string): Promise<{ topics: { title: string; content: string }[] }> {
@@ -60,7 +36,7 @@ ${memoSummary}
 응답 형식 (JSON 배열만):
 [{"title": "주제 제목", "content": "주제에 대한 설명과 토론 방향 제시"}]`;
 
-    const raw = await callGemini(systemPrompt, userPrompt);
+    const raw = await generateAiText(systemPrompt, userPrompt);
     try {
       const jsonMatch = raw.match(/\[[\s\S]*\]/);
       const topics = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
@@ -114,7 +90,7 @@ ${thread.join('\n')}
 ## 결론 및 인사이트
 - 대화에서 도출된 인사이트`;
 
-    const summary = await callGemini(systemPrompt, userPrompt);
+    const summary = await generateAiText(systemPrompt, userPrompt);
     return { summary };
   },
 
@@ -180,7 +156,7 @@ ${discussionText}
 ## 📌 기억할 문장/생각
 - 인상 깊었던 내용`;
 
-    const insight = await callGemini(systemPrompt, userPrompt);
+    const insight = await generateAiText(systemPrompt, userPrompt);
     return { insight };
   },
 };
