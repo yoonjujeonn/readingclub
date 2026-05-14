@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import { discussionService } from '../services/discussion.service';
+import { similarThreadService } from '../services/similar-thread.service';
 import { AppError } from '../services/auth.service';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 import { CreateDiscussionSchema, CreateCommentSchema } from '../validators';
@@ -273,6 +274,26 @@ router.post('/groups/:groupId/discussions/recommendations/select', authMiddlewar
     res.status(500).json({
       error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' },
     });
+  }
+});
+
+// POST /api/groups/:groupId/discussions/similar — 유사 스레드 검색
+router.post('/groups/:groupId/discussions/similar', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { title, content } = req.body;
+    if (!title || !title.trim()) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '제목을 입력해주세요' } });
+      return;
+    }
+    const results = await similarThreadService.findSimilar(req.params.groupId as string, title, content);
+    res.json(results);
+  } catch (err: any) {
+    console.error('[Similar thread error]', err?.message || err);
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
   }
 });
 

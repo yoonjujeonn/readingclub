@@ -259,6 +259,11 @@ function DiscussionsPage() {
   const [serverError, setServerError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // 유사 스레드
+  const [similarThreads, setSimilarThreads] = useState<any[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const [similarSearched, setSimilarSearched] = useState(false);
+
   // 일일 생성 횟수
   const [remainingCount, setRemainingCount] = useState<{ used: number; remaining: number; limit: number } | null>(null);
 
@@ -316,6 +321,22 @@ function DiscussionsPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showCreateModal]);
 
+  const handleFindSimilar = async () => {
+    if (!groupId || !formTitle.trim()) return;
+    setSimilarLoading(true);
+    setSimilarThreads([]);
+    setSimilarSearched(false);
+    try {
+      const res = await discussionsApi.findSimilar(groupId, formTitle.trim(), formContent.trim());
+      setSimilarThreads(res.data || []);
+    } catch {
+      setSimilarThreads([]);
+    } finally {
+      setSimilarLoading(false);
+      setSimilarSearched(true);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setServerError('');
@@ -339,6 +360,8 @@ function DiscussionsPage() {
       setFormContent('');
       setFormMemoId('');
       setFormEndDate('');
+      setSimilarThreads([]);
+      setSimilarSearched(false);
       setShowCreateModal(false);
       fetchData();
     } catch (err) {
@@ -544,6 +567,51 @@ function DiscussionsPage() {
                     placeholder="내용을 입력해주세요"
                   />
                   {formErrors.content && <div style={styles.errorText}>{formErrors.content}</div>}
+                </div>
+
+                {/* 유사 스레드 확인 */}
+                <div style={{ marginBottom: 14 }}>
+                  <button
+                    type="button"
+                    onClick={handleFindSimilar}
+                    disabled={similarLoading || !formTitle.trim()}
+                    style={{ padding: '8px 14px', backgroundColor: '#edf2f7', color: '#4a5568', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+                  >
+                    {similarLoading ? '검색 중...' : '🔍 유사한 스레드 확인하기'}
+                  </button>
+
+                  {similarThreads.length > 0 && (
+                    <div style={{ marginTop: 10, border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, backgroundColor: '#f7fafc' }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 8 }}>
+                        🔍 유사한 스레드가 {similarThreads.length}개 있습니다
+                      </div>
+                      {similarThreads.map((t: any) => (
+                        <div
+                          key={t.id}
+                          style={{ padding: '8px 0', borderBottom: '1px solid #e2e8f0', cursor: 'pointer' }}
+                          onClick={() => navigate(`/discussions/${t.id}`)}
+                        >
+                          <div style={{ fontSize: 14, fontWeight: 500, color: '#2d3748' }}>
+                            {t.title}
+                            <span style={{ marginLeft: 6, fontSize: 11, color: t.status === 'active' ? '#38a169' : '#718096' }}>
+                              {t.status === 'active' ? '진행 중' : '종료'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 12, color: '#a0aec0', marginTop: 2 }}>
+                            {t.authorNickname} · 의견 {t.commentCount}개
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{ fontSize: 12, color: '#718096', marginTop: 8 }}>
+                        유사한 스레드에 참여하거나, 그래도 새로 만들 수 있습니다.
+                      </div>
+                    </div>
+                  )}
+                  {similarSearched && similarThreads.length === 0 && !similarLoading && (
+                    <div style={{ marginTop: 10, fontSize: 13, color: '#38a169' }}>
+                      ✅ 유사한 스레드가 없습니다. 새로 만들어도 좋아요!
+                    </div>
+                  )}
                 </div>
 
                 <div style={styles.field}>
