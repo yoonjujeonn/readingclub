@@ -181,11 +181,16 @@ function GroupDetailPage() {
   const fetchDetail = async () => {
     if (!id) return;
     setLoading(true);
+    setError('');
     try {
       const { data } = await groupsApi.getDetail(id);
       setGroup(data);
-    } catch {
-      setError('모임 정보를 불러올 수 없습니다');
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      const status = axiosErr.response?.status;
+      const message = axiosErr.response?.data?.error?.message;
+      setError(message ? `${message}${status ? ` (${status})` : ''}` : '모임 정보를 불러올 수 없습니다');
+      console.error('Failed to fetch group detail:', err);
     } finally {
       setLoading(false);
     }
