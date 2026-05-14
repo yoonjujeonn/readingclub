@@ -43,6 +43,17 @@ export const discussionService = {
       }
     }
 
+    // 종료일이 독서기간을 초과하는지 검증
+    if (data.endDate) {
+      const endDate = new Date(data.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      const readingEnd = new Date(member.group.readingEndDate);
+      readingEnd.setHours(23, 59, 59, 999);
+      if (endDate > readingEnd) {
+        throw new AppError(400, 'END_DATE_EXCEEDS_READING_PERIOD', '스레드 종료일은 독서기간 종료일을 초과할 수 없습니다');
+      }
+    }
+
     const discussion = await prisma.discussion.create({
       data: {
         groupId,
@@ -445,6 +456,11 @@ export const discussionService = {
     if (data.endDate) {
       const endDate = new Date(data.endDate);
       endDate.setHours(23, 59, 59, 999);
+      const readingEnd = new Date(discussion.group.readingEndDate);
+      readingEnd.setHours(23, 59, 59, 999);
+      if (endDate > readingEnd) {
+        throw new AppError(400, 'END_DATE_EXCEEDS_READING_PERIOD', '스레드 종료일은 독서기간 종료일을 초과할 수 없습니다');
+      }
       updateData.endDate = endDate;
       updateData.status = endDate >= new Date() ? 'active' : 'closed';
     }

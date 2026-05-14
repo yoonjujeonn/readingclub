@@ -425,6 +425,11 @@ function DiscussionsPage() {
     if (!formTitle.trim()) errs.title = '제목을 입력해주세요';
     if (!formContent.trim()) errs.content = '내용을 입력해주세요';
     if (!formEndDate) errs.endDate = '종료일을 입력해주세요';
+    if (formEndDate && groupInfo?.readingEndDate) {
+      const endDate = new Date(formEndDate);
+      const readingEnd = new Date(groupInfo.readingEndDate);
+      if (endDate > readingEnd) errs.endDate = '종료일은 독서기간 종료일을 초과할 수 없습니다';
+    }
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) return;
     if (!groupId) return;
@@ -850,10 +855,14 @@ function DiscussionsPage() {
                   <input
                     type="date"
                     min={new Date().toISOString().split('T')[0]}
+                    max={groupInfo?.readingEndDate ? new Date(groupInfo.readingEndDate).toISOString().split('T')[0] : undefined}
                     style={{ ...styles.input, ...(formErrors.endDate ? styles.inputError : {}) }}
                     value={formEndDate}
                     onChange={(e) => setFormEndDate(e.target.value)}
                   />
+                  {groupInfo?.readingEndDate && (
+                    <div style={styles.helpText}>독서기간 종료일({new Date(groupInfo.readingEndDate).toLocaleDateString()})까지 설정 가능</div>
+                  )}
                   {formErrors.endDate && <div style={styles.errorText}>{formErrors.endDate}</div>}
                 </div>
 
@@ -944,7 +953,10 @@ function DiscussionsPage() {
               </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>종료일</label>
-                <input type="date" min={new Date().toISOString().split('T')[0]} value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} style={styles.input} />
+                <input type="date" min={new Date().toISOString().split('T')[0]} max={groupInfo?.readingEndDate ? new Date(groupInfo.readingEndDate).toISOString().split('T')[0] : undefined} value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} style={styles.input} />
+                {groupInfo?.readingEndDate && (
+                  <div style={styles.helpText}>독서기간 종료일({new Date(groupInfo.readingEndDate).toLocaleDateString()})까지 설정 가능</div>
+                )}
               </div>
               <button onClick={handleEditSubmit} disabled={editSaving} style={styles.button}>
                 {editSaving ? '저장 중...' : '수정 완료'}
