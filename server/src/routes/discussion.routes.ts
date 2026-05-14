@@ -221,6 +221,39 @@ router.patch('/discussions/:id/end-date', authMiddleware, async (req: AuthReques
   }
 });
 
+// PUT /api/discussions/:id - 스레드 수정 (작성자)
+router.put('/discussions/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { title, content, endDate } = req.body;
+    if (!title || !title.trim()) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '제목을 입력해주세요' } });
+      return;
+    }
+    const result = await discussionService.updateTopic(req.params.id as string, req.user!.userId, { title: title.trim(), content: content?.trim() || null, endDate: endDate || null });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// DELETE /api/discussions/:id - 스레드 삭제 (작성자, 댓글 없는 경우만)
+router.delete('/discussions/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    await discussionService.deleteTopic(req.params.id as string, req.user!.userId);
+    res.json({ message: '스레드가 삭제되었습니다' });
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
 // POST /api/discussions/:id/pin - 대표 스레드 설정 (방장)
 router.post('/discussions/:id/pin', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {

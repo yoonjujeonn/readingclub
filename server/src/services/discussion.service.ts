@@ -400,13 +400,45 @@ export const discussionService = {
     });
   },
 
+  // 스레드 수정 (작성자)
+  async updateTopic(discussionId: string, userId: string, data: { title: string; content: string | null; endDate: string | null }) {
+    const discussion = await prisma.discussion.findUnique({ where: { id: discussionId } });
+    if (!discussion) throw new AppError(404, 'NOT_FOUND', '스레드를 찾을 수 없습니다');
+    if (discussion.authorId !== userId) throw new AppError(403, 'FORBIDDEN', '작성자만 수정할 수 있습니다');
+
+    const updateData: any = { title: data.title, content: data.content };
+    if (data.endDate) {
+      const endDate = new Date(data.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      updateData.endDate = endDate;
+      updateData.status = endDate >= new Date() ? 'active' : 'closed';
+    }
+
+    return prisma.discussion.update({
+      where: { id: discussionId },
+      data: updateData,
+      include: { author: { select: { id: true, nickname: true } } },
+    });
+  },
+
+  // 스레드 삭제 (작성자, 댓글 없는 경우만)
+  async deleteTopic(discussionId: string, userId: string) {
+    const discussion = await prisma.discussion.findUnique({
+      where: { id: discussionId },
+      include: { _count: { select: { comments: true } } },
+    });
+    if (!discussion) throw new AppError(404, 'NOT_FOUND', '스레드를 찾을 수 없습니다');
+    if (discussion.authorId !== userId) throw new AppError(403, 'FORBIDDEN', '작성자만 삭제할 수 있습니다');
+    if (discussion._count.comments > 0) throw new AppError(409, 'HAS_COMMENTS', '댓글이 있는 스레드는 삭제할 수 없습니다');
+
+    await prisma.discussion.delete({ where: { id: discussionId } });
+  },
+
   // KST 기준 오늘 시작 시각 계산
   _getTodayStartKST(): Date {
+    // 서버가 KST 환경이면 로컬 자정이 곧 KST 자정
     const now = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000;
-    const kstNow = new Date(now.getTime() + kstOffset);
-    const kstToday = new Date(kstNow.getFullYear(), kstNow.getMonth(), kstNow.getDate());
-    return new Date(kstToday.getTime() - kstOffset);
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   },
 
   // 오늘 해당 모임에서 사용자가 생성한 스레드 수
