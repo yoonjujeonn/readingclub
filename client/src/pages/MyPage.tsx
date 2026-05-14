@@ -278,10 +278,10 @@ function MyPage() {
         </div>
       )}
 
-      {/* 참여 토론 */}
+      {/* 참여 스레드 */}
       {discussions.length > 0 && (
         <div style={{ ...s.section, marginTop: 16 }}>
-          <div style={s.sectionTitle}>💬 참여 토론 ({discussions.length})</div>
+          <div style={s.sectionTitle}>💬 참여 스레드 ({discussions.length})</div>
           {discussions.map((d) => (
             <div key={d.id} style={s.listItem} onClick={() => navigate(`/discussions/${d.id}`)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}>
               <div style={s.listItemTitle}>

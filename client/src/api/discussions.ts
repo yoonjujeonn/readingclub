@@ -7,7 +7,7 @@ import type {
 } from '../types';
 
 export const discussionsApi = {
-  listByGroup: (groupId: string, params?: { authorId?: string }) =>
+  listByGroup: (groupId: string, params?: { authorId?: string; participantId?: string }) =>
     apiClient.get<Discussion[]>(`/groups/${groupId}/discussions`, { params }),
 
   create: (groupId: string, data: CreateDiscussionRequest) => {
