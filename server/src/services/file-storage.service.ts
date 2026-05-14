@@ -4,6 +4,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 
 const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+const allowedImagePrefixes = new Set(['profile-images', 'thread-images', 'comment-images', 'memo-images']);
 
 const storageDriver = process.env.FILE_STORAGE_DRIVER || (process.env.AWS_S3_BUCKET ? 's3' : 'local');
 const s3Bucket = process.env.AWS_S3_BUCKET;
@@ -20,8 +21,27 @@ export function isAllowedImageType(mimetype: string) {
 }
 
 export async function saveProfileImage(file: Express.Multer.File) {
+  return saveImage(file, 'profile-images');
+}
+
+export async function saveThreadImage(file: Express.Multer.File) {
+  return saveImage(file, 'thread-images');
+}
+
+export async function saveCommentImage(file: Express.Multer.File) {
+  return saveImage(file, 'comment-images');
+}
+
+export async function saveMemoImage(file: Express.Multer.File) {
+  return saveImage(file, 'memo-images');
+}
+
+async function saveImage(file: Express.Multer.File, prefix: string) {
   if (!isAllowedImageType(file.mimetype)) {
     throw new Error('Unsupported image type');
+  }
+  if (!allowedImagePrefixes.has(prefix)) {
+    throw new Error('Unsupported image prefix');
   }
 
   const extension = getExtension(file.originalname, file.mimetype);
@@ -32,7 +52,7 @@ export async function saveProfileImage(file: Express.Multer.File) {
       throw new Error('AWS_S3_BUCKET is required when FILE_STORAGE_DRIVER=s3');
     }
 
-    const key = `profile-images/${filename}`;
+    const key = `${prefix}/${filename}`;
     await s3Client.send(new PutObjectCommand({
       Bucket: s3Bucket,
       Key: key,

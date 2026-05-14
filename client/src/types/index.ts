@@ -100,6 +100,7 @@ export interface Memo {
   pageStart: number;
   pageEnd: number;
   content: string;
+  imageUrl?: string;
   isPublic: boolean;
   visibility: MemoVisibility;
   createdAt: string;
@@ -111,6 +112,7 @@ export interface CreateMemoRequest {
   pageStart: number;
   pageEnd: number;
   content: string;
+  image?: File;
   isPublic?: boolean;
   visibility?: MemoVisibility;
 }
@@ -124,6 +126,7 @@ export interface Discussion {
   memoId?: string;
   title: string;
   content?: string;
+  imageUrl?: string;
   isRecommended: boolean;
   isPinned?: boolean;
   status?: string;
@@ -136,6 +139,7 @@ export interface CreateDiscussionRequest {
   content?: string;
   memoId?: string;
   endDate?: string;
+  image?: File;
 }
 
 export interface Comment {
@@ -144,6 +148,7 @@ export interface Comment {
   authorId: string;
   authorNickname: string;
   content: string;
+  imageUrl?: string;
   createdAt: string;
   replies: Reply[];
 }

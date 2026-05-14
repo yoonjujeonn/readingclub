@@ -10,8 +10,19 @@ export const discussionsApi = {
   listByGroup: (groupId: string, params?: { authorId?: string }) =>
     apiClient.get<Discussion[]>(`/groups/${groupId}/discussions`, { params }),
 
-  create: (groupId: string, data: CreateDiscussionRequest) =>
-    apiClient.post<Discussion>(`/groups/${groupId}/discussions`, data),
+  create: (groupId: string, data: CreateDiscussionRequest) => {
+    if (!data.image) {
+      return apiClient.post<Discussion>(`/groups/${groupId}/discussions`, data);
+    }
+
+    const formData = new FormData();
+    formData.append('title', data.title);
+    if (data.content) formData.append('content', data.content);
+    if (data.memoId) formData.append('memoId', data.memoId);
+    if (data.endDate) formData.append('endDate', data.endDate);
+    formData.append('image', data.image);
+    return apiClient.post<Discussion>(`/groups/${groupId}/discussions`, formData);
+  },
 
   getById: (discussionId: string) =>
     apiClient.get<Discussion>(`/discussions/${discussionId}`),
@@ -23,6 +34,7 @@ export const discussionsApi = {
       ...c,
       authorId: c.authorId || c.author?.id,
       authorNickname: c.authorNickname || c.author?.nickname || '알 수 없음',
+      imageUrl: c.imageUrl,
       replies: (c.replies || []).map((r: any) => ({
         ...r,
         authorId: r.authorId || r.author?.id,
@@ -32,8 +44,16 @@ export const discussionsApi = {
     return res as { data: Comment[] };
   },
 
-  addComment: (discussionId: string, content: string) =>
-    apiClient.post<Comment>(`/discussions/${discussionId}/comments`, { content }),
+  addComment: (discussionId: string, content: string, image?: File | null) => {
+    if (!image) {
+      return apiClient.post<Comment>(`/discussions/${discussionId}/comments`, { content });
+    }
+
+    const formData = new FormData();
+    formData.append('content', content);
+    formData.append('image', image);
+    return apiClient.post<Comment>(`/discussions/${discussionId}/comments`, formData);
+  },
 
   addReply: (commentId: string, content: string) =>
     apiClient.post(`/comments/${commentId}/replies`, { content }),

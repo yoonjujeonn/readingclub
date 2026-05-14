@@ -1,10 +1,24 @@
 import { Router, Response } from 'express';
+import multer from 'multer';
 import { discussionService } from '../services/discussion.service';
 import { AppError } from '../services/auth.service';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 import { CreateDiscussionSchema, CreateCommentSchema } from '../validators';
+import { isAllowedImageType, saveCommentImage, saveThreadImage } from '../services/file-storage.service';
 
 const router = Router();
+
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!isAllowedImageType(file.mimetype)) {
+      cb(new AppError(400, 'VALIDATION_ERROR', 'JPG, PNG, GIF, WEBP 형식의 이미지만 사용할 수 있습니다'));
+      return;
+    }
+    cb(null, true);
+  },
+});
 
 // GET /api/groups/:groupId/discussions/remaining
 router.get('/groups/:groupId/discussions/remaining', authMiddleware, async (req: AuthRequest, res: Response) => {
@@ -44,9 +58,15 @@ router.get('/groups/:groupId/discussions', authMiddleware, async (req: AuthReque
 });
 
 // POST /api/groups/:groupId/discussions
-router.post('/groups/:groupId/discussions', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/groups/:groupId/discussions', authMiddleware, imageUpload.single('image'), async (req: AuthRequest, res: Response) => {
   try {
-    const parsed = CreateDiscussionSchema.safeParse(req.body);
+    const body = {
+      ...req.body,
+      memoId: req.body.memoId || undefined,
+      endDate: req.body.endDate || undefined,
+      content: req.body.content || undefined,
+    };
+    const parsed = CreateDiscussionSchema.safeParse(body);
     if (!parsed.success) {
       res.status(400).json({
         error: {
@@ -57,10 +77,12 @@ router.post('/groups/:groupId/discussions', authMiddleware, async (req: AuthRequ
       return;
     }
 
+    const imageUrl = req.file ? await saveThreadImage(req.file) : undefined;
     const discussion = await discussionService.createTopic(
       req.params.groupId as string,
       req.user!.userId,
       parsed.data,
+      imageUrl,
     );
     res.status(201).json(discussion);
   } catch (err) {
@@ -113,7 +135,7 @@ router.get('/discussions/:id/comments', authMiddleware, async (req: AuthRequest,
 });
 
 // POST /api/discussions/:id/comments
-router.post('/discussions/:id/comments', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/discussions/:id/comments', authMiddleware, imageUpload.single('image'), async (req: AuthRequest, res: Response) => {
   try {
     const parsed = CreateCommentSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -126,10 +148,12 @@ router.post('/discussions/:id/comments', authMiddleware, async (req: AuthRequest
       return;
     }
 
+    const imageUrl = req.file ? await saveCommentImage(req.file) : undefined;
     const comment = await discussionService.addComment(
       req.params.id as string,
       req.user!.userId,
       parsed.data.content,
+      imageUrl,
     );
     res.status(201).json(comment);
   } catch (err) {

@@ -5,10 +5,15 @@ import { dashboardApi } from '../api/dashboard';
 import { groupsApi } from '../api/groups';
 import { useAuthStore } from '../stores/authStore';
 import { aiApi } from '../api/ai';
+import { showToast } from '../api/client';
 import { Markdown } from '../components/Markdown';
 import { InsightCard } from '../components/InsightCard';
 import { timeAgo } from '../utils/timeAgo';
 import type { Comment as CommentType, Discussion } from '../types';
+
+const MAX_COMMENT_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_COMMENT_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const COMMENT_IMAGE_HELP_TEXT = '제한 용량: 5MB 지원 형식: JPG, PNG, GIF, WEBP';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -39,6 +44,16 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     color: '#4a5568',
     lineHeight: 1.6,
+    marginBottom: 12,
+  },
+  attachedImage: {
+    display: 'block',
+    maxWidth: '100%',
+    maxHeight: 420,
+    objectFit: 'contain' as const,
+    borderRadius: 8,
+    border: '1px solid #e2e8f0',
+    marginTop: 12,
     marginBottom: 12,
   },
   topicMeta: {
@@ -82,6 +97,15 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.7,
     marginBottom: 8,
     whiteSpace: 'pre-wrap' as const,
+  },
+  commentImage: {
+    display: 'block',
+    maxWidth: '100%',
+    maxHeight: 320,
+    objectFit: 'contain' as const,
+    borderRadius: 8,
+    border: '1px solid #e2e8f0',
+    marginBottom: 8,
   },
   commentMeta: {
     fontSize: 12,
@@ -156,6 +180,29 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
     padding: 0,
   },
+  fileButton: {
+    display: 'inline-block',
+    padding: '7px 12px',
+    fontSize: 12,
+    fontWeight: 600,
+    color: '#3182ce',
+    backgroundColor: '#ebf8ff',
+    border: '1px solid #bee3f8',
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  helpText: {
+    color: '#718096',
+    fontSize: 12,
+    marginTop: 6,
+  },
+  imagePreview: {
+    width: 120,
+    height: 80,
+    objectFit: 'cover' as const,
+    borderRadius: 6,
+    border: '1px solid #e2e8f0',
+  },
   loading: {
     textAlign: 'center' as const,
     padding: '60px 20px',
@@ -219,6 +266,8 @@ function DiscussionThreadPage() {
 
   // Comment form
   const [newComment, setNewComment] = useState('');
+  const [commentImage, setCommentImage] = useState<File | null>(null);
+  const [commentImagePreview, setCommentImagePreview] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [tokenRemaining, setTokenRemaining] = useState<number | null>(null);
   const [tokenRequested, setTokenRequested] = useState(false);
@@ -281,8 +330,10 @@ function DiscussionThreadPage() {
     if (!newComment.trim() || !discussionId) return;
     setSubmittingComment(true);
     try {
-      await discussionsApi.addComment(discussionId, newComment.trim());
+      await discussionsApi.addComment(discussionId, newComment.trim(), commentImage);
       setNewComment('');
+      setCommentImage(null);
+      setCommentImagePreview('');
       fetchData();
     } catch { /* ignore */ }
     finally {
@@ -333,6 +384,28 @@ function DiscussionThreadPage() {
     }
   };
 
+  const handleCommentImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_COMMENT_IMAGE_TYPES.includes(file.type)) {
+      showToast('JPG, PNG, GIF, WEBP 형식의 이미지만 사용할 수 있습니다');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > MAX_COMMENT_IMAGE_SIZE) {
+      showToast('댓글 이미지는 5MB 이하의 파일만 사용할 수 있습니다');
+      e.target.value = '';
+      return;
+    }
+    setCommentImage(file);
+    setCommentImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearCommentImage = () => {
+    setCommentImage(null);
+    setCommentImagePreview('');
+  };
+
   return (
     <div style={styles.container}>
       <Link
@@ -349,6 +422,7 @@ function DiscussionThreadPage() {
           {topic?.isRecommended && <span style={styles.recommendedBadge}>추천</span>}
         </div>
         {topic?.content && <div style={styles.topicContent}>{topic.content}</div>}
+        {topic?.imageUrl && <img src={topic.imageUrl} alt="" style={styles.attachedImage} />}
         <div style={styles.topicMeta}>
           {topic?.authorNickname || ''} · {topic?.createdAt ? timeAgo(topic.createdAt) : ''}
         </div>
@@ -394,6 +468,7 @@ function DiscussionThreadPage() {
             <div key={comment.id} style={styles.commentCard}>
               <div style={styles.commentAuthor}>{comment.authorNickname}</div>
               <div style={styles.commentContent}>{comment.content}</div>
+              {comment.imageUrl && <img src={comment.imageUrl} alt="" style={styles.commentImage} />}
               <div style={styles.commentMeta}>
                 {timeAgo(comment.createdAt)}
                 {' · '}
@@ -512,6 +587,22 @@ function DiscussionThreadPage() {
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="의견을 작성해주세요"
               />
+              <div style={{ marginTop: 8 }}>
+                <label style={styles.fileButton}>
+                  {commentImage ? '다른 이미지 선택' : '이미지 선택'}
+                  <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleCommentImageChange} style={{ display: 'none' }} />
+                </label>
+                <div style={styles.helpText}>{COMMENT_IMAGE_HELP_TEXT}</div>
+                {commentImage && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
+                    {commentImagePreview && <img src={commentImagePreview} alt="" style={styles.imagePreview} />}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: '#4a5568', wordBreak: 'break-all' }}>{commentImage.name}</div>
+                      <button type="button" onClick={clearCommentImage} style={{ ...styles.replyToggle, color: '#e53e3e', marginTop: 4 }}>삭제</button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
                 <button
                   type="submit"

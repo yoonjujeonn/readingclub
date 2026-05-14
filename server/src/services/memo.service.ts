@@ -5,7 +5,7 @@ import { CreateMemoInput, UpdateMemoInput } from '../validators';
 const prisma = new PrismaClient();
 
 export const memoService = {
-  async create(groupId: string, userId: string, data: CreateMemoInput) {
+  async create(groupId: string, userId: string, data: CreateMemoInput, imageUrl?: string) {
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
     });
@@ -27,6 +27,7 @@ export const memoService = {
         pageStart: data.pageStart,
         pageEnd: data.pageEnd,
         content: data.content,
+        imageUrl: imageUrl ?? null,
         isPublic,
         visibility,
       },
@@ -161,6 +162,7 @@ export const memoService = {
         pageStart: memo.pageStart,
         pageEnd: memo.pageEnd,
         content: canView ? memo.content : null,
+        imageUrl: canView ? (memo as any).imageUrl : null,
         isPublic: memo.isPublic,
         visibility: memo.visibility,
         createdAt: memo.createdAt,
