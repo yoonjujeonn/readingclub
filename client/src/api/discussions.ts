@@ -44,6 +44,12 @@ export const discussionsApi = {
   getRemainingCount: (groupId: string) =>
     apiClient.get<{ used: number; remaining: number; limit: number }>(`/groups/${groupId}/discussions/remaining`),
 
+  updateTopic: (discussionId: string, data: { title: string; content?: string; endDate?: string }) =>
+    apiClient.put(`/discussions/${discussionId}`, data),
+
+  deleteTopic: (discussionId: string) =>
+    apiClient.delete(`/discussions/${discussionId}`),
+
   updateEndDate: (discussionId: string, endDate: string) =>
     apiClient.patch(`/discussions/${discussionId}/end-date`, { endDate }),
 

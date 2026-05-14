@@ -6,6 +6,7 @@ import { aiApi, type AiTopic } from '../api/ai';
 import { useAuthStore } from '../stores/authStore';
 import type { Discussion, Memo, RecommendedTopic, ApiError } from '../types';
 import { AxiosError } from 'axios';
+import { showToast } from '../api/client';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -260,6 +261,13 @@ function DiscussionsPage() {
   // 일일 생성 횟수
   const [remainingCount, setRemainingCount] = useState<{ used: number; remaining: number; limit: number } | null>(null);
 
+  // 수정 상태
+  const [editingDiscussion, setEditingDiscussion] = useState<Discussion | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editEndDate, setEditEndDate] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
     try {
@@ -309,6 +317,32 @@ function DiscussionsPage() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showCreateModal]);
+
+  // 수정 모달 열릴 때 값 세팅
+  useEffect(() => {
+    if (editingDiscussion) {
+      setEditTitle(editingDiscussion.title);
+      setEditContent((editingDiscussion as any).content || '');
+      setEditEndDate((editingDiscussion as any).endDate ? new Date((editingDiscussion as any).endDate).toISOString().split('T')[0] : '');
+    }
+  }, [editingDiscussion]);
+
+  const handleEditSubmit = async () => {
+    if (!editingDiscussion || !editTitle.trim()) return;
+    setEditSaving(true);
+    try {
+      await discussionsApi.updateTopic(editingDiscussion.id, {
+        title: editTitle.trim(),
+        content: editContent.trim() || undefined,
+        endDate: editEndDate || undefined,
+      });
+      setEditingDiscussion(null);
+      fetchData();
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      showToast(axiosErr.response?.data?.error?.message || '수정에 실패했습니다');
+    } finally { setEditSaving(false); }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -411,7 +445,13 @@ function DiscussionsPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
             style={styles.createBtn}
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              if (remainingCount && remainingCount.remaining <= 0) {
+                showToast('오늘 생성 가능한 횟수를 초과했습니다. 내일 다시 시도해 주세요.');
+                return;
+              }
+              setShowCreateModal(true);
+            }}
           >
             + 스레드 만들기
           </button>
@@ -454,19 +494,39 @@ function DiscussionsPage() {
           discussions.filter((d: any) => d.status !== 'closed').map((d) => (
             <div
               key={d.id}
-              style={styles.discussionItem}
-              onClick={() => navigate(`/discussions/${d.id}`)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}
+              style={{ ...styles.discussionItem, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >
-              <div style={styles.discussionTitle}>
-                {d.title}
-                {(d as any).endDate && <span style={{ fontSize: 11, color: '#718096', marginLeft: 8 }}>~{new Date((d as any).endDate).toLocaleDateString()}</span>}
+              <div style={{ cursor: 'pointer', flex: 1 }} onClick={() => navigate(`/discussions/${d.id}`)}>
+                <div style={styles.discussionTitle}>
+                  {d.title}
+                  {(d as any).endDate && <span style={{ fontSize: 11, color: '#718096', marginLeft: 8 }}>~{new Date((d as any).endDate).toLocaleDateString()}</span>}
+                </div>
+                <div style={styles.discussionMeta}>
+                  {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
+                </div>
               </div>
-              <div style={styles.discussionMeta}>
-                {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
-              </div>
+              {d.authorId === currentUserId && (
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setEditingDiscussion(d); }}
+                    style={{ padding: '3px 10px', fontSize: 11, color: '#667eea', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 4, cursor: 'pointer' }}
+                  >수정</button>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!confirm('이 스레드를 삭제하시겠습니까?')) return;
+                      try {
+                        await discussionsApi.deleteTopic(d.id);
+                        fetchData();
+                      } catch (err) {
+                        const axiosErr = err as AxiosError<ApiError>;
+                        showToast(axiosErr.response?.data?.error?.message || '삭제에 실패했습니다');
+                      }
+                    }}
+                    style={{ padding: '3px 10px', fontSize: 11, color: '#e53e3e', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 4, cursor: 'pointer' }}
+                  >삭제</button>
+                </div>
+              )}
             </div>
           ))
         )}
@@ -632,6 +692,35 @@ function DiscussionsPage() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 수정 모달 */}
+      {editingDiscussion && (
+        <div style={styles.overlay} onClick={() => setEditingDiscussion(null)}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>✏️ 스레드 수정</div>
+              <button style={styles.closeBtn} onClick={() => setEditingDiscussion(null)} aria-label="닫기">×</button>
+            </div>
+            <div style={{ padding: 20 }}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>제목</label>
+                <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} style={styles.input} />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>내용</label>
+                <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} style={{ ...styles.input, minHeight: 80, resize: 'vertical' as const, fontFamily: 'inherit' }} />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>종료일</label>
+                <input type="date" min={new Date().toISOString().split('T')[0]} value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} style={styles.input} />
+              </div>
+              <button onClick={handleEditSubmit} disabled={editSaving} style={styles.button}>
+                {editSaving ? '저장 중...' : '수정 완료'}
+              </button>
+            </div>
           </div>
         </div>
       )}
