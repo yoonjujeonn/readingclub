@@ -1,7 +1,8 @@
 module.exports = {
   apps: [{
     name: 'book-discussion',
-    script: 'server/dist/index.js',
+    cwd: 'server',
+    script: 'dist/index.js',
     env: {
       NODE_ENV: 'production',
       PORT: 3000,

@@ -101,6 +101,7 @@ model Memo {
   pageStart Int      @map("page_start")
   pageEnd   Int      @map("page_end")
   content   String   @db.Text
+  imageUrl  String?  @map("image_url") @db.Text
   isPublic   Boolean  @default(false) @map("is_public")
   visibility String   @default("private") @map("visibility") @db.VarChar(20)
   createdAt  DateTime @default(now()) @map("created_at")
@@ -120,6 +121,7 @@ model Discussion {
   memoId        String?   @map("memo_id")
   title         String    @db.VarChar(200)
   content       String?   @db.Text
+  imageUrl      String?   @map("image_url") @db.Text
   isRecommended Boolean   @default(false) @map("is_recommended")
   isPinned      Boolean   @default(false) @map("is_pinned")
   status        String    @default("active") @map("status") @db.VarChar(20)
@@ -155,6 +157,7 @@ model Comment {
   discussionId String   @map("discussion_id")
   authorId     String   @map("author_id")
   content      String   @db.Text
+  imageUrl      String?  @map("image_url") @db.Text
   createdAt    DateTime @default(now()) @map("created_at")
 
   discussion Discussion @relation(fields: [discussionId], references: [id])

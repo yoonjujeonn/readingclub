@@ -66,4 +66,18 @@ router.post('/discussions/:id/tokens/grant', authMiddleware, async (req: AuthReq
   }
 });
 
+// GET /api/groups/:groupId/tokens/requested-threads - 발언권 요청이 있는 스레드 목록 (모임장)
+router.get('/groups/:groupId/tokens/requested-threads', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await tokenService.listRequestedThreads(req.params.groupId as string, req.user!.userId);
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
 export default router;

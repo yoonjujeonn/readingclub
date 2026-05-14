@@ -5,6 +5,8 @@ const mockPrisma = vi.hoisted(() => ({
     create: vi.fn(),
     findUnique: vi.fn(),
     findMany: vi.fn(),
+    updateMany: vi.fn(),
+    count: vi.fn(),
   },
   comment: {
     create: vi.fn(),
@@ -23,6 +25,12 @@ const mockPrisma = vi.hoisted(() => ({
   },
 }));
 
+vi.mock('./token.service', () => ({
+  tokenService: {
+    consume: vi.fn(),
+  },
+}));
+
 vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn(() => mockPrisma),
 }));
@@ -30,15 +38,22 @@ vi.mock('@prisma/client', () => ({
 import { discussionService } from './discussion.service';
 import { AppError } from './auth.service';
 
+const openGroup = {
+  readingStartDate: new Date('2000-01-01T00:00:00.000Z'),
+  readingEndDate: new Date('2999-12-31T00:00:00.000Z'),
+};
+
 describe('DiscussionService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.discussion.count.mockResolvedValue(0);
   });
 
   describe('createTopic', () => {
     it('should create a discussion topic', async () => {
       mockPrisma.groupMember.findUnique.mockResolvedValue({
         id: 'member-1', groupId: 'group-1', userId: 'user-1',
+        group: openGroup,
       });
       mockPrisma.discussion.create.mockResolvedValue({
         id: 'disc-1',
@@ -67,7 +82,10 @@ describe('DiscussionService', () => {
           memoId: null,
           title: '첫 번째 토론',
           content: '토론 내용',
+          imageUrl: null,
           isRecommended: false,
+          status: 'active',
+          endDate: null,
         },
         include: {
           author: { select: { id: true, nickname: true } },
@@ -79,6 +97,7 @@ describe('DiscussionService', () => {
     it('should create a topic with memo reference', async () => {
       mockPrisma.groupMember.findUnique.mockResolvedValue({
         id: 'member-1', groupId: 'group-1', userId: 'user-1',
+        group: openGroup,
       });
       mockPrisma.memo.findUnique.mockResolvedValue({
         id: 'memo-1', groupId: 'group-1', userId: 'user-1',
@@ -122,6 +141,7 @@ describe('DiscussionService', () => {
     it('should throw NOT_FOUND if referenced memo does not exist', async () => {
       mockPrisma.groupMember.findUnique.mockResolvedValue({
         id: 'member-1', groupId: 'group-1', userId: 'user-1',
+        group: openGroup,
       });
       mockPrisma.memo.findUnique.mockResolvedValue(null);
 
@@ -136,6 +156,7 @@ describe('DiscussionService', () => {
     it('should throw VALIDATION_ERROR if memo belongs to different group', async () => {
       mockPrisma.groupMember.findUnique.mockResolvedValue({
         id: 'member-1', groupId: 'group-1', userId: 'user-1',
+        group: openGroup,
       });
       mockPrisma.memo.findUnique.mockResolvedValue({
         id: 'memo-1', groupId: 'group-2', userId: 'user-1',
@@ -155,7 +176,8 @@ describe('DiscussionService', () => {
 
   describe('listTopics', () => {
     it('should list all topics for a group', async () => {
-      mockPrisma.discussion.findMany.mockResolvedValue([
+      mockPrisma.discussion.findMany.mockResolvedValueOnce([]);
+      mockPrisma.discussion.findMany.mockResolvedValueOnce([
         {
           id: 'disc-1',
           groupId: 'group-1',
@@ -179,7 +201,8 @@ describe('DiscussionService', () => {
     });
 
     it('should filter topics by authorId', async () => {
-      mockPrisma.discussion.findMany.mockResolvedValue([]);
+      mockPrisma.discussion.findMany.mockResolvedValueOnce([]);
+      mockPrisma.discussion.findMany.mockResolvedValueOnce([]);
 
       await discussionService.listTopics('group-1', { authorId: 'user-1' });
 
@@ -195,6 +218,7 @@ describe('DiscussionService', () => {
     it('should add a comment to a discussion', async () => {
       mockPrisma.discussion.findUnique.mockResolvedValue({
         id: 'disc-1', groupId: 'group-1',
+        group: openGroup,
       });
       mockPrisma.groupMember.findUnique.mockResolvedValue({
         id: 'member-1', groupId: 'group-1', userId: 'user-1',
@@ -225,6 +249,7 @@ describe('DiscussionService', () => {
     it('should throw FORBIDDEN if user is not a group member', async () => {
       mockPrisma.discussion.findUnique.mockResolvedValue({
         id: 'disc-1', groupId: 'group-1',
+        group: openGroup,
       });
       mockPrisma.groupMember.findUnique.mockResolvedValue(null);
 
@@ -241,7 +266,7 @@ describe('DiscussionService', () => {
     it('should add a reply to a comment', async () => {
       mockPrisma.comment.findUnique.mockResolvedValue({
         id: 'comment-1',
-        discussion: { groupId: 'group-1' },
+        discussion: { id: 'disc-1', groupId: 'group-1', group: openGroup },
       });
       mockPrisma.groupMember.findUnique.mockResolvedValue({
         id: 'member-1', groupId: 'group-1', userId: 'user-1',
@@ -272,7 +297,7 @@ describe('DiscussionService', () => {
     it('should throw FORBIDDEN if user is not a group member', async () => {
       mockPrisma.comment.findUnique.mockResolvedValue({
         id: 'comment-1',
-        discussion: { groupId: 'group-1' },
+        discussion: { id: 'disc-1', groupId: 'group-1', group: openGroup },
       });
       mockPrisma.groupMember.findUnique.mockResolvedValue(null);
 
@@ -364,6 +389,7 @@ describe('DiscussionService', () => {
     it('should create a discussion with isRecommended=true', async () => {
       mockPrisma.groupMember.findUnique.mockResolvedValue({
         id: 'member-1', groupId: 'group-1', userId: 'user-1',
+        group: openGroup,
       });
       mockPrisma.discussion.create.mockResolvedValue({
         id: 'disc-1',

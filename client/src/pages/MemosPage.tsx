@@ -2,9 +2,15 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { memosApi } from '../api/memos';
 import { groupsApi } from '../api/groups';
+import { showToast } from '../api/client';
 import { useAuthStore } from '../stores/authStore';
 import type { Memo, ApiError, GroupDetail, MemoVisibility, GroupMember } from '../types';
 import { AxiosError } from 'axios';
+import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
+
+const MAX_MEMO_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_MEMO_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const MEMO_IMAGE_HELP_TEXT = '제한 용량: 5MB 지원 형식: JPG, PNG, GIF, WEBP';
 
 const styles: Record<string, React.CSSProperties> = {
   container: { maxWidth: 800, margin: '0 auto', padding: '24px 16px' },
@@ -42,6 +48,7 @@ const styles: Record<string, React.CSSProperties> = {
   input: { width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const },
   inputError: { borderColor: '#e53e3e' },
   errorText: { color: '#e53e3e', fontSize: 12, marginTop: 4 },
+  helpText: { color: '#718096', fontSize: 12, marginTop: 6 },
   textarea: { width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const, minHeight: 100, resize: 'vertical' as const, fontFamily: 'inherit' },
   row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
   button: { width: '100%', padding: '10px 0', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
@@ -57,6 +64,9 @@ const styles: Record<string, React.CSSProperties> = {
   serverError: { backgroundColor: '#fff5f5', color: '#e53e3e', padding: '10px 12px', borderRadius: 4, fontSize: 14, marginBottom: 16, textAlign: 'center' as const },
   emptyState: { textAlign: 'center' as const, padding: '30px 20px', color: '#a0aec0', fontSize: 14 },
   visSelect: { padding: '6px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4, backgroundColor: '#fff', cursor: 'pointer', marginLeft: 4 },
+  fileButton: { display: 'inline-block', padding: '8px 14px', fontSize: 13, fontWeight: 600, color: '#3182ce', backgroundColor: '#ebf8ff', border: '1px solid #bee3f8', borderRadius: 6, cursor: 'pointer' },
+  imagePreview: { width: 120, height: 80, objectFit: 'cover' as const, borderRadius: 6, border: '1px solid #e2e8f0' },
+  memoImage: { display: 'block', maxWidth: '100%', maxHeight: 280, objectFit: 'contain' as const, borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: 8 },
 };
 
 type ModalType = 'create' | 'my' | 'public' | 'spoiler' | null;
@@ -94,6 +104,8 @@ function MemosPage() {
   const [pageEnd, setPageEnd] = useState('');
   const [content, setContent] = useState('');
   const [visibility, setVisibility] = useState<MemoVisibility>('private');
+  const [memoImage, setMemoImage] = useState<File | null>(null);
+  const [memoImagePreview, setMemoImagePreview] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -143,6 +155,8 @@ function MemosPage() {
 
   const sortedPublicMemos = sortMemos(publicMemos, publicSort);
   const sortedSpoilerMemos = sortMemos(spoilerMemos, spoilerSort);
+  const isReadOnly = isOutsideReadingPeriod(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
+  const readOnlyMessage = getReadingPeriodWriteBlockMessage(groupInfo?.readingStartDate, groupInfo?.readingEndDate);
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
     try {
@@ -193,6 +207,10 @@ function MemosPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isReadOnly) {
+      setServerError(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
+      return;
+    }
     setServerError('');
     const errs = validateForm();
     setFormErrors(errs);
@@ -206,11 +224,14 @@ function MemosPage() {
         pageEnd: parseInt(pageEnd),
         content: content.trim(),
         visibility,
+        image: memoImage || undefined,
       });
       setPageStart('');
       setPageEnd('');
       setContent('');
       setVisibility('private');
+      setMemoImage(null);
+      setMemoImagePreview('');
       setActiveModal(null);
       fetchMemos();
     } catch (err) {
@@ -222,6 +243,10 @@ function MemosPage() {
   };
 
   const handleDelete = async (memoId: string) => {
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 삭제할 수 있습니다');
+      return;
+    }
     if (!confirm('메모를 삭제하시겠습니까?')) return;
     try { await memosApi.delete(memoId); fetchMemos(); } catch { /* ignore */ }
   };
@@ -243,6 +268,10 @@ function MemosPage() {
   };
 
   const handleChangeVisibility = async (memo: Memo, newVis: MemoVisibility) => {
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
+      return;
+    }
     try {
       await memosApi.updateVisibility(memo.id, newVis);
       fetchMemos();
@@ -254,6 +283,10 @@ function MemosPage() {
   };
 
   const startEdit = (memo: Memo) => {
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
+      return;
+    }
     setEditingId(memo.id);
     setEditContent(memo.content);
     setEditPageStart(String(memo.pageStart));
@@ -262,6 +295,11 @@ function MemosPage() {
 
   const handleUpdate = async () => {
     if (!editingId) return;
+    if (isReadOnly) {
+      showToast(readOnlyMessage || '독서기간 중에만 수정할 수 있습니다');
+      setEditingId(null);
+      return;
+    }
     try {
       await memosApi.update(editingId, {
         pageStart: parseInt(editPageStart),
@@ -276,6 +314,28 @@ function MemosPage() {
   const closeModal = () => {
     setActiveModal(null);
     setEditingId(null);
+  };
+
+  const handleMemoImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_MEMO_IMAGE_TYPES.includes(file.type)) {
+      showToast('JPG, PNG, GIF, WEBP 형식의 이미지만 사용할 수 있습니다');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > MAX_MEMO_IMAGE_SIZE) {
+      showToast('메모 이미지는 5MB 이하의 파일만 사용할 수 있습니다');
+      e.target.value = '';
+      return;
+    }
+    setMemoImage(file);
+    setMemoImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearMemoImage = () => {
+    setMemoImage(null);
+    setMemoImagePreview('');
   };
 
   // 모달 외부 클릭 핸들러
@@ -302,23 +362,30 @@ function MemosPage() {
           <div style={styles.memoHeader}>
             <span style={styles.memoRange}>p.{memo.pageStart} ~ p.{memo.pageEnd}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <select
-                style={styles.visSelect}
-                value={memo.visibility || (memo.isPublic ? 'public' : 'private')}
-                onChange={(e) => handleChangeVisibility(memo, e.target.value as MemoVisibility)}
-              >
-                <option value="private">🔒 비공개</option>
-                <option value="public">🔓 공개</option>
-                <option value="spoiler">⚠️ 스포일러</option>
-              </select>
+              {!isReadOnly && (
+                <select
+                  style={styles.visSelect}
+                  value={memo.visibility || (memo.isPublic ? 'public' : 'private')}
+                  onChange={(e) => handleChangeVisibility(memo, e.target.value as MemoVisibility)}
+                >
+                  <option value="private">🔒 비공개</option>
+                  <option value="public">🔓 공개</option>
+                  <option value="spoiler">⚠️ 스포일러</option>
+                </select>
+              )}
               <button style={styles.actionBtn} onClick={() => setDetailMemo(memo)}>자세히</button>
-              <button style={styles.actionBtn} onClick={() => startEdit(memo)}>수정</button>
-              <button style={styles.deleteBtn} onClick={() => handleDelete(memo.id)}>삭제</button>
+              {!isReadOnly && (
+                <>
+                  <button style={styles.actionBtn} onClick={() => startEdit(memo)}>수정</button>
+                  <button style={styles.deleteBtn} onClick={() => handleDelete(memo.id)}>삭제</button>
+                </>
+              )}
             </div>
           </div>
           <div style={{ ...styles.memoContent, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const, whiteSpace: 'pre-wrap' }}>
             {memo.content}
           </div>
+          {memo.imageUrl && <img src={memo.imageUrl} alt="" style={styles.memoImage} />}
           <div style={styles.memoMeta}>{new Date(memo.createdAt).toLocaleDateString()}</div>
         </>
       )}
@@ -346,9 +413,12 @@ function MemosPage() {
             ⚠️ p.{memo.pageEnd}까지 읽은 후 열람할 수 있습니다
           </div>
         ) : (
-          <div style={{ ...styles.memoContent, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const, whiteSpace: 'pre-wrap' }}>
-            {memo.content}
-          </div>
+          <>
+            <div style={{ ...styles.memoContent, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const, whiteSpace: 'pre-wrap' }}>
+              {memo.content}
+            </div>
+            {memo.imageUrl && <img src={memo.imageUrl} alt="" style={styles.memoImage} />}
+          </>
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={styles.memoMeta}>{new Date(memo.createdAt).toLocaleDateString()}</div>
@@ -424,6 +494,23 @@ function MemosPage() {
                 <label style={styles.label}>내용</label>
                 <textarea style={{ ...styles.textarea, ...(formErrors.content ? styles.inputError : {}) }} value={content} onChange={(e) => setContent(e.target.value)} placeholder="메모 내용을 입력해주세요" />
                 {formErrors.content && <div style={styles.errorText}>{formErrors.content}</div>}
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>이미지 첨부 (선택)</label>
+                <label style={styles.fileButton}>
+                  {memoImage ? '다른 이미지 선택' : '이미지 선택'}
+                  <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleMemoImageChange} style={{ display: 'none' }} />
+                </label>
+                <div style={styles.helpText}>{MEMO_IMAGE_HELP_TEXT}</div>
+                {memoImage && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
+                    {memoImagePreview && <img src={memoImagePreview} alt="" style={styles.imagePreview} />}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: '#4a5568', wordBreak: 'break-all' }}>{memoImage.name}</div>
+                      <button type="button" onClick={clearMemoImage} style={{ ...styles.actionBtn, color: '#e53e3e', marginTop: 4 }}>삭제</button>
+                    </div>
+                  </div>
+                )}
               </div>
               <div style={{ ...styles.field, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -575,11 +662,24 @@ function MemosPage() {
       {/* 4개 메뉴 버튼 */}
       <div style={styles.buttonGrid}>
         <div
-          style={{ ...styles.menuCard, borderColor: '#3182ce' }}
-          onClick={() => setActiveModal('create')}
+          style={{ ...styles.menuCard, borderColor: isReadOnly ? '#e2e8f0' : '#3182ce', ...(isReadOnly ? styles.buttonDisabled : {}) }}
+          onClick={() => {
+            if (isReadOnly) {
+              showToast(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
+              return;
+            }
+            setActiveModal('create');
+          }}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setActiveModal('create')}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return;
+            if (isReadOnly) {
+              showToast(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
+              return;
+            }
+            setActiveModal('create');
+          }}
         >
           <div style={styles.menuIcon}>✏️</div>
           <div style={styles.menuLabel}>메모 작성</div>
@@ -648,6 +748,7 @@ function MemosPage() {
             <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
               {detailMemo.content}
             </div>
+            {detailMemo.imageUrl && <img src={detailMemo.imageUrl} alt="" style={{ ...styles.memoImage, marginTop: 12 }} />}
             <div style={{ ...styles.memoMeta, marginTop: 16 }}>
               {new Date(detailMemo.createdAt).toLocaleDateString()}
             </div>

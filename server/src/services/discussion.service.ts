@@ -3,6 +3,7 @@ import { AppError } from './auth.service';
 import { CreateDiscussionInput, CreateCommentInput } from '../validators';
 import { tokenService } from './token.service';
 import { generateInsightOnThreadClose } from './insight.service';
+import { assertReadingPeriodOpen } from './reading-period.service';
 
 const prisma = new PrismaClient();
 
@@ -14,14 +15,16 @@ export interface RecommendedTopic {
 }
 
 export const discussionService = {
-  async createTopic(groupId: string, userId: string, data: CreateDiscussionInput) {
+  async createTopic(groupId: string, userId: string, data: CreateDiscussionInput, imageUrl?: string) {
     // Verify user is a member of the group
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
+      include: { group: { select: { readingStartDate: true, readingEndDate: true } } },
     });
     if (!member) {
       throw new AppError(403, 'FORBIDDEN', '모임 참여자만 토론 주제를 생성할 수 있습니다');
     }
+    assertReadingPeriodOpen(member.group.readingStartDate, member.group.readingEndDate);
 
     // 일일 생성 횟수 제한 (모임별 3회, KST 기준)
     const todayCount = await this.getTodayCreateCount(groupId, userId);
@@ -47,6 +50,7 @@ export const discussionService = {
         memoId: data.memoId ?? null,
         title: data.title,
         content: data.content ?? null,
+        imageUrl: imageUrl ?? null,
         isRecommended: false,
         status: 'active',
         endDate: data.endDate ? (() => { const d = new Date(data.endDate); d.setHours(23, 59, 59, 999); return d; })() : null,
@@ -77,7 +81,7 @@ export const discussionService = {
     };
   },
 
-  async listTopics(groupId: string, filter?: { authorId?: string; status?: string }) {
+  async listTopics(groupId: string, filter?: { authorId?: string; status?: string; participantId?: string }) {
     // 종료일 지난 active 스레드를 자동 종료 처리
     const closedThreads = await prisma.discussion.findMany({
       where: {
@@ -109,6 +113,14 @@ export const discussionService = {
     if (filter?.status) {
       where.status = filter.status;
     }
+    if (filter?.participantId) {
+      // 내가 작성했거나, 내가 의견/댓글을 남긴 스레드
+      where.OR = [
+        { authorId: filter.participantId },
+        { comments: { some: { authorId: filter.participantId } } },
+        { comments: { some: { replies: { some: { authorId: filter.participantId } } } } },
+      ];
+    }
 
     const discussions = await prisma.discussion.findMany({
       where,
@@ -127,6 +139,7 @@ export const discussionService = {
       memoId: d.memoId,
       title: d.title,
       content: d.content,
+      imageUrl: (d as any).imageUrl,
       isRecommended: d.isRecommended,
       isPinned: (d as any).isPinned,
       status: (d as any).status,
@@ -138,10 +151,11 @@ export const discussionService = {
     }));
   },
 
-  async addComment(discussionId: string, userId: string, content: string) {
+  async addComment(discussionId: string, userId: string, content: string, imageUrl?: string) {
     // Verify discussion exists
     const discussion = await prisma.discussion.findUnique({
       where: { id: discussionId },
+      include: { group: { select: { readingStartDate: true, readingEndDate: true } } },
     });
     if (!discussion) {
       throw new AppError(404, 'NOT_FOUND', '토론 주제를 찾을 수 없습니다');
@@ -152,9 +166,6 @@ export const discussionService = {
       throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드에는 의견을 작성할 수 없습니다');
     }
 
-    // 발언권 차감
-    await tokenService.consume(discussionId, userId);
-
     // Verify user is a member of the group
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId: discussion.groupId, userId } },
@@ -162,12 +173,17 @@ export const discussionService = {
     if (!member) {
       throw new AppError(403, 'FORBIDDEN', '모임 참여자만 의견을 작성할 수 있습니다');
     }
+    assertReadingPeriodOpen(discussion.group.readingStartDate, discussion.group.readingEndDate);
+
+    // 발언권 차감
+    await tokenService.consume(discussionId, userId);
 
     const comment = await prisma.comment.create({
       data: {
         discussionId,
         authorId: userId,
         content,
+        imageUrl: imageUrl ?? null,
       },
       include: {
         author: { select: { id: true, nickname: true } },
@@ -181,7 +197,7 @@ export const discussionService = {
     // Verify comment exists
     const comment = await prisma.comment.findUnique({
       where: { id: commentId },
-      include: { discussion: true },
+      include: { discussion: { include: { group: { select: { readingStartDate: true, readingEndDate: true } } } } },
     });
     if (!comment) {
       throw new AppError(404, 'NOT_FOUND', '의견을 찾을 수 없습니다');
@@ -192,17 +208,18 @@ export const discussionService = {
       throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드에는 댓글을 작성할 수 없습니다');
     }
 
-    // 발언권 차감
-    if (comment.discussion) {
-      await tokenService.consume(comment.discussion.id, userId);
-    }
-
     // Verify user is a member of the group
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId: comment.discussion.groupId, userId } },
     });
     if (!member) {
       throw new AppError(403, 'FORBIDDEN', '모임 참여자만 댓글을 작성할 수 있습니다');
+    }
+    assertReadingPeriodOpen(comment.discussion.group.readingStartDate, comment.discussion.group.readingEndDate);
+
+    // 발언권 차감
+    if (comment.discussion) {
+      await tokenService.consume(comment.discussion.id, userId);
     }
 
     const reply = await prisma.reply.create({
@@ -307,10 +324,12 @@ export const discussionService = {
     // Verify user is a member of the group
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
+      include: { group: { select: { readingStartDate: true, readingEndDate: true } } },
     });
     if (!member) {
       throw new AppError(403, 'FORBIDDEN', '모임 참여자만 토론 주제를 생성할 수 있습니다');
     }
+    assertReadingPeriodOpen(member.group.readingStartDate, member.group.readingEndDate);
 
     const discussion = await prisma.discussion.create({
       data: {
@@ -339,6 +358,7 @@ export const discussionService = {
     if (!group || group.ownerId !== userId) {
       throw new AppError(403, 'FORBIDDEN', '방장만 종료일을 수정할 수 있습니다');
     }
+    assertReadingPeriodOpen(group.readingStartDate, group.readingEndDate);
 
     const newEndDate = new Date(endDate);
     newEndDate.setHours(23, 59, 59, 999);
@@ -366,6 +386,7 @@ export const discussionService = {
     if (!group || group.ownerId !== userId) {
       throw new AppError(403, 'FORBIDDEN', '방장만 대표 스레드를 설정할 수 있습니다');
     }
+    assertReadingPeriodOpen(group.readingStartDate, group.readingEndDate);
 
     // 최대 3개 확인
     const pinnedCount = await prisma.discussion.count({
@@ -390,6 +411,7 @@ export const discussionService = {
     if (!group || group.ownerId !== userId) {
       throw new AppError(403, 'FORBIDDEN', '방장만 대표 스레드를 해제할 수 있습니다');
     }
+    assertReadingPeriodOpen(group.readingStartDate, group.readingEndDate);
 
     return prisma.discussion.update({
       where: { id: discussionId },
@@ -397,13 +419,53 @@ export const discussionService = {
     });
   },
 
+  // 스레드 수정 (작성자)
+  async updateTopic(discussionId: string, userId: string, data: { title: string; content: string | null; endDate: string | null }) {
+    const discussion = await prisma.discussion.findUnique({
+      where: { id: discussionId },
+      include: { group: { select: { readingStartDate: true, readingEndDate: true } } },
+    });
+    if (!discussion) throw new AppError(404, 'NOT_FOUND', '스레드를 찾을 수 없습니다');
+    if (discussion.authorId !== userId) throw new AppError(403, 'FORBIDDEN', '작성자만 수정할 수 있습니다');
+    assertReadingPeriodOpen(discussion.group.readingStartDate, discussion.group.readingEndDate);
+
+    const updateData: any = { title: data.title, content: data.content };
+    if (data.endDate) {
+      const endDate = new Date(data.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      updateData.endDate = endDate;
+      updateData.status = endDate >= new Date() ? 'active' : 'closed';
+    }
+
+    return prisma.discussion.update({
+      where: { id: discussionId },
+      data: updateData,
+      include: { author: { select: { id: true, nickname: true } } },
+    });
+  },
+
+  // 스레드 삭제 (작성자, 댓글 없는 경우만)
+  async deleteTopic(discussionId: string, userId: string) {
+    const discussion = await prisma.discussion.findUnique({
+      where: { id: discussionId },
+      include: {
+        group: { select: { readingStartDate: true, readingEndDate: true } },
+        _count: { select: { comments: true } },
+      },
+    });
+    if (!discussion) throw new AppError(404, 'NOT_FOUND', '스레드를 찾을 수 없습니다');
+    if (discussion.authorId !== userId) throw new AppError(403, 'FORBIDDEN', '작성자만 삭제할 수 있습니다');
+    assertReadingPeriodOpen(discussion.group.readingStartDate, discussion.group.readingEndDate);
+    if (discussion._count.comments > 0) throw new AppError(409, 'HAS_COMMENTS', '댓글이 있는 스레드는 삭제할 수 없습니다');
+
+    await prisma.discussion.delete({ where: { id: discussionId } });
+  },
+
   // KST 기준 오늘 시작 시각 계산
   _getTodayStartKST(): Date {
+    // 서버가 KST 환경이면 로컬 자정이 곧 KST 자정
     const now = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000;
-    const kstNow = new Date(now.getTime() + kstOffset);
-    const kstToday = new Date(kstNow.getFullYear(), kstNow.getMonth(), kstNow.getDate());
-    return new Date(kstToday.getTime() - kstOffset);
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   },
 
   // 오늘 해당 모임에서 사용자가 생성한 스레드 수

@@ -27,14 +27,6 @@ function MyPage() {
   const [insightLoading, setInsightLoading] = useState(false);
   const [generatedGroups, setGeneratedGroups] = useState<Set<string>>(new Set());
 
-  // 닉네임 수정 상태
-  const [editingNickname, setEditingNickname] = useState(false);
-  const [newNickname, setNewNickname] = useState('');
-  const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(null);
-  const [nicknameChecking, setNicknameChecking] = useState(false);
-  const [nicknameError, setNicknameError] = useState('');
-  const [nicknameSaving, setNicknameSaving] = useState(false);
-
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -66,47 +58,6 @@ function MyPage() {
   const handleLogout = () => {
     logout();
     navigate('/');
-  };
-
-  const handleCheckNickname = async () => {
-    if (!newNickname.trim()) { setNicknameError('닉네임을 입력해주세요'); return; }
-    if (newNickname === profile?.nickname) { setNicknameError('현재 닉네임과 동일합니다'); return; }
-    setNicknameChecking(true);
-    setNicknameError('');
-    setNicknameAvailable(null);
-    try {
-      const res = await mypageApi.checkNickname(newNickname);
-      setNicknameAvailable(res.data.available);
-      if (!res.data.available) setNicknameError('이미 사용 중인 닉네임입니다');
-    } catch { setNicknameError('중복 확인 중 오류가 발생했습니다'); }
-    finally { setNicknameChecking(false); }
-  };
-
-  const handleSaveNickname = async () => {
-    if (!nicknameAvailable) return;
-    setNicknameSaving(true);
-    try {
-      const res = await mypageApi.updateNickname(newNickname);
-      setProfile(res.data);
-      setEditingNickname(false);
-      setNicknameAvailable(null);
-      setNewNickname('');
-    } catch { setNicknameError('닉네임 변경 중 오류가 발생했습니다'); }
-    finally { setNicknameSaving(false); }
-  };
-
-  const handleStartEdit = () => {
-    setEditingNickname(true);
-    setNewNickname(profile?.nickname || '');
-    setNicknameAvailable(null);
-    setNicknameError('');
-  };
-
-  const handleCancelEdit = () => {
-    setEditingNickname(false);
-    setNewNickname('');
-    setNicknameAvailable(null);
-    setNicknameError('');
   };
 
   const handleGenerateInsight = async (groupId: string) => {
@@ -141,16 +92,6 @@ function MyPage() {
       }
     } catch { /* ignore */ }
     finally { setInsightLoading(false); }
-  };
-
-  const handleRegenerateInsight = async (groupId: string) => {
-    setInsightLoading(true);
-    try {
-      const res = await aiApi.generateAndSaveInsight(groupId);
-      setInsight(res.data);
-    } catch {
-      alert('AI 요청이 많아 일시적으로 처리할 수 없습니다. 잠시 후 다시 시도해주세요.');
-    } finally { setInsightLoading(false); }
   };
 
   const formatDate = (d: string) => d?.slice(0, 10) || '';
@@ -337,10 +278,10 @@ function MyPage() {
         </div>
       )}
 
-      {/* 참여 토론 */}
+      {/* 참여 스레드 */}
       {discussions.length > 0 && (
         <div style={{ ...s.section, marginTop: 16 }}>
-          <div style={s.sectionTitle}>💬 참여 토론 ({discussions.length})</div>
+          <div style={s.sectionTitle}>💬 참여 스레드 ({discussions.length})</div>
           {discussions.map((d) => (
             <div key={d.id} style={s.listItem} onClick={() => navigate(`/discussions/${d.id}`)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}>
               <div style={s.listItemTitle}>

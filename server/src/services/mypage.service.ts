@@ -140,6 +140,9 @@ export const mypageService = {
   },
 
   async getRecommendedGroups(userId: string) {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
     // 내가 참여한 모임의 책 정보 가져오기
     const myMemberships = await prisma.groupMember.findMany({
       where: { userId },
@@ -166,6 +169,7 @@ export const mypageService = {
     const candidateGroups = await prisma.group.findMany({
       where: {
         id: { notIn: myGroupIds },
+        readingEndDate: { gte: todayStart },
       },
       include: {
         book: true,

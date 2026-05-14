@@ -181,11 +181,16 @@ function GroupDetailPage() {
   const fetchDetail = async () => {
     if (!id) return;
     setLoading(true);
+    setError('');
     try {
       const { data } = await groupsApi.getDetail(id);
       setGroup(data);
-    } catch {
-      setError('모임 정보를 불러올 수 없습니다');
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      const status = axiosErr.response?.status;
+      const message = axiosErr.response?.data?.error?.message;
+      setError(message ? `${message}${status ? ` (${status})` : ''}` : '모임 정보를 불러올 수 없습니다');
+      console.error('Failed to fetch group detail:', err);
     } finally {
       setLoading(false);
     }
@@ -574,7 +579,7 @@ function GroupDetailPage() {
       {/* Recent Discussions */}
       {group.recentDiscussions && group.recentDiscussions.length > 0 && (
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>💬 최근 토론</div>
+          <div style={styles.sectionTitle}>💬 최근 스레드</div>
           {group.recentDiscussions.map((d) => (
             <Link key={d.id} to={`/discussions/${d.id}`} style={{ textDecoration: 'none' }}>
               <div style={styles.summaryItem}>

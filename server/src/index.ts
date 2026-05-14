@@ -14,6 +14,7 @@ import aiRouter from './routes/ai.routes';
 import tokenRouter from './routes/token.routes';
 import insightRouter from './routes/insight.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
+import { isS3StorageEnabled } from './services/file-storage.service';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,11 +22,21 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 // uploads 폴더 자동 생성
 const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!isS3StorageEnabled() && !fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-// CORS: 개발 환경에서만 Vite dev server 허용, 프로덕션에서는 같은 origin
+const corsOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+// CORS: 개발 환경에서는 Vite dev server 허용, 프로덕션에서는 CORS_ORIGIN이 있으면 해당 origin만 허용
 if (isProduction) {
-  app.use(cors({ credentials: true }));
+  if (corsOrigins.length > 0) {
+    app.use(cors({
+      origin: corsOrigins,
+      credentials: true,
+    }));
+  }
 } else {
   app.use(cors({
     origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
@@ -35,8 +46,10 @@ if (isProduction) {
 
 app.use(express.json());
 
-// 업로드 파일 정적 서빙
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// 로컬 저장소를 쓸 때만 업로드 파일 정적 서빙
+if (!isS3StorageEnabled()) {
+  app.use('/uploads', express.static(uploadsDir));
+}
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });

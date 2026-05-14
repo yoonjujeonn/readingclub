@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { mypageApi } from '../api/mypage';
+import { showToast } from '../api/client';
 import type { User } from '../types';
+
+const MAX_PROFILE_IMAGE_SIZE = 1024 * 1024;
+const ALLOWED_PROFILE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const PROFILE_IMAGE_HELP_TEXT = '제한 용량: 1MB 지원 형식: JPG, PNG, GIF, WEBP';
 
 function SettingsPage() {
   const navigate = useNavigate();
@@ -45,13 +50,25 @@ function SettingsPage() {
       setProfile(res.data);
       setImagePreview((res.data as any).profileImageUrl || '');
       setImageFile(null);
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || '프로필 이미지 변경에 실패했습니다');
+    }
     finally { setImageSaving(false); }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!ALLOWED_PROFILE_IMAGE_TYPES.includes(file.type)) {
+        showToast('JPG, PNG, GIF, WEBP 형식의 이미지만 사용할 수 있습니다');
+        e.target.value = '';
+        return;
+      }
+      if (file.size > MAX_PROFILE_IMAGE_SIZE) {
+        showToast('프로필 이미지는 1MB 이하의 파일만 사용할 수 있습니다');
+        e.target.value = '';
+        return;
+      }
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
@@ -126,7 +143,7 @@ function SettingsPage() {
           <div style={{ display: 'flex', gap: 8 }}>
             <label style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#667eea', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 8, cursor: 'pointer' }}>
               {imageFile ? '다른 파일 선택' : '이미지 변경'}
-              <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+              <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleFileChange} style={{ display: 'none' }} />
             </label>
             {imagePreview && !imageFile && (
               <button
@@ -138,7 +155,9 @@ function SettingsPage() {
                     const res = await apiClient.patch('/me/profile-image-reset');
                     setProfile(res.data);
                     setImagePreview('');
-                  } catch { /* ignore */ }
+                  } catch (err: any) {
+                    alert(err.response?.data?.error?.message || '프로필 이미지 변경에 실패했습니다');
+                  }
                   finally { setImageSaving(false); }
                 }}
                 style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#e53e3e', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 8, cursor: 'pointer' }}
@@ -147,6 +166,7 @@ function SettingsPage() {
               </button>
             )}
           </div>
+          <div style={st.helpText}>{PROFILE_IMAGE_HELP_TEXT}</div>
           {imageFile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: '#718096' }}>{imageFile.name}</span>
@@ -231,6 +251,7 @@ const st: Record<string, React.CSSProperties> = {
   input: { padding: '8px 12px', fontSize: 14, border: '1px solid #e2e8f0', borderRadius: 8, outline: 'none', width: '100%', boxSizing: 'border-box' as const },
   saveBtn: { padding: '8px 16px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' as const },
   editBtn: { padding: '4px 10px', fontSize: 12, color: '#667eea', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 6, cursor: 'pointer', fontWeight: 500 },
+  helpText: { fontSize: 12, color: '#718096', textAlign: 'center' as const },
 };
 
 export default SettingsPage;

@@ -1,11 +1,25 @@
 import { Router, Response } from 'express';
+import multer from 'multer';
 import { discussionService } from '../services/discussion.service';
 import { similarThreadService } from '../services/similar-thread.service';
 import { AppError } from '../services/auth.service';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 import { CreateDiscussionSchema, CreateCommentSchema } from '../validators';
+import { isAllowedImageType, saveCommentImage, saveThreadImage } from '../services/file-storage.service';
 
 const router = Router();
+
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!isAllowedImageType(file.mimetype)) {
+      cb(new AppError(400, 'VALIDATION_ERROR', 'JPG, PNG, GIF, WEBP 형식의 이미지만 사용할 수 있습니다'));
+      return;
+    }
+    cb(null, true);
+  },
+});
 
 // GET /api/groups/:groupId/discussions/remaining
 router.get('/groups/:groupId/discussions/remaining', authMiddleware, async (req: AuthRequest, res: Response) => {
@@ -26,9 +40,10 @@ router.get('/groups/:groupId/discussions', authMiddleware, async (req: AuthReque
   try {
     const authorId = typeof req.query.authorId === 'string' ? req.query.authorId : undefined;
     const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+    const participantId = typeof req.query.participantId === 'string' ? req.query.participantId : undefined;
     const discussions = await discussionService.listTopics(
       req.params.groupId as string,
-      { ...(authorId && { authorId }), ...(status && { status }) },
+      { ...(authorId && { authorId }), ...(status && { status }), ...(participantId && { participantId }) },
     );
     res.json(discussions);
   } catch (err) {
@@ -45,9 +60,15 @@ router.get('/groups/:groupId/discussions', authMiddleware, async (req: AuthReque
 });
 
 // POST /api/groups/:groupId/discussions
-router.post('/groups/:groupId/discussions', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/groups/:groupId/discussions', authMiddleware, imageUpload.single('image'), async (req: AuthRequest, res: Response) => {
   try {
-    const parsed = CreateDiscussionSchema.safeParse(req.body);
+    const body = {
+      ...req.body,
+      memoId: req.body.memoId || undefined,
+      endDate: req.body.endDate || undefined,
+      content: req.body.content || undefined,
+    };
+    const parsed = CreateDiscussionSchema.safeParse(body);
     if (!parsed.success) {
       res.status(400).json({
         error: {
@@ -58,10 +79,12 @@ router.post('/groups/:groupId/discussions', authMiddleware, async (req: AuthRequ
       return;
     }
 
+    const imageUrl = req.file ? await saveThreadImage(req.file) : undefined;
     const discussion = await discussionService.createTopic(
       req.params.groupId as string,
       req.user!.userId,
       parsed.data,
+      imageUrl,
     );
     res.status(201).json(discussion);
   } catch (err) {
@@ -114,7 +137,7 @@ router.get('/discussions/:id/comments', authMiddleware, async (req: AuthRequest,
 });
 
 // POST /api/discussions/:id/comments
-router.post('/discussions/:id/comments', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/discussions/:id/comments', authMiddleware, imageUpload.single('image'), async (req: AuthRequest, res: Response) => {
   try {
     const parsed = CreateCommentSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -127,10 +150,12 @@ router.post('/discussions/:id/comments', authMiddleware, async (req: AuthRequest
       return;
     }
 
+    const imageUrl = req.file ? await saveCommentImage(req.file) : undefined;
     const comment = await discussionService.addComment(
       req.params.id as string,
       req.user!.userId,
       parsed.data.content,
+      imageUrl,
     );
     res.status(201).json(comment);
   } catch (err) {
@@ -189,6 +214,39 @@ router.patch('/discussions/:id/end-date', authMiddleware, async (req: AuthReques
     }
     const result = await discussionService.updateEndDate(req.params.id as string, req.user!.userId, endDate);
     res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// PUT /api/discussions/:id - 스레드 수정 (작성자)
+router.put('/discussions/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { title, content, endDate } = req.body;
+    if (!title || !title.trim()) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '제목을 입력해주세요' } });
+      return;
+    }
+    const result = await discussionService.updateTopic(req.params.id as string, req.user!.userId, { title: title.trim(), content: content?.trim() || null, endDate: endDate || null });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// DELETE /api/discussions/:id - 스레드 삭제 (작성자, 댓글 없는 경우만)
+router.delete('/discussions/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    await discussionService.deleteTopic(req.params.id as string, req.user!.userId);
+    res.json({ message: '스레드가 삭제되었습니다' });
   } catch (err) {
     if (err instanceof AppError) {
       res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });

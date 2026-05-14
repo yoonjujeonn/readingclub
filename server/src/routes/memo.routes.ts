@@ -1,10 +1,24 @@
 import { Router, Response } from 'express';
+import multer from 'multer';
 import { memoService } from '../services/memo.service';
 import { AppError } from '../services/auth.service';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 import { CreateMemoSchema, UpdateMemoSchema } from '../validators';
+import { isAllowedImageType, saveMemoImage } from '../services/file-storage.service';
 
 const router = Router();
+
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!isAllowedImageType(file.mimetype)) {
+      cb(new AppError(400, 'VALIDATION_ERROR', 'JPG, PNG, GIF, WEBP 형식의 이미지만 사용할 수 있습니다'));
+      return;
+    }
+    cb(null, true);
+  },
+});
 
 // GET /api/groups/:groupId/memos
 router.get('/groups/:groupId/memos', authMiddleware, async (req: AuthRequest, res: Response) => {
@@ -25,9 +39,15 @@ router.get('/groups/:groupId/memos', authMiddleware, async (req: AuthRequest, re
 });
 
 // POST /api/groups/:groupId/memos
-router.post('/groups/:groupId/memos', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/groups/:groupId/memos', authMiddleware, imageUpload.single('image'), async (req: AuthRequest, res: Response) => {
   try {
-    const parsed = CreateMemoSchema.safeParse(req.body);
+    const body = {
+      ...req.body,
+      pageStart: typeof req.body.pageStart === 'string' ? Number(req.body.pageStart) : req.body.pageStart,
+      pageEnd: typeof req.body.pageEnd === 'string' ? Number(req.body.pageEnd) : req.body.pageEnd,
+      isPublic: typeof req.body.isPublic === 'string' ? req.body.isPublic === 'true' : req.body.isPublic,
+    };
+    const parsed = CreateMemoSchema.safeParse(body);
     if (!parsed.success) {
       res.status(400).json({
         error: {
@@ -38,7 +58,8 @@ router.post('/groups/:groupId/memos', authMiddleware, async (req: AuthRequest, r
       return;
     }
 
-    const memo = await memoService.create(req.params.groupId as string, req.user!.userId, parsed.data);
+    const imageUrl = req.file ? await saveMemoImage(req.file) : undefined;
+    const memo = await memoService.create(req.params.groupId as string, req.user!.userId, parsed.data, imageUrl);
     res.status(201).json(memo);
   } catch (err) {
     if (err instanceof AppError) {
