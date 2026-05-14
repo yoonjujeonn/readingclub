@@ -72,8 +72,12 @@ export const groupService = {
     const page = query?.page ?? 1;
     const limit = query?.limit ?? 10;
     const skip = (page - 1) * limit;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
-    const where: any = {};
+    const where: any = {
+      readingEndDate: { gte: todayStart },
+    };
     if (query?.search) {
       where.book = {
         title: { contains: query.search },
