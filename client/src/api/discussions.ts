@@ -91,4 +91,7 @@ export const discussionsApi = {
 
   grantTokens: (discussionId: string, userId: string, amount: number) =>
     apiClient.post(`/discussions/${discussionId}/tokens/grant`, { userId, amount }),
+
+  getRequestedThreads: (groupId: string) =>
+    apiClient.get<any[]>(`/groups/${groupId}/tokens/requested-threads`),
 };
