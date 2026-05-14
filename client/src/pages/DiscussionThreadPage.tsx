@@ -9,6 +9,7 @@ import { showToast } from '../api/client';
 import { Markdown } from '../components/Markdown';
 import { InsightCard } from '../components/InsightCard';
 import { timeAgo } from '../utils/timeAgo';
+import { hasReadingPeriodEnded } from '../utils/readingPeriod';
 import type { Comment as CommentType, Discussion } from '../types';
 
 const MAX_COMMENT_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -258,6 +259,7 @@ function DiscussionThreadPage() {
   const [comments, setComments] = useState<CommentType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
 
   let currentUserId = user?.id || '';
   if (!currentUserId && accessToken) {
@@ -307,6 +309,7 @@ function DiscussionThreadPage() {
         const groupRes = await groupsApi.getDetail(topicRes.data.groupId).catch(() => ({ data: null }));
         if (groupRes.data) {
           setIsOwner(groupRes.data.ownerId === currentUserId);
+          setIsReadOnly(hasReadingPeriodEnded(groupRes.data.readingEndDate));
         }
 
         // 종료된 스레드면 인사이트 불러오기
@@ -327,6 +330,10 @@ function DiscussionThreadPage() {
 
   const handleAddComment = async (e: FormEvent) => {
     e.preventDefault();
+    if (isReadOnly) {
+      showToast('독서기간이 종료되어 의견을 작성할 수 없습니다');
+      return;
+    }
     if (!newComment.trim() || !discussionId) return;
     setSubmittingComment(true);
     try {
@@ -342,6 +349,10 @@ function DiscussionThreadPage() {
   };
 
   const handleAddReply = async (commentId: string) => {
+    if (isReadOnly) {
+      showToast('독서기간이 종료되어 댓글을 작성할 수 없습니다');
+      return;
+    }
     if (!replyContent.trim()) return;
     setSubmittingReply(true);
     try {
@@ -356,6 +367,10 @@ function DiscussionThreadPage() {
   };
 
   const handleDeleteComment = async (commentId: string) => {
+    if (isReadOnly) {
+      showToast('독서기간이 종료되어 삭제할 수 없습니다');
+      return;
+    }
     if (!confirm('이 의견을 삭제하시겠습니까?')) return;
     try {
       await dashboardApi.deleteComment(commentId);
@@ -364,6 +379,10 @@ function DiscussionThreadPage() {
   };
 
   const handleDeleteReply = async (replyId: string) => {
+    if (isReadOnly) {
+      showToast('독서기간이 종료되어 삭제할 수 없습니다');
+      return;
+    }
     if (!confirm('이 답글을 삭제하시겠습니까?')) return;
     try {
       await dashboardApi.deleteReply(replyId);
@@ -471,17 +490,21 @@ function DiscussionThreadPage() {
               {comment.imageUrl && <img src={comment.imageUrl} alt="" style={styles.commentImage} />}
               <div style={styles.commentMeta}>
                 {timeAgo(comment.createdAt)}
-                {' · '}
-                <button
-                  style={styles.replyToggle}
-                  onClick={() => {
-                    setReplyingTo(replyingTo === comment.id ? null : comment.id);
-                    setReplyContent('');
-                  }}
-                >
-                  {replyingTo === comment.id ? '취소' : '댓글 달기'}
-                </button>
-                {(isOwner || comment.authorId === currentUserId) && (
+                {!isReadOnly && (
+                  <>
+                    {' · '}
+                    <button
+                      style={styles.replyToggle}
+                      onClick={() => {
+                        setReplyingTo(replyingTo === comment.id ? null : comment.id);
+                        setReplyContent('');
+                      }}
+                    >
+                      {replyingTo === comment.id ? '취소' : '댓글 달기'}
+                    </button>
+                  </>
+                )}
+                {!isReadOnly && (isOwner || comment.authorId === currentUserId) && (
                   <>
                     {' · '}
                     <button style={{ ...styles.replyToggle, color: '#e53e3e' }} onClick={() => handleDeleteComment(comment.id)}>삭제</button>
@@ -519,7 +542,7 @@ function DiscussionThreadPage() {
                       <div style={styles.replyContent}>{reply.content}</div>
                       <div style={styles.replyMeta}>
                         {timeAgo(reply.createdAt)}
-                        {(isOwner || reply.authorId === currentUserId) && (
+                        {!isReadOnly && (isOwner || reply.authorId === currentUserId) && (
                           <>
                             {' · '}
                             <button style={{ ...styles.replyToggle, color: '#e53e3e', fontSize: 11 }} onClick={() => handleDeleteReply(reply.id)}>삭제</button>
@@ -536,7 +559,11 @@ function DiscussionThreadPage() {
       </div>
 
       {/* Add Comment */}
-      {(topic as any)?.status === 'closed' ? (
+      {isReadOnly ? (
+        <div style={{ ...styles.section, backgroundColor: '#f7f8fc', textAlign: 'center' as const }}>
+          <div style={{ color: '#4a5568', fontSize: 14, fontWeight: 500 }}>독서기간이 종료되어 읽기만 가능합니다.</div>
+        </div>
+      ) : (topic as any)?.status === 'closed' ? (
         <div style={{ ...styles.section, backgroundColor: '#fff5f5', textAlign: 'center' as const }}>
           <div style={{ color: '#c53030', fontSize: 14, fontWeight: 500 }}>🔴 이 스레드는 종료되었습니다. 의견 작성이 불가능합니다.</div>
         </div>

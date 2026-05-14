@@ -20,6 +20,8 @@ vi.mock('@prisma/client', () => ({
 import { memoService } from './memo.service';
 import { AppError } from './auth.service';
 
+const openGroup = { readingEndDate: new Date('2999-12-31T00:00:00.000Z') };
+
 describe('MemoService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,7 +33,8 @@ describe('MemoService', () => {
         id: 'member-1',
         groupId: 'group-1',
         userId: 'user-1',
-        readingProgress: 0,
+        readingProgress: 100,
+        group: openGroup,
       });
       mockPrisma.memo.create.mockResolvedValue({
         id: 'memo-1',
@@ -62,7 +65,9 @@ describe('MemoService', () => {
           pageStart: 1,
           pageEnd: 50,
           content: '좋은 내용이다',
+          imageUrl: null,
           isPublic: false,
+          visibility: 'private',
         },
         include: { user: { select: { id: true, nickname: true } } },
       });
@@ -92,6 +97,7 @@ describe('MemoService', () => {
       mockPrisma.memo.findUnique.mockResolvedValue({
         id: 'memo-1',
         userId: 'user-1',
+        group: openGroup,
       });
       mockPrisma.memo.update.mockResolvedValue({
         id: 'memo-1',
@@ -138,6 +144,7 @@ describe('MemoService', () => {
       mockPrisma.memo.findUnique.mockResolvedValue({
         id: 'memo-1',
         userId: 'user-1',
+        group: openGroup,
       });
       mockPrisma.memo.delete.mockResolvedValue({});
 
@@ -166,7 +173,17 @@ describe('MemoService', () => {
       mockPrisma.memo.findUnique.mockResolvedValue({
         id: 'memo-1',
         userId: 'user-1',
+        groupId: 'group-1',
+        pageEnd: 1,
+        visibility: 'private',
         isPublic: false,
+        group: openGroup,
+      });
+      mockPrisma.groupMember.findUnique.mockResolvedValue({
+        id: 'member-1',
+        groupId: 'group-1',
+        userId: 'user-1',
+        readingProgress: 1,
       });
       mockPrisma.memo.update.mockResolvedValue({
         id: 'memo-1',
@@ -175,7 +192,7 @@ describe('MemoService', () => {
         user: { id: 'user-1', nickname: 'tester' },
       });
 
-      const memo = await memoService.updateVisibility('memo-1', 'user-1', true);
+      const memo = await memoService.updateVisibility('memo-1', 'user-1', 'public');
       expect(memo.isPublic).toBe(true);
     });
 
@@ -258,6 +275,7 @@ describe('MemoService', () => {
           pageEnd: 50,
           content: '스포일러 포함 메모',
           isPublic: true,
+          visibility: 'spoiler',
           createdAt: new Date(),
           updatedAt: new Date(),
           user: { id: 'user-2', nickname: 'other' },
