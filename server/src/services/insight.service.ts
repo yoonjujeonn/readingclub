@@ -1,27 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { AppError } from './auth.service';
-import axios from 'axios';
+import { generateAiText } from './ai-provider.service';
 
 const prisma = new PrismaClient();
-
-const getApiKey = () => process.env.GEMINI_API_KEY || '';
-const getModel = () => process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
-  const apiKey = getApiKey();
-  if (!apiKey) throw new AppError(500, 'AI_NOT_CONFIGURED', 'Gemini API 키가 설정되지 않았습니다');
-
-  const model = getModel();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-  const response = await axios.post(url, {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: [{ parts: [{ text: userPrompt }] }],
-    generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
-  }, { timeout: 30000 });
-
-  return response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-}
 
 export const insightService = {
   // 인사이트 생성 및 저장
@@ -130,7 +111,7 @@ ${discussionText}
     let takeaway = '';
 
     try {
-      const raw = await callGemini(systemPrompt, userPrompt);
+      const raw = await generateAiText(systemPrompt, userPrompt);
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
