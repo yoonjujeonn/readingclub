@@ -24,8 +24,20 @@ export const memosApi = {
     return { data: { myMemos, publicMemos, spoilerMemos } };
   },
 
-  create: (groupId: string, data: CreateMemoRequest) =>
-    apiClient.post<Memo>(`/groups/${groupId}/memos`, data),
+  create: (groupId: string, data: CreateMemoRequest) => {
+    if (!data.image) {
+      return apiClient.post<Memo>(`/groups/${groupId}/memos`, data);
+    }
+
+    const formData = new FormData();
+    formData.append('pageStart', String(data.pageStart));
+    formData.append('pageEnd', String(data.pageEnd));
+    formData.append('content', data.content);
+    if (data.isPublic !== undefined) formData.append('isPublic', String(data.isPublic));
+    if (data.visibility) formData.append('visibility', data.visibility);
+    formData.append('image', data.image);
+    return apiClient.post<Memo>(`/groups/${groupId}/memos`, formData);
+  },
 
   update: (id: string, data: Partial<CreateMemoRequest>) =>
     apiClient.put<Memo>(`/memos/${id}`, data),

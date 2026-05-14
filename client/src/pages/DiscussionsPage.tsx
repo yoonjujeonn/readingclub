@@ -3,9 +3,14 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { discussionsApi } from '../api/discussions';
 import { memosApi } from '../api/memos';
 import { aiApi, type AiTopic } from '../api/ai';
+import { showToast } from '../api/client';
 import { useAuthStore } from '../stores/authStore';
 import type { Discussion, Memo, RecommendedTopic, ApiError } from '../types';
 import { AxiosError } from 'axios';
+
+const MAX_THREAD_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_THREAD_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const THREAD_IMAGE_HELP_TEXT = '제한 용량: 5MB 지원 형식: JPG, PNG, GIF, WEBP';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -61,6 +66,11 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#e53e3e',
     fontSize: 12,
     marginTop: 4,
+  },
+  helpText: {
+    color: '#718096',
+    fontSize: 12,
+    marginTop: 6,
   },
   textarea: {
     width: '100%',
@@ -231,6 +241,24 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     marginBottom: 16,
   },
+  fileButton: {
+    display: 'inline-block',
+    padding: '8px 14px',
+    fontSize: 13,
+    fontWeight: 600,
+    color: '#3182ce',
+    backgroundColor: '#ebf8ff',
+    border: '1px solid #bee3f8',
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  imagePreview: {
+    width: 120,
+    height: 80,
+    objectFit: 'cover' as const,
+    borderRadius: 6,
+    border: '1px solid #e2e8f0',
+  },
 };
 
 function DiscussionsPage() {
@@ -240,6 +268,7 @@ function DiscussionsPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
+  const [, setIsOwner] = useState(false);
   const [recommendations, setRecommendations] = useState<RecommendedTopic[]>([]);
   const [aiTopics, setAiTopics] = useState<AiTopic[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -253,6 +282,8 @@ function DiscussionsPage() {
   const [formContent, setFormContent] = useState('');
   const [formMemoId, setFormMemoId] = useState('');
   const [formEndDate, setFormEndDate] = useState('');
+  const [formImage, setFormImage] = useState<File | null>(null);
+  const [formImagePreview, setFormImagePreview] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -328,11 +359,14 @@ function DiscussionsPage() {
         content: formContent.trim(),
         memoId: formMemoId || undefined,
         endDate: formEndDate || undefined,
+        image: formImage || undefined,
       });
       setFormTitle('');
       setFormContent('');
       setFormMemoId('');
       setFormEndDate('');
+      setFormImage(null);
+      setFormImagePreview('');
       setShowCreateModal(false);
       fetchData();
     } catch (err) {
@@ -385,6 +419,28 @@ function DiscussionsPage() {
     if (e.target === e.currentTarget) {
       setShowCreateModal(false);
     }
+  };
+
+  const handleThreadImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_THREAD_IMAGE_TYPES.includes(file.type)) {
+      showToast('JPG, PNG, GIF, WEBP 형식의 이미지만 사용할 수 있습니다');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > MAX_THREAD_IMAGE_SIZE) {
+      showToast('스레드 이미지는 5MB 이하의 파일만 사용할 수 있습니다');
+      e.target.value = '';
+      return;
+    }
+    setFormImage(file);
+    setFormImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearThreadImage = () => {
+    setFormImage(null);
+    setFormImagePreview('');
   };
 
   return (
@@ -538,6 +594,24 @@ function DiscussionsPage() {
                     placeholder="내용을 입력해주세요"
                   />
                   {formErrors.content && <div style={styles.errorText}>{formErrors.content}</div>}
+                </div>
+
+                <div style={styles.field}>
+                  <label style={styles.label}>이미지 첨부 (선택)</label>
+                  <label style={styles.fileButton}>
+                    {formImage ? '다른 이미지 선택' : '이미지 선택'}
+                    <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleThreadImageChange} style={{ display: 'none' }} />
+                  </label>
+                  <div style={styles.helpText}>{THREAD_IMAGE_HELP_TEXT}</div>
+                  {formImage && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
+                      {formImagePreview && <img src={formImagePreview} alt="" style={styles.imagePreview} />}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 12, color: '#4a5568', wordBreak: 'break-all' }}>{formImage.name}</div>
+                        <button type="button" onClick={clearThreadImage} style={{ ...styles.closeBtn, padding: '4px 0', fontSize: 12, color: '#e53e3e' }}>삭제</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div style={styles.field}>

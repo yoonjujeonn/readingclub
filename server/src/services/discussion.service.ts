@@ -14,7 +14,7 @@ export interface RecommendedTopic {
 }
 
 export const discussionService = {
-  async createTopic(groupId: string, userId: string, data: CreateDiscussionInput) {
+  async createTopic(groupId: string, userId: string, data: CreateDiscussionInput, imageUrl?: string) {
     // Verify user is a member of the group
     const member = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
@@ -47,6 +47,7 @@ export const discussionService = {
         memoId: data.memoId ?? null,
         title: data.title,
         content: data.content ?? null,
+        imageUrl: imageUrl ?? null,
         isRecommended: false,
         status: 'active',
         endDate: data.endDate ? (() => { const d = new Date(data.endDate); d.setHours(23, 59, 59, 999); return d; })() : null,
@@ -127,6 +128,7 @@ export const discussionService = {
       memoId: d.memoId,
       title: d.title,
       content: d.content,
+      imageUrl: (d as any).imageUrl,
       isRecommended: d.isRecommended,
       isPinned: (d as any).isPinned,
       status: (d as any).status,
@@ -138,7 +140,7 @@ export const discussionService = {
     }));
   },
 
-  async addComment(discussionId: string, userId: string, content: string) {
+  async addComment(discussionId: string, userId: string, content: string, imageUrl?: string) {
     // Verify discussion exists
     const discussion = await prisma.discussion.findUnique({
       where: { id: discussionId },
@@ -168,6 +170,7 @@ export const discussionService = {
         discussionId,
         authorId: userId,
         content,
+        imageUrl: imageUrl ?? null,
       },
       include: {
         author: { select: { id: true, nickname: true } },
