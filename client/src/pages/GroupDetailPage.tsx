@@ -579,7 +579,7 @@ function GroupDetailPage() {
       {/* Recent Discussions */}
       {group.recentDiscussions && group.recentDiscussions.length > 0 && (
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>💬 최근 토론</div>
+          <div style={styles.sectionTitle}>💬 최근 스레드</div>
           {group.recentDiscussions.map((d) => (
             <Link key={d.id} to={`/discussions/${d.id}`} style={{ textDecoration: 'none' }}>
               <div style={styles.summaryItem}>

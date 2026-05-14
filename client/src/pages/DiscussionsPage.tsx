@@ -276,8 +276,14 @@ function DiscussionsPage() {
   const [myMemos, setMyMemos] = useState<Memo[]>([]);
   const [groupInfo, setGroupInfo] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filterMine, setFilterMine] = useState(false);
+  const [filterMode, setFilterMode] = useState<'all' | 'authored' | 'participated'>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [threadTab, setThreadTab] = useState<'active' | 'closed'>('active');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popular'>('newest');
+  const [closedSortBy, setClosedSortBy] = useState<'newest' | 'oldest' | 'popular'>('popular');
+  const [activePage, setActivePage] = useState(1);
+  const [closedPage, setClosedPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   // Form state
   const [formTitle, setFormTitle] = useState('');
@@ -316,7 +322,9 @@ function DiscussionsPage() {
     if (!groupId) return;
     setLoading(true);
     try {
-      const params = filterMine && currentUserId ? { authorId: currentUserId } : undefined;
+      const params: any = {};
+      if (filterMode === 'authored' && currentUserId) params.authorId = currentUserId;
+      if (filterMode === 'participated' && currentUserId) params.participantId = currentUserId;
       const [discRes, recRes, memoRes, groupRes] = await Promise.all([
         discussionsApi.listByGroup(groupId!, params),
         discussionsApi.getRecommendations(groupId!).catch(() => ({ data: [] as RecommendedTopic[] })),
@@ -342,7 +350,7 @@ function DiscussionsPage() {
 
   useEffect(() => {
     fetchData();
-  }, [groupId, filterMine]);
+  }, [groupId, filterMode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -512,16 +520,22 @@ function DiscussionsPage() {
       <div style={styles.headerRow}>
         <div style={styles.filterRow}>
           <button
-            style={{ ...styles.filterBtn, ...(!filterMine ? styles.filterBtnActive : {}) }}
-            onClick={() => setFilterMine(false)}
+            style={{ ...styles.filterBtn, ...(filterMode === 'all' ? styles.filterBtnActive : {}) }}
+            onClick={() => setFilterMode('all')}
           >
             전체
           </button>
           <button
-            style={{ ...styles.filterBtn, ...(filterMine ? styles.filterBtnActive : {}) }}
-            onClick={() => setFilterMine(true)}
+            style={{ ...styles.filterBtn, ...(filterMode === 'authored' ? styles.filterBtnActive : {}) }}
+            onClick={() => setFilterMode('authored')}
           >
             내 작성
+          </button>
+          <button
+            style={{ ...styles.filterBtn, ...(filterMode === 'participated' ? styles.filterBtnActive : {}) }}
+            onClick={() => setFilterMode('participated')}
+          >
+            내 참여
           </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -545,8 +559,8 @@ function DiscussionsPage() {
         </div>
       </div>
 
-      {/* 📌 대표 스레드 (고정) */}
-      {!loading && discussions.filter((d: any) => d.isPinned).length > 0 && (
+      {/* 📌 대표 스레드 (고정) — 전체 필터에서만 표시 */}
+      {filterMode === 'all' && !loading && discussions.filter((d: any) => d.isPinned).length > 0 && (
         <div style={{ ...styles.section, borderLeft: '4px solid #3182ce' }}>
           <div style={styles.sectionTitle}>📌 대표 스레드</div>
           {discussions.filter((d: any) => d.isPinned).map((d) => (
@@ -562,6 +576,11 @@ function DiscussionsPage() {
                 {d.title}
                 {(d as any).status === 'closed' && <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>}
               </div>
+              {d.content && (
+                <div style={{ fontSize: 13, color: '#4a5568', marginTop: 4, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {d.content}
+                </div>
+              )}
               <div style={styles.discussionMeta}>
                 {d.authorNickname} · {(d as any).endDate && `~${new Date((d as any).endDate).toLocaleDateString()}`}
               </div>
@@ -570,83 +589,116 @@ function DiscussionsPage() {
         </div>
       )}
 
-      {/* 🟢 진행중인 스레드 */}
+      {/* 스레드 탭 (진행중 / 종료) */}
       <div style={styles.section}>
-        <div style={styles.sectionTitle}>🟢 진행중인 스레드</div>
-        {loading ? (
-          <div style={styles.emptyState}>불러오는 중...</div>
-        ) : discussions.filter((d: any) => d.status !== 'closed').length === 0 ? (
-          <div style={styles.emptyState}>진행중인 스레드가 없습니다</div>
-        ) : (
-          discussions.filter((d: any) => d.status !== 'closed').map((d) => (
-            <div
-              key={d.id}
-              style={{ ...styles.discussionItem, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-            >
-              <div style={{ cursor: 'pointer', flex: 1 }} onClick={() => navigate(`/discussions/${d.id}`)}>
-                <div style={styles.discussionTitle}>
-                  {d.title}
-                  {(d as any).endDate && <span style={{ fontSize: 11, color: '#718096', marginLeft: 8 }}>~{new Date((d as any).endDate).toLocaleDateString()}</span>}
+        {filterMode !== 'all' && (
+          <div style={{ fontSize: 12, color: '#718096', marginBottom: 12 }}>
+            {filterMode === 'authored' ? '📝 내가 작성한 스레드만 표시됩니다' : '💬 내가 의견이나 댓글을 남긴 스레드가 표시됩니다'}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #e2e8f0', marginBottom: 16 }}>
+          <button
+            style={{ padding: '8px 16px', fontSize: 14, fontWeight: threadTab === 'active' ? 600 : 400, cursor: 'pointer', border: 'none', background: 'none', color: threadTab === 'active' ? '#3182ce' : '#718096', borderBottom: threadTab === 'active' ? '2px solid #3182ce' : '2px solid transparent', marginBottom: -2 }}
+            onClick={() => { setThreadTab('active'); setActivePage(1); }}
+          >🟢 진행중</button>
+          <button
+            style={{ padding: '8px 16px', fontSize: 14, fontWeight: threadTab === 'closed' ? 600 : 400, cursor: 'pointer', border: 'none', background: 'none', color: threadTab === 'closed' ? '#e53e3e' : '#718096', borderBottom: threadTab === 'closed' ? '2px solid #e53e3e' : '2px solid transparent', marginBottom: -2 }}
+            onClick={() => { setThreadTab('closed'); setClosedPage(1); }}
+          >🔴 종료</button>
+        </div>
+
+        {/* 정렬 */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <select
+            style={{ padding: '4px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4 }}
+            value={threadTab === 'active' ? sortBy : closedSortBy}
+            onChange={e => {
+              const v = e.target.value as 'newest' | 'oldest' | 'popular';
+              if (threadTab === 'active') { setSortBy(v); setActivePage(1); }
+              else { setClosedSortBy(v); setClosedPage(1); }
+            }}
+          >
+            <option value="newest">최신순</option>
+            <option value="oldest">오래된순</option>
+            <option value="popular">답글 많은순</option>
+          </select>
+        </div>
+
+        {(() => {
+          const isActive = threadTab === 'active';
+          const filtered = discussions.filter((d: any) => isActive ? d.status !== 'closed' : d.status === 'closed');
+          const currentSort = isActive ? sortBy : closedSortBy;
+          const sorted = [...filtered].sort((a: any, b: any) => {
+            if (currentSort === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            if (currentSort === 'oldest') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            return (b.commentCount || 0) - (a.commentCount || 0);
+          });
+          const currentPage = isActive ? activePage : closedPage;
+          const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+          const paged = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+          if (loading) return <div style={styles.emptyState}>불러오는 중...</div>;
+          if (sorted.length === 0) return <div style={styles.emptyState}>{isActive ? '진행중인 스레드가 없습니다' : '종료된 스레드가 없습니다'}</div>;
+
+          return (
+            <>
+              {paged.map((d: any) => (
+                <div
+                  key={d.id}
+                  style={{ ...styles.discussionItem, display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...(threadTab === 'closed' ? { opacity: 0.7 } : {}) }}
+                >
+                  <div style={{ cursor: 'pointer', flex: 1 }} onClick={() => navigate(`/discussions/${d.id}`)}>
+                    <div style={styles.discussionTitle}>
+                      {d.title}
+                      {d.endDate && <span style={{ fontSize: 11, color: '#718096', marginLeft: 8 }}>~{new Date(d.endDate).toLocaleDateString()}</span>}
+                      {d.status === 'closed' && <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>}
+                      {d.commentCount > 0 && <span style={{ fontSize: 11, color: '#a0aec0', marginLeft: 8 }}>💬 {d.commentCount}</span>}
+                    </div>
+                    <div style={styles.discussionMeta}>
+                      {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  {isActive && d.authorId === currentUserId && !isReadOnly && (
+                    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setEditingDiscussion(d); }}
+                        style={{ padding: '3px 10px', fontSize: 11, color: '#667eea', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 4, cursor: 'pointer' }}
+                      >수정</button>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm('이 스레드를 삭제하시겠습니까?')) return;
+                          try {
+                            await discussionsApi.deleteTopic(d.id);
+                            fetchData();
+                          } catch (err) {
+                            const axiosErr = err as AxiosError<ApiError>;
+                            showToast(axiosErr.response?.data?.error?.message || '삭제에 실패했습니다');
+                          }
+                        }}
+                        style={{ padding: '3px 10px', fontSize: 11, color: '#e53e3e', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 4, cursor: 'pointer' }}
+                      >삭제</button>
+                    </div>
+                  )}
                 </div>
-                <div style={styles.discussionMeta}>
-                  {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-              {d.authorId === currentUserId && !isReadOnly && (
-                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setEditingDiscussion(d); }}
-                    style={{ padding: '3px 10px', fontSize: 11, color: '#667eea', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 4, cursor: 'pointer' }}
-                  >수정</button>
-                  <button
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      if (isReadOnly) {
-                        showToast(readOnlyMessage || '독서기간 중에만 삭제할 수 있습니다');
-                        return;
-                      }
-                      if (!confirm('이 스레드를 삭제하시겠습니까?')) return;
-                      try {
-                        await discussionsApi.deleteTopic(d.id);
-                        fetchData();
-                      } catch (err) {
-                        const axiosErr = err as AxiosError<ApiError>;
-                        showToast(axiosErr.response?.data?.error?.message || '삭제에 실패했습니다');
-                      }
-                    }}
-                    style={{ padding: '3px 10px', fontSize: 11, color: '#e53e3e', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 4, cursor: 'pointer' }}
-                  >삭제</button>
+              ))}
+
+              {/* 페이지네이션 */}
+              {totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                    <button
+                      key={p}
+                      style={{ padding: '4px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4, backgroundColor: p === currentPage ? '#3182ce' : '#fff', color: p === currentPage ? '#fff' : '#333', cursor: 'pointer' }}
+                      onClick={() => isActive ? setActivePage(p) : setClosedPage(p)}
+                    >{p}</button>
+                  ))}
                 </div>
               )}
-            </div>
-          ))
-        )}
+            </>
+          );
+        })()}
       </div>
-
-      {/* 🔴 종료된 스레드 */}
-      {!loading && discussions.filter((d: any) => d.status === 'closed').length > 0 && (
-        <div style={styles.section}>
-          <div style={styles.sectionTitle}>🔴 종료된 스레드</div>
-          {discussions.filter((d: any) => d.status === 'closed').map((d) => (
-            <div
-              key={d.id}
-              style={{ ...styles.discussionItem, opacity: 0.6 }}
-              onClick={() => navigate(`/discussions/${d.id}`)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate(`/discussions/${d.id}`)}
-            >
-              <div style={styles.discussionTitle}>
-                {d.title}
-                <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>
-              </div>
-              <div style={styles.discussionMeta}>
-                {d.authorNickname} · {new Date(d.createdAt).toLocaleDateString()}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* 스레드 만들기 모달 */}
       {showCreateModal && (

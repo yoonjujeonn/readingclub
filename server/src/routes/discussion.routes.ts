@@ -39,9 +39,10 @@ router.get('/groups/:groupId/discussions', authMiddleware, async (req: AuthReque
   try {
     const authorId = typeof req.query.authorId === 'string' ? req.query.authorId : undefined;
     const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+    const participantId = typeof req.query.participantId === 'string' ? req.query.participantId : undefined;
     const discussions = await discussionService.listTopics(
       req.params.groupId as string,
-      { ...(authorId && { authorId }), ...(status && { status }) },
+      { ...(authorId && { authorId }), ...(status && { status }), ...(participantId && { participantId }) },
     );
     res.json(discussions);
   } catch (err) {

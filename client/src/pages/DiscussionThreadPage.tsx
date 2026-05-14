@@ -439,7 +439,7 @@ function DiscussionThreadPage() {
       {/* Topic Header */}
       <div style={styles.topicSection}>
         <div style={styles.topicTitle}>
-          {topic?.title || '토론 스레드'}
+          {topic?.title || '스레드'}
           {topic?.isRecommended && <span style={styles.recommendedBadge}>추천</span>}
         </div>
         {topic?.content && <div style={styles.topicContent}>{topic.content}</div>}
@@ -471,7 +471,7 @@ function DiscussionThreadPage() {
           <div style={styles.sectionTitle}>의견 목록</div>
           {comments.length > 0 && (
             <button onClick={handleAiSummary} disabled={aiLoading} style={styles.aiButton}>
-              {aiLoading ? '정리 중...' : '🤖 토론 정리'}
+              {aiLoading ? '정리 중...' : '🤖 스레드 정리'}
             </button>
           )}
         </div>

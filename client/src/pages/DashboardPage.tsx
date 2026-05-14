@@ -327,11 +327,11 @@ function DashboardPage() {
       case 'threads':
         return (
           <div style={styles.section}>
-            <div style={styles.sectionTitle}>📚 책수다 관리</div>
-            <div style={{ fontSize: 13, color: '#718096', marginBottom: 16 }}>스레드 종료일 수정, 대표 수다 설정/해제, 발언권 관리를 합니다.</div>
+            <div style={styles.sectionTitle}>📚 스레드 관리</div>
+            <div style={{ fontSize: 13, color: '#718096', marginBottom: 16 }}>스레드 종료일 수정, 대표 스레드 설정/해제, 발언권 관리를 합니다.</div>
 
             {threads.length === 0 ? (
-              <div style={{ color: '#a0aec0', fontSize: 13 }}>아직 생성된 수다가 없습니다</div>
+              <div style={{ color: '#a0aec0', fontSize: 13 }}>아직 생성된 스레드가 없습니다</div>
             ) : threads.map((d: any) => (
               <div key={d.id} style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

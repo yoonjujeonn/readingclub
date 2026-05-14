@@ -132,7 +132,7 @@ export function InsightCard({ insight }: InsightCardProps) {
         {/* Stats */}
         <div style={{ display: 'flex', gap: 16, fontSize: 12, opacity: 0.6, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <span>📝 메모 {insight.memoCount}개</span>
-          <span>💬 토론 {insight.discussionCount}개</span>
+          <span>💬 스레드 {insight.discussionCount}개</span>
           <span>🗨️ 의견 {insight.commentCount}개</span>
         </div>
       </div>

@@ -81,7 +81,7 @@ export const discussionService = {
     };
   },
 
-  async listTopics(groupId: string, filter?: { authorId?: string; status?: string }) {
+  async listTopics(groupId: string, filter?: { authorId?: string; status?: string; participantId?: string }) {
     // 종료일 지난 active 스레드를 자동 종료 처리
     const closedThreads = await prisma.discussion.findMany({
       where: {
@@ -112,6 +112,14 @@ export const discussionService = {
     }
     if (filter?.status) {
       where.status = filter.status;
+    }
+    if (filter?.participantId) {
+      // 내가 작성했거나, 내가 의견/댓글을 남긴 스레드
+      where.OR = [
+        { authorId: filter.participantId },
+        { comments: { some: { authorId: filter.participantId } } },
+        { comments: { some: { replies: { some: { authorId: filter.participantId } } } } },
+      ];
     }
 
     const discussions = await prisma.discussion.findMany({
