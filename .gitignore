@@ -6,6 +6,7 @@ server/.npm-cache/
 # Build output
 dist/
 client/dist/
+*.tsbuildinfo
 
 # Environment variables (민감 정보)
 .env
