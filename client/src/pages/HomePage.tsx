@@ -325,6 +325,59 @@ function HomePage() {
         <button type="submit" style={styles.searchButton}>검색</button>
       </form>
 
+      {/* 내 모임 — 가로 스크롤 */}
+      {isLoggedIn && !searched && groups.filter(g => g.isMember || g.ownerId === currentUserId).length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#2d3748', marginBottom: 12 }}>📖 내 모임</div>
+          <div style={{
+            display: 'flex',
+            gap: 14,
+            overflowX: 'auto',
+            paddingBottom: 8,
+            scrollbarWidth: 'thin' as any,
+          }}>
+            {groups.filter(g => g.isMember || g.ownerId === currentUserId).map(g => (
+              <div
+                key={g.id}
+                style={{
+                  minWidth: 220,
+                  maxWidth: 220,
+                  backgroundColor: '#fff',
+                  borderRadius: 12,
+                  padding: 16,
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                  border: '2px solid #667eea',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  display: 'flex',
+                  gap: 10,
+                  alignItems: 'center',
+                }}
+                onClick={() => navigate(`/groups/${g.id}`)}
+              >
+                {g.book?.coverImageUrl && (
+                  <img src={g.book.coverImageUrl} alt="" style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} />
+                )}
+                <div style={{ overflow: 'hidden' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1a202c', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+                    {g.book?.title || '제목 없음'}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#667eea', fontWeight: 600, marginBottom: 4 }}>{g.name}</div>
+                  <div style={{ fontSize: 11, color: '#a0aec0' }}>
+                    👥 {g.currentMembers}/{g.maxMembers}명
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 전체 모임 */}
+      {!searched && isLoggedIn && groups.filter(g => !(g.isMember || g.ownerId === currentUserId)).length > 0 && (
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#2d3748', marginBottom: 12 }}>🌐 전체 모임</div>
+      )}
+
       {loading ? (
         <div style={styles.loading}>불러오는 중...</div>
       ) : !groups || groups.length === 0 ? (
@@ -334,7 +387,7 @@ function HomePage() {
       ) : (
         <div style={styles.grid}>
           {/* 옵셔널 체이닝 ?. 을 추가하여 안전하게 렌더링 */}
-          {groups?.map((g) => (
+          {(isLoggedIn && !searched ? groups.filter(g => !(g.isMember || g.ownerId === currentUserId)) : groups)?.map((g) => (
             <div
               key={g.id}
               style={styles.card}
