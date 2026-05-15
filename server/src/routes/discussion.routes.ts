@@ -204,6 +204,44 @@ router.post('/comments/:id/replies', authMiddleware, async (req: AuthRequest, re
   }
 });
 
+// PUT /api/comments/:id - 의견 수정 (작성자)
+router.put('/comments/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { content } = req.body;
+    if (!content || !content.trim()) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '내용을 입력해주세요' } });
+      return;
+    }
+    const result = await discussionService.updateComment(req.params.id as string, req.user!.userId, content.trim());
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
+// PUT /api/replies/:id - 댓글 수정 (작성자)
+router.put('/replies/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { content } = req.body;
+    if (!content || !content.trim()) {
+      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: '내용을 입력해주세요' } });
+      return;
+    }
+    const result = await discussionService.updateReply(req.params.id as string, req.user!.userId, content.trim());
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: { code: err.code, message: err.message } });
+      return;
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } });
+  }
+});
+
 // PATCH /api/discussions/:id/end-date - 종료일 수정 (방장)
 router.patch('/discussions/:id/end-date', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {

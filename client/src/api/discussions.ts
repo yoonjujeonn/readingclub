@@ -58,6 +58,12 @@ export const discussionsApi = {
   addReply: (commentId: string, content: string) =>
     apiClient.post(`/comments/${commentId}/replies`, { content }),
 
+  updateComment: (commentId: string, content: string) =>
+    apiClient.put(`/comments/${commentId}`, { content }),
+
+  updateReply: (replyId: string, content: string) =>
+    apiClient.put(`/replies/${replyId}`, { content }),
+
   getRecommendations: (groupId: string) =>
     apiClient.get<RecommendedTopic[]>(`/groups/${groupId}/discussions/recommendations`),
 

@@ -281,6 +281,13 @@ function DiscussionThreadPage() {
   const [replyContent, setReplyContent] = useState('');
   const [submittingReply, setSubmittingReply] = useState(false);
 
+  // Edit forms
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentContent, setEditCommentContent] = useState('');
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+  const [editReplyContent, setEditReplyContent] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
   // AI summary
   const [aiSummary, setAiSummary] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -393,6 +400,32 @@ function DiscussionThreadPage() {
     } catch { /* ignore */ }
   };
 
+  const handleEditComment = async (commentId: string) => {
+    if (!editCommentContent.trim()) return;
+    setEditSaving(true);
+    try {
+      await discussionsApi.updateComment(commentId, editCommentContent.trim());
+      setEditingCommentId(null);
+      setEditCommentContent('');
+      fetchData();
+    } catch {
+      showToast('수정에 실패했습니다');
+    } finally { setEditSaving(false); }
+  };
+
+  const handleEditReply = async (replyId: string) => {
+    if (!editReplyContent.trim()) return;
+    setEditSaving(true);
+    try {
+      await discussionsApi.updateReply(replyId, editReplyContent.trim());
+      setEditingReplyId(null);
+      setEditReplyContent('');
+      fetchData();
+    } catch {
+      showToast('수정에 실패했습니다');
+    } finally { setEditSaving(false); }
+  };
+
   const handleAiSummary = async () => {
     if (!discussionId) return;
     setAiLoading(true);
@@ -490,8 +523,25 @@ function DiscussionThreadPage() {
           comments.map((comment) => (
             <div key={comment.id} style={styles.commentCard}>
               <div style={styles.commentAuthor}>{comment.authorNickname}</div>
-              <div style={styles.commentContent}>{comment.content}</div>
-              {comment.imageUrl && <img src={comment.imageUrl} alt="" style={styles.commentImage} />}
+              {editingCommentId === comment.id ? (
+                <div>
+                  <textarea
+                    style={styles.textarea}
+                    rows={3}
+                    value={editCommentContent}
+                    onChange={(e) => setEditCommentContent(e.target.value)}
+                  />
+                  <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                    <button style={styles.submitBtn} onClick={() => handleEditComment(comment.id)} disabled={editSaving}>{editSaving ? '...' : '저장'}</button>
+                    <button style={{ ...styles.submitBtn, backgroundColor: '#a0aec0' }} onClick={() => setEditingCommentId(null)}>취소</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={styles.commentContent}>{comment.content}</div>
+                  {comment.imageUrl && <img src={comment.imageUrl} alt="" style={styles.commentImage} />}
+                </>
+              )}
               <div style={styles.commentMeta}>
                 {timeAgo(comment.createdAt)}
                 {!isReadOnly && (
@@ -508,6 +558,12 @@ function DiscussionThreadPage() {
                     </button>
                   </>
                 )}
+                {!isReadOnly && comment.authorId === currentUserId && editingCommentId !== comment.id && (
+                  <>
+                    {' · '}
+                    <button style={styles.replyToggle} onClick={() => { setEditingCommentId(comment.id); setEditCommentContent(comment.content); }}>수정</button>
+                  </>
+                )}
                 {!isReadOnly && (isOwner || comment.authorId === currentUserId) && (
                   <>
                     {' · '}
@@ -518,22 +574,23 @@ function DiscussionThreadPage() {
 
               {/* Reply Form */}
               {replyingTo === comment.id && (
-                <div style={{ ...styles.formRow, marginLeft: 24 }}>
-                  <input
-                    type="text"
-                    style={styles.input}
+                <div style={{ marginLeft: 24, marginTop: 8 }}>
+                  <textarea
+                    style={styles.textarea}
+                    rows={3}
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
                     placeholder="댓글을 작성해주세요"
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddReply(comment.id))}
                   />
-                  <button
-                    style={styles.submitBtn}
-                    onClick={() => handleAddReply(comment.id)}
-                    disabled={submittingReply}
-                  >
-                    {submittingReply ? '...' : '댓글'}
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                    <button
+                      style={styles.submitBtn}
+                      onClick={() => handleAddReply(comment.id)}
+                      disabled={submittingReply}
+                    >
+                      {submittingReply ? '...' : '댓글'}
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -543,9 +600,30 @@ function DiscussionThreadPage() {
                   {comment.replies.map((reply) => (
                     <div key={reply.id} style={styles.replyCard}>
                       <div style={styles.replyAuthor}>{reply.authorNickname}</div>
-                      <div style={styles.replyContent}>{reply.content}</div>
+                      {editingReplyId === reply.id ? (
+                        <div>
+                          <textarea
+                            style={{ ...styles.textarea, minHeight: 60 }}
+                            rows={2}
+                            value={editReplyContent}
+                            onChange={(e) => setEditReplyContent(e.target.value)}
+                          />
+                          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                            <button style={{ ...styles.submitBtn, fontSize: 12, padding: '5px 12px' }} onClick={() => handleEditReply(reply.id)} disabled={editSaving}>{editSaving ? '...' : '저장'}</button>
+                            <button style={{ ...styles.submitBtn, fontSize: 12, padding: '5px 12px', backgroundColor: '#a0aec0' }} onClick={() => setEditingReplyId(null)}>취소</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={styles.replyContent}>{reply.content}</div>
+                      )}
                       <div style={styles.replyMeta}>
                         {timeAgo(reply.createdAt)}
+                        {!isReadOnly && reply.authorId === currentUserId && editingReplyId !== reply.id && (
+                          <>
+                            {' · '}
+                            <button style={{ ...styles.replyToggle, fontSize: 11 }} onClick={() => { setEditingReplyId(reply.id); setEditReplyContent(reply.content); }}>수정</button>
+                          </>
+                        )}
                         {!isReadOnly && (isOwner || reply.authorId === currentUserId) && (
                           <>
                             {' · '}
