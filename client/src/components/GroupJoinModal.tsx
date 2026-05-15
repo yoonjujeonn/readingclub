@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { GroupCard } from '../types';
+import GroupTags from './GroupTags';
 
 interface GroupJoinModalProps {
   group: GroupCard;
@@ -259,6 +260,10 @@ function GroupJoinModal({ group, onClose, onJoin, joining, joinMsg }: GroupJoinM
           {group.description && (
             <div style={styles.description}>{group.description}</div>
           )}
+
+          <div style={{ marginBottom: group.tags?.length ? 16 : 0 }}>
+            <GroupTags tags={group.tags} />
+          </div>
 
           {/* Meta Info */}
           <div style={styles.meta}>

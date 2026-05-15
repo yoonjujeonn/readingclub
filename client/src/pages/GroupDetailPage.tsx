@@ -4,6 +4,8 @@ import { groupsApi } from '../api/groups';
 import { useAuthStore } from '../stores/authStore';
 import type { GroupDetail, ApiError } from '../types';
 import { AxiosError } from 'axios';
+import GroupTags from '../components/GroupTags';
+import TagInput from '../components/TagInput';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -173,6 +175,7 @@ function GroupDetailPage() {
   const [editMaxMembers, setEditMaxMembers] = useState('');
   const [editReadingStart, setEditReadingStart] = useState('');
   const [editReadingEnd, setEditReadingEnd] = useState('');
+  const [editTags, setEditTags] = useState<string[]>([]);
   const [editError, setEditError] = useState('');
   const [saving, setSaving] = useState(false);
   const [editIsPrivate, setEditIsPrivate] = useState(false);
@@ -220,6 +223,7 @@ function GroupDetailPage() {
     setEditMaxMembers(String(group.maxMembers));
     setEditReadingStart(group.readingStartDate?.slice(0, 10) || '');
     setEditReadingEnd(group.readingEndDate?.slice(0, 10) || '');
+    setEditTags(group.tags || []);
     setEditError('');
     setEditing(true);
     setEditIsPrivate((group as any).isPrivate || false);
@@ -240,6 +244,7 @@ function GroupDetailPage() {
         readingEndDate: editReadingEnd,
         isPrivate: editIsPrivate,
         password: editIsPrivate ? (editPassword || undefined) : null,
+        tags: editTags,
       } as any);
       setEditing(false);
       fetchDetail();
@@ -358,6 +363,9 @@ function GroupDetailPage() {
               )}
             </div>
             {group.description && <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 12 }}>{group.description}</p>}
+            <div style={{ marginBottom: group.tags?.length ? 12 : 0 }}>
+              <GroupTags tags={group.tags} />
+            </div>
             <div style={styles.meta}>
               📅 독서 기간: {formatDate(group.readingStartDate)} ~ {formatDate(group.readingEndDate)}<br />
               👥 참여 인원: {group.currentMembers || group.memberCount || group.members?.length}/{group.maxMembers}명
@@ -373,6 +381,10 @@ function GroupDetailPage() {
             <div style={{ marginBottom: 10 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>방 소개</label>
               <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const, minHeight: 60, fontFamily: 'inherit' }} />
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>태그</label>
+              <TagInput tags={editTags} onChange={setEditTags} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
               <div>

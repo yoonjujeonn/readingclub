@@ -76,8 +76,22 @@ model Group {
   bans          GroupBan[]
   schedules     DiscussionSchedule[]
   insights      DiscussionInsight[]
+  tags          GroupTag[]
 
   @@map("groups")
+}
+
+model GroupTag {
+  id        String   @id @default(uuid())
+  groupId   String   @map("group_id")
+  name      String   @db.VarChar(15)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@index([name])
+  @@map("group_tags")
 }
 
 model GroupMember {

@@ -56,6 +56,7 @@ export interface GroupCard {
   ownerId?: string;
   ownerNickname?: string | null;
   isMember?: boolean;
+  tags?: string[];
 }
 
 export interface GroupDetail extends GroupCard {
@@ -78,6 +79,7 @@ export interface CreateGroupRequest {
   readingEndDate: string;
   isPrivate?: boolean;
   password?: string;
+  tags?: string[];
 }
 
 export interface GroupMember {

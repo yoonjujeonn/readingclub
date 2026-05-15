@@ -6,6 +6,15 @@ const prisma = new PrismaClient();
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
+const normalizeTags = (tags?: string[]) =>
+  (tags ?? [])
+    .map(tag => tag.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .map(tag => tag.slice(0, 15));
+
+const mapTags = (tags?: { name: string }[]) => tags?.map(tag => tag.name) ?? [];
+
 export const groupService = {
   async create(data: CreateGroupInput, userId: string) {
     // Find or create the Book entity
@@ -49,8 +58,11 @@ export const groupService = {
           readingEndDate: new Date(data.readingEndDate),
           isPrivate: data.isPrivate ?? false,
           password: data.password ?? null,
+          tags: {
+            create: normalizeTags(data.tags).map(name => ({ name })),
+          },
         },
-        include: { book: true },
+        include: { book: true, tags: { orderBy: { createdAt: 'asc' } } },
       });
 
       // Auto-register owner as first member
@@ -65,7 +77,7 @@ export const groupService = {
       return created;
     });
 
-    return group;
+    return { ...group, tags: mapTags(group.tags) };
   },
 
   async list(query?: { search?: string; page?: number; limit?: number }, userId?: string) {
@@ -93,6 +105,7 @@ export const groupService = {
         include: {
           book: true,
           owner: { select: { id: true, nickname: true } },
+          tags: { orderBy: { createdAt: 'asc' } },
           _count: { select: { members: true } },
           members: userId ? { where: { userId }, select: { userId: true } } : false,
         },
@@ -111,6 +124,7 @@ export const groupService = {
       ownerId: g.ownerId,
       ownerNickname: g.owner?.nickname || null,
       isPrivate: g.isPrivate,
+      tags: mapTags(g.tags),
       memberCount: g._count.members,
       isMember: userId ? (g as any).members?.length > 0 : false,
       book: {
@@ -142,6 +156,7 @@ export const groupService = {
             user: { select: { id: true, nickname: true, email: true } },
           },
         },
+        tags: { orderBy: { createdAt: 'asc' } },
       },
     });
 
@@ -200,6 +215,7 @@ export const groupService = {
       createdAt: group.createdAt,
       ownerId: group.ownerId,
       isPrivate: group.isPrivate,
+      tags: mapTags(group.tags),
       book: {
         id: group.book.id,
         title: group.book.title,
@@ -330,10 +346,23 @@ export const groupService = {
       updateData.password = data.password;
     }
 
-    return prisma.group.update({
-      where: { id: groupId },
-      data: updateData,
-      include: { book: true },
+    return prisma.$transaction(async (tx: TransactionClient) => {
+      if (data.tags !== undefined) {
+        await tx.groupTag.deleteMany({ where: { groupId } });
+        const tags = normalizeTags(data.tags);
+        if (tags.length > 0) {
+          await tx.groupTag.createMany({
+            data: tags.map(name => ({ groupId, name })),
+          });
+        }
+      }
+
+      const updated = await tx.group.update({
+        where: { id: groupId },
+        data: updateData,
+        include: { book: true, tags: { orderBy: { createdAt: 'asc' } } },
+      });
+      return { ...updated, tags: mapTags(updated.tags) };
     });
   },
 
@@ -372,6 +401,7 @@ export const groupService = {
       await tx.comment.deleteMany({ where: { discussion: { groupId } } });
       await tx.discussion.deleteMany({ where: { groupId } });
       await tx.memo.deleteMany({ where: { groupId } });
+      await tx.groupTag.deleteMany({ where: { groupId } });
       await tx.groupMember.deleteMany({ where: { groupId } });
       await tx.group.delete({ where: { id: groupId } });
     });

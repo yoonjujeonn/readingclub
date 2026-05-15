@@ -4,6 +4,7 @@ import { booksApi } from '../api/books';
 import { groupsApi } from '../api/groups';
 import type { BookSearchResult, ApiError } from '../types';
 import { AxiosError } from 'axios';
+import TagInput from '../components/TagInput';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -182,6 +183,7 @@ function CreateGroupPage() {
   const [readingEndDate, setReadingEndDate] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [password, setPassword] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
@@ -256,6 +258,7 @@ function CreateGroupPage() {
         readingEndDate,
         isPrivate,
         password: isPrivate ? password : undefined,
+        tags,
       });
       navigate('/');
     } catch (err) {
@@ -399,6 +402,11 @@ function CreateGroupPage() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="모임을 소개해주세요"
             />
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>태그</label>
+            <TagInput tags={tags} onChange={setTags} />
           </div>
 
           <div style={styles.field}>
