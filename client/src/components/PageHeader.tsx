@@ -2,7 +2,12 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import NotificationBell from './NotificationBell';
 
-function PageHeader() {
+interface PageHeaderProps {
+  hideMypage?: boolean;
+  hideNotification?: boolean;
+}
+
+function PageHeader({ hideMypage, hideNotification }: PageHeaderProps) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const isLoggedIn = !!accessToken;
 
@@ -18,19 +23,21 @@ function PageHeader() {
       </Link>
       {isLoggedIn && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <NotificationBell />
-          <Link to="/mypage" style={{
-            padding: '7px 16px',
-            backgroundColor: '#f7f8fc',
-            color: '#4a5568',
-            borderRadius: 8,
-            fontSize: 13,
-            fontWeight: 600,
-            textDecoration: 'none',
-            border: '1px solid #e2e8f0',
-          }}>
-            마이페이지
-          </Link>
+          {!hideNotification && <NotificationBell />}
+          {!hideMypage && (
+            <Link to="/mypage" style={{
+              padding: '7px 16px',
+              backgroundColor: '#f7f8fc',
+              color: '#4a5568',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: 'none',
+              border: '1px solid #e2e8f0',
+            }}>
+              마이페이지
+            </Link>
+          )}
         </div>
       )}
     </div>

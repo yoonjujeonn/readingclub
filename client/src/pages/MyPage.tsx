@@ -121,7 +121,10 @@ function MyPage() {
 
   return (
     <div style={s.container}>
-      <div style={s.topBar}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#1a202c' }}>📚 독서 모임</span>
+        </Link>
         <button type="button" onClick={() => navigate('/notifications')} style={s.notificationBtn}>
           <span>🔔 알림 보기</span>
           {unreadNotifications > 0 && <span style={s.notificationCount}>읽지 않음 {unreadNotifications}</span>}
