@@ -93,6 +93,8 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     transition: 'transform 0.2s, box-shadow 0.2s',
     border: '1px solid #f0f0f5',
+    display: 'flex',
+    flexDirection: 'column' as const,
   },
   bookTitle: {
     fontSize: 17,
@@ -399,7 +401,7 @@ function HomePage() {
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && handleCardClick(g)}
             >
-              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flex: 1 }}>
                 {g.book?.coverImageUrl && (
                   <img
                     src={g.book.coverImageUrl}
@@ -407,18 +409,20 @@ function HomePage() {
                     style={{ width: 80, minHeight: 110, objectFit: 'contain', borderRadius: 4, flexShrink: 0 }}
                   />
                 )}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, minHeight: 110, display: 'flex', flexDirection: 'column' as const }}>
                   <div style={styles.bookTitle}>{g.book?.title || '제목 없음'}</div>
                   <div style={styles.groupName}>{g.name}</div>
                   <div style={{ marginBottom: 8 }}>
                     <GroupTags tags={g.tags} compact />
                   </div>
                   {g.description && <div style={{ ...styles.summary, marginBottom: 8 }}>{g.description}</div>}
+                  <div style={{ marginTop: 'auto' as any }}>
                   <div style={styles.meta}>
                     📅 독서 기간: {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}<br />
                     {g.ownerNickname && <span style={{ display: 'inline-block', background: '#edf2ff', color: '#4c51bf', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginRight: 6 }}>👤 {g.ownerNickname}</span>}
                     <span style={styles.members}>👥 {g.currentMembers}/{g.maxMembers}명</span>
                     {(g as any).isPrivate && <span style={{ display: 'inline-block', background: '#fefcbf', color: '#975a16', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginLeft: 6 }}>🔒 비공개</span>}
+                  </div>
                   </div>
                 </div>
               </div>
