@@ -169,6 +169,20 @@ export interface RecommendedTopic {
   content: string;
 }
 
+// ===== Notification =====
+export interface NotificationItem {
+  id: string;
+  type: string;
+  message: string;
+  linkUrl: string;
+  isRead: boolean;
+  createdAt: string;
+  groupId: string;
+  groupName: string;
+  discussionId?: string;
+  announcementId?: string;
+}
+
 // ===== API =====
 export interface PaginatedResult<T> {
   data: T[];

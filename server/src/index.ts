@@ -13,8 +13,10 @@ import dashboardRouter from './routes/dashboard.routes';
 import aiRouter from './routes/ai.routes';
 import tokenRouter from './routes/token.routes';
 import insightRouter from './routes/insight.routes';
+import notificationRouter from './routes/notification.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
 import { isS3StorageEnabled } from './services/file-storage.service';
+import { notificationService } from './services/notification.service';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -63,6 +65,7 @@ app.use('/api/groups', groupRouter);
 app.use('/api', memoRouter);
 app.use('/api', discussionRouter);
 app.use('/api/me', mypageRouter);
+app.use('/api/me/notifications', notificationRouter);
 app.use('/api', dashboardRouter);
 app.use('/api', aiRouter);
 app.use('/api', tokenRouter);
@@ -82,6 +85,7 @@ if (isProduction) {
 
 app.listen(PORT, () => {
   console.log(`Server is running on 127.0.0.1:${PORT} (${isProduction ? 'production' : 'development'})`);
+  notificationService.startDateNotificationScheduler();
 });
 
 export default app;
