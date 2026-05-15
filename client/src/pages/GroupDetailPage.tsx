@@ -6,6 +6,7 @@ import type { GroupDetail, ApiError } from '../types';
 import { AxiosError } from 'axios';
 import GroupTags from '../components/GroupTags';
 import TagInput from '../components/TagInput';
+import PageHeader from '../components/PageHeader';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -304,7 +305,7 @@ function GroupDetailPage() {
 
   return (
     <div style={styles.container}>
-      <Link to="/" style={styles.backLink}>← 홈으로</Link>
+      <PageHeader />
 
       {/* Book Info */}
       <div style={styles.bookSection}>

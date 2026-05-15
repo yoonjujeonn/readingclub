@@ -15,7 +15,8 @@ import NotificationsPage from './pages/NotificationsPage';
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/" element={<HomePage />} />
@@ -29,7 +30,8 @@ function App() {
       <Route path="/groups/:id/dashboard" element={<DashboardPage />} />
       <Route path="/invite/:code" element={<InvitePage />} />
       <Route path="/notifications" element={<NotificationsPage />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
 

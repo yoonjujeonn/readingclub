@@ -7,6 +7,7 @@ import { useAuthStore } from '../stores/authStore';
 import type { Memo, ApiError, GroupDetail, MemoVisibility, GroupMember } from '../types';
 import { AxiosError } from 'axios';
 import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
+import PageHeader from '../components/PageHeader';
 
 const MAX_MEMO_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_MEMO_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -644,6 +645,7 @@ function MemosPage() {
 
   return (
     <div style={styles.container}>
+      <PageHeader />
       <Link to={`/groups/${groupId}`} style={styles.backLink}>← 모임으로</Link>
       <h1 style={styles.title}>📝 메모</h1>
 
