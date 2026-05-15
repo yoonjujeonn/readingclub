@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { dashboardApi, type Announcement } from '../api/dashboard';
 import { groupsApi } from '../api/groups';
 import { discussionsApi } from '../api/discussions';
@@ -39,9 +39,13 @@ const styles: Record<string, React.CSSProperties> = {
 
 function DashboardPage() {
   const { id: groupId } = useParams<{ id: string }>();
+  const location = useLocation();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
-  const [activeTab, setActiveTab] = useState<TabId>('threads');
+  const stateTab = (location.state as any)?.openTab;
+  const hash = location.hash.replace('#', '');
+  const resolvedTab = stateTab || hash;
+  const [activeTab, setActiveTab] = useState<TabId>(resolvedTab === 'tokenRequests' ? 'threads' : (tabs.some(t => t.id === resolvedTab) ? resolvedTab as TabId : 'threads'));
 
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -50,7 +54,7 @@ function DashboardPage() {
   const [threads, setThreads] = useState<Discussion[]>([]);
   const [editingEndDateId, setEditingEndDateId] = useState<string | null>(null);
   const [editingEndDateValue, setEditingEndDateValue] = useState('');
-  const [threadMgmtTab, setThreadMgmtTab] = useState<'active' | 'closed' | 'tokenRequests'>('active');
+  const [threadMgmtTab, setThreadMgmtTab] = useState<'active' | 'closed' | 'tokenRequests'>(resolvedTab === 'tokenRequests' ? 'tokenRequests' : 'active');
   const [threadMgmtSort, setThreadMgmtSort] = useState<'newest' | 'oldest' | 'popular'>('newest');
   const [threadMgmtClosedSort, setThreadMgmtClosedSort] = useState<'newest' | 'oldest' | 'popular'>('popular');
   const [threadMgmtPage, setThreadMgmtPage] = useState(1);
@@ -89,6 +93,17 @@ function DashboardPage() {
   };
 
   useEffect(() => { fetchAll(); }, [groupId]);
+
+  // URL hash 또는 state 변경 시 탭 동기화
+  useEffect(() => {
+    const tab = (location.state as any)?.openTab || location.hash.replace('#', '');
+    if (tab === 'tokenRequests') {
+      setActiveTab('threads');
+      setThreadMgmtTab('tokenRequests');
+    } else if (tab && tabs.some(t => t.id === tab)) {
+      setActiveTab(tab as TabId);
+    }
+  }, [location]);
 
   const handleGenerateInvite = async () => {
     if (!groupId) return;

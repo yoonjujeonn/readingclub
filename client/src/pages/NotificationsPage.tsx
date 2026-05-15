@@ -149,7 +149,12 @@ function NotificationsPage() {
 
   const handleItemClick = async (item: NotificationItem) => {
     await notificationsApi.markRead(item.id).catch(() => {});
-    navigate(item.linkUrl);
+    if (item.linkUrl.includes('#tokenRequests')) {
+      const basePath = item.linkUrl.split('#')[0];
+      navigate(basePath, { state: { openTab: 'tokenRequests' } });
+    } else {
+      navigate(item.linkUrl);
+    }
   };
 
   if (loading) return <div style={styles.loading}>불러오는 중...</div>;
