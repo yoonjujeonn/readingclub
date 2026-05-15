@@ -113,16 +113,16 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     color: '#718096',
     marginBottom: 12,
-    lineHeight: 1.6,
+    lineHeight: 1.5,
     display: '-webkit-box',
-    WebkitLineClamp: 3,
+    WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical' as any,
     overflow: 'hidden',
   },
   meta: {
     fontSize: 12,
     color: '#a0aec0',
-    lineHeight: 1.9,
+    lineHeight: 1.6,
   },
   members: {
     display: 'inline-block',
@@ -409,19 +409,23 @@ function HomePage() {
                     style={{ width: 80, minHeight: 110, objectFit: 'contain', borderRadius: 4, flexShrink: 0 }}
                   />
                 )}
-                <div style={{ flex: 1, minWidth: 0, minHeight: 110, display: 'flex', flexDirection: 'column' as const }}>
-                  <div style={styles.bookTitle}>{g.book?.title || '제목 없음'}</div>
-                  <div style={styles.groupName}>{g.name}</div>
-                  <div style={{ marginBottom: 8 }}>
-                    <GroupTags tags={g.tags} compact />
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' as const }}>
+                  <div style={{ ...styles.bookTitle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{g.book?.title || '제목 없음'}</div>
+                  <div style={{ ...styles.groupName, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, marginBottom: 2 }}>{g.name}</div>
+                  <div style={{ height: 20, overflow: 'hidden', marginBottom: 2 }}>
+                    {g.tags && g.tags.length > 0 && <GroupTags tags={g.tags} compact />}
                   </div>
-                  {g.description && <div style={{ ...styles.summary, marginBottom: 8 }}>{g.description}</div>}
-                  <div style={{ marginTop: 'auto' as any }}>
+                  <div style={{ height: 34, overflow: 'hidden', marginBottom: 4, fontSize: 13, color: '#718096', lineHeight: '17px' }}>
+                    {g.description || '\u00A0'}
+                  </div>
+                  <div>
                   <div style={styles.meta}>
-                    📅 독서 기간: {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}<br />
+                    <div style={{ marginBottom: 6 }}>📅 독서 기간: {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}</div>
+                    <div>
                     {g.ownerNickname && <span style={{ display: 'inline-block', background: '#edf2ff', color: '#4c51bf', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginRight: 6 }}>👤 {g.ownerNickname}</span>}
                     <span style={styles.members}>👥 {g.currentMembers}/{g.maxMembers}명</span>
                     {(g as any).isPrivate && <span style={{ display: 'inline-block', background: '#fefcbf', color: '#975a16', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginLeft: 6 }}>🔒 비공개</span>}
+                    </div>
                   </div>
                   </div>
                 </div>
