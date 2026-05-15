@@ -326,7 +326,7 @@ export const groupService = {
 
     // 활동 점수 추가
     const { activityService } = await import('./activity.service');
-    await activityService.addPoint(userId, 'join');
+    await activityService.addPoint(userId, 'join', groupId);
   },
 
   async update(groupId: string, userId: string, data: UpdateGroupInput) {

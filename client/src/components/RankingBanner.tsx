@@ -49,7 +49,7 @@ function RankingBanner() {
           ))}
         </div>
       </div>
-      <span style={styles.arrow}>전체보기 →</span>
+      <span style={styles.arrow}>→</span>
     </div>
   );
 }
@@ -60,8 +60,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 12,
     padding: '10px 16px',
-    backgroundColor: 'transparent',
-    border: 'none',
+    backgroundColor: '#fffff0',
+    border: '1px solid #fbd38d',
     borderRadius: 8,
     marginBottom: 16,
     cursor: 'pointer',
