@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
+import { profanityService } from './profanity.service';
 
 const prisma = new PrismaClient();
 
@@ -30,6 +31,12 @@ export class AppError extends Error {
 
 export const authService = {
   async signup(email: string, password: string, nickname: string): Promise<User> {
+    // 닉네임 욕설 필터링
+    const nicknameCheck = profanityService.check(nickname);
+    if (!nicknameCheck.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+    }
+
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new AppError(409, 'DUPLICATE_EMAIL', '이미 사용 중인 이메일입니다');

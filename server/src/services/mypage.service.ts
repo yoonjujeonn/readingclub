@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { AppError } from './auth.service';
+import { profanityService } from './profanity.service';
 
 const prisma = new PrismaClient();
 
@@ -97,6 +98,12 @@ export const mypageService = {
   },
 
   async updateNickname(userId: string, nickname: string) {
+    // 닉네임 욕설 필터링
+    const check = profanityService.check(nickname);
+    if (!check.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+    }
+
     const existing = await prisma.user.findFirst({
       where: { nickname, NOT: { id: userId } },
     });
