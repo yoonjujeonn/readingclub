@@ -287,6 +287,20 @@ function MyPage() {
                       ) : null}
                     </div>
                   )}
+                  {/* 종료된 모임 회고 안내 */}
+                  {new Date(g.readingEndDate) < new Date() && !generatedGroups.has(g.id) && insightGroupId !== g.id && (
+                    <div style={{
+                      padding: '10px 14px',
+                      backgroundColor: '#faf5ff',
+                      border: '1px solid #e9d8fd',
+                      borderRadius: 8,
+                      marginBottom: 8,
+                    }}>
+                      <div style={{ fontSize: 13, color: '#553c9a' }}>
+                        📝 모임이 종료되었어요! 회고를 생성해보세요.
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
