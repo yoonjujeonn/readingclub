@@ -41,7 +41,7 @@
 | Profile | Name | Role |
 |--------|-------|------|
 | <img src="https://github.com/cho2-0923.png" width="100px"> | [조연지](https://github.com/cho2-0923) | PM / Project Lead |
-| <img src="https://github.com/qnfdudemr.png" width="100px"> | [양병규](https://github.com/qnfdudemr) | AI 관련 기능 개발 |
+| <img src="./img/ybg_profile.jpg" width="100px"> | [양병규](https://github.com/qnfdudemr) | AI 관련 기능 개발 |
 | <img src="https://github.com/williamjeon7.png" width="100px"> | [전석환](https://github.com/williamjeon73) | Infra |
 | <img src="https://github.com/yoonjujeonn.png" width="100px"> | [전윤주](https://github.com/yoonjujeonn) | API 데이터 페칭, 풀스택 개발 |
 | <img src="https://github.com/Choiyeonw00.png" width="100px"> | [최연우](https://github.com/Choiyeonw00) | AI 기반 추천 |
