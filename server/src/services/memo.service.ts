@@ -41,7 +41,7 @@ export const memoService = {
 
     // 활동 점수 추가
     const { activityService } = await import('./activity.service');
-    await activityService.addPoint(userId, 'memo');
+    await activityService.addPoint(userId, 'memo', groupId);
 
     return memo;
   },

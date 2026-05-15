@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { mypageApi } from '../api/mypage';
 import { aiApi } from '../api/ai';
 import { notificationsApi } from '../api/notifications';
@@ -10,6 +10,7 @@ import type { GroupCard, Memo, Discussion, User } from '../types';
 
 function MyPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const logout = useAuthStore((s) => s.logout);
   const accessToken = useAuthStore((s) => s.accessToken);
   const setUser = useAuthStore((s) => s.setUser);
@@ -24,7 +25,7 @@ function MyPage() {
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [recommendedGroups, setRecommendedGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showQuests, setShowQuests] = useState(false);
+  const [showQuests, setShowQuests] = useState(searchParams.get('showQuests') === 'true');
   const [questData, setQuestData] = useState<any>(null);
   const [insightGroupId, setInsightGroupId] = useState<string | null>(null);
   const [insight, setInsight] = useState<any>(null);

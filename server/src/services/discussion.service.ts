@@ -75,7 +75,7 @@ export const discussionService = {
 
     // 활동 점수 추가
     const { activityService } = await import('./activity.service');
-    await activityService.addPoint(userId, 'thread');
+    await activityService.addPoint(userId, 'thread', groupId);
     await notificationService.notifyThreadCreated(discussion.id);
 
     return discussion;
@@ -210,7 +210,7 @@ export const discussionService = {
 
     // 활동 점수 추가
     const { activityService } = await import('./activity.service');
-    await activityService.addPoint(userId, 'comment');
+    await activityService.addPoint(userId, 'comment', discussion.groupId);
 
     return comment;
   },
@@ -257,7 +257,7 @@ export const discussionService = {
 
     // 활동 점수 추가
     const { activityService } = await import('./activity.service');
-    await activityService.addPoint(userId, 'reply');
+    await activityService.addPoint(userId, 'reply', comment.discussion.groupId);
 
     return reply;
   },

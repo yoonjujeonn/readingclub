@@ -52,7 +52,7 @@ export const activityService = {
   },
 
   // 점수 추가 (하루 최대 1점/항목)
-  async addPoint(userId: string, type: ActivityType): Promise<void> {
+  async addPoint(userId: string, type: ActivityType, groupId?: string): Promise<void> {
     const alreadyEarned = await this.hasEarnedToday(userId, type);
     if (alreadyEarned) return; // 오늘 이미 해당 활동으로 포인트 받음
 
@@ -60,6 +60,28 @@ export const activityService = {
       where: { id: userId },
       data: { activityScore: { increment: 1 } },
     });
+
+    // 점수 획득 알림
+    if (groupId) {
+      const labels: Record<ActivityType, string> = {
+        memo: '메모 작성',
+        thread: '스레드 생성',
+        comment: '의견 작성',
+        reply: '댓글 작성',
+        join: '모임 참여',
+      };
+      const todayStr = new Date().toISOString().split('T')[0];
+      await prisma.notification.create({
+        data: {
+          userId,
+          groupId,
+          type: 'quest_point',
+          message: `🎯 일일퀘스트 달성! "${labels[type]}"로 1점을 획득했습니다.`,
+          linkUrl: '/mypage?showQuests=true',
+          dedupeKey: `quest-point:${userId}:${type}:${todayStr}`,
+        },
+      }).catch(() => {}); // 중복 시 무시
+    }
   },
 
   // 사용자 등급 정보 조회
