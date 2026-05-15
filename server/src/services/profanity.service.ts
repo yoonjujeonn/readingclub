@@ -59,9 +59,11 @@ export const profanityService = {
         matched.push(word);
         continue;
       }
-      // 초성에서 매칭 (ㅅㅂ, ㅂㅅ 등)
+      // 초성에서 매칭 — 원문에 초성 문자(ㄱ-ㅎ)가 직접 있는 경우에만
       if (word.length <= 3 && /^[ㄱ-ㅎ]+$/.test(word)) {
-        if (chosung.includes(word)) {
+        // 원문에서 초성 문자만 추출
+        const originalChosung = text.replace(/[^ㄱ-ㅎ]/g, '');
+        if (originalChosung.includes(word)) {
           matched.push(word);
         }
       }
