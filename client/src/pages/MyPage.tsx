@@ -122,7 +122,6 @@ function MyPage() {
   return (
     <div style={s.container}>
       <div style={s.topBar}>
-        <Link to="/" style={s.backLink}>← 홈으로</Link>
         <button type="button" onClick={() => navigate('/notifications')} style={s.notificationBtn}>
           <span>🔔 알림 보기</span>
           {unreadNotifications > 0 && <span style={s.notificationCount}>읽지 않음 {unreadNotifications}</span>}

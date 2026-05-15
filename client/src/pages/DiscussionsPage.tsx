@@ -9,6 +9,7 @@ import { useAuthStore } from '../stores/authStore';
 import type { Discussion, Memo, RecommendedTopic, ApiError, GroupDetail } from '../types';
 import { AxiosError } from 'axios';
 import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
+import PageHeader from '../components/PageHeader';
 
 const MAX_THREAD_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_THREAD_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -541,6 +542,7 @@ function DiscussionsPage() {
 
   return (
     <div style={styles.container}>
+      <PageHeader />
       <Link to={`/groups/${groupId}`} style={styles.backLink}>← 모임으로</Link>
       <h1 style={styles.title}>💬 스레드</h1>
 

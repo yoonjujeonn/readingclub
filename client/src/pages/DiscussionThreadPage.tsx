@@ -8,6 +8,7 @@ import { aiApi } from '../api/ai';
 import { showToast } from '../api/client';
 import { Markdown } from '../components/Markdown';
 import { InsightCard } from '../components/InsightCard';
+import PageHeader from '../components/PageHeader';
 import { timeAgo } from '../utils/timeAgo';
 import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
 import type { Comment as CommentType, Discussion } from '../types';
@@ -429,6 +430,7 @@ function DiscussionThreadPage() {
 
   return (
     <div style={styles.container}>
+      <PageHeader />
       <Link
         to={topic?.groupId ? `/groups/${topic.groupId}/discussions` : '/'}
         style={styles.backLink}

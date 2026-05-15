@@ -5,6 +5,7 @@ import { groupsApi } from '../api/groups';
 import type { BookSearchResult, ApiError } from '../types';
 import { AxiosError } from 'axios';
 import TagInput from '../components/TagInput';
+import PageHeader from '../components/PageHeader';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -271,7 +272,7 @@ function CreateGroupPage() {
 
   return (
     <div style={styles.container}>
-      <Link to="/" style={styles.backLink}>← 홈으로</Link>
+      <PageHeader />
       <h1 style={styles.title}>모임 만들기</h1>
 
       <form onSubmit={handleSubmit} noValidate>
