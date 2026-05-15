@@ -4,6 +4,7 @@ import { CreateDiscussionInput, CreateCommentInput } from '../validators';
 import { tokenService } from './token.service';
 import { generateInsightOnThreadClose } from './insight.service';
 import { assertReadingPeriodOpen } from './reading-period.service';
+import { notificationService } from './notification.service';
 
 const prisma = new PrismaClient();
 
@@ -75,6 +76,7 @@ export const discussionService = {
     // 활동 점수 추가
     const { activityService } = await import('./activity.service');
     await activityService.addPoint(userId, 'thread');
+    await notificationService.notifyThreadCreated(discussion.id);
 
     return discussion;
   },
@@ -117,6 +119,7 @@ export const discussionService = {
 
       // 종료된 스레드에 대해 비동기로 인사이트 생성 (응답 차단 안 함)
       for (const thread of closedThreads) {
+        notificationService.notifyThreadEnded(thread.id).catch(() => {});
         generateInsightOnThreadClose(thread.id).catch(() => {});
       }
     }
@@ -369,6 +372,8 @@ export const discussionService = {
       },
     });
 
+    await notificationService.notifyThreadCreated(discussion.id);
+
     return discussion;
   },
 
@@ -394,6 +399,7 @@ export const discussionService = {
 
     // 종료로 변경된 경우 인사이트 자동 생성
     if (newStatus === 'closed') {
+      notificationService.notifyThreadEnded(discussionId).catch(() => {});
       generateInsightOnThreadClose(discussionId).catch(() => {});
     }
 
@@ -465,11 +471,16 @@ export const discussionService = {
       updateData.status = endDate >= new Date() ? 'active' : 'closed';
     }
 
-    return prisma.discussion.update({
+    const updated = await prisma.discussion.update({
       where: { id: discussionId },
       data: updateData,
       include: { author: { select: { id: true, nickname: true } } },
     });
+    if (discussion.status !== 'closed' && updated.status === 'closed') {
+      notificationService.notifyThreadEnded(discussionId).catch(() => {});
+      generateInsightOnThreadClose(discussionId).catch(() => {});
+    }
+    return updated;
   },
 
   // 스레드 삭제 (작성자, 댓글 없는 경우만)

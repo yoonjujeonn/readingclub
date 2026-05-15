@@ -6,6 +6,7 @@ import type { GroupCard, ApiError } from '../types';
 import { AxiosError } from 'axios';
 import GroupJoinModal from '../components/GroupJoinModal';
 import GroupTags from '../components/GroupTags';
+import NotificationBell from '../components/NotificationBell';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -257,7 +258,10 @@ function HomePage() {
         </Link>
         <div style={styles.nav}>
           {isLoggedIn ? (
-            <Link to="/mypage" style={styles.navLinkSecondary}>마이페이지</Link>
+            <>
+              <NotificationBell />
+              <Link to="/mypage" style={styles.navLinkSecondary}>마이페이지</Link>
+            </>
           ) : (
             <Link to="/login" style={styles.navLink}>로그인</Link>
           )}

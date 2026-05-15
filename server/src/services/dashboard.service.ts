@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { AppError } from './auth.service';
 import crypto from 'crypto';
 import { assertReadingPeriodOpen } from './reading-period.service';
+import { notificationService } from './notification.service';
 
 const prisma = new PrismaClient();
 
@@ -93,9 +94,11 @@ export const dashboardService = {
     if (!group) throw new AppError(404, 'NOT_FOUND', '모임을 찾을 수 없습니다');
     if (group.ownerId !== userId) throw new AppError(403, 'FORBIDDEN', '방장만 공지사항을 작성할 수 있습니다');
 
-    return prisma.announcement.create({
+    const announcement = await prisma.announcement.create({
       data: { groupId, authorId: userId, title: data.title, content: data.content },
     });
+    await notificationService.notifyAnnouncementCreated(announcement.id);
+    return announcement;
   },
 
   async listAnnouncements(groupId: string) {

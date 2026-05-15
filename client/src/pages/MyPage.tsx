@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { mypageApi } from '../api/mypage';
 import { aiApi } from '../api/ai';
+import { notificationsApi } from '../api/notifications';
 import { InsightCard } from '../components/InsightCard';
 import { useAuthStore } from '../stores/authStore';
 import type { GroupCard, Memo, Discussion, User } from '../types';
@@ -28,18 +29,20 @@ function MyPage() {
   const [insight, setInsight] = useState<any>(null);
   const [insightLoading, setInsightLoading] = useState(false);
   const [generatedGroups, setGeneratedGroups] = useState<Set<string>>(new Set());
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [pRes, gRes, mRes, dRes, recRes, insightsRes] = await Promise.all([
+        const [pRes, gRes, mRes, dRes, recRes, insightsRes, unreadRes] = await Promise.all([
           mypageApi.getProfile().catch(() => ({ data: null })),
           mypageApi.getGroups().catch(() => ({ data: [] })),
           mypageApi.getMemos().catch(() => ({ data: [] })),
           mypageApi.getDiscussions().catch(() => ({ data: [] })),
           mypageApi.getRecommendedGroups().catch(() => ({ data: [] })),
           aiApi.getMyInsights().catch(() => ({ data: [] })),
+          notificationsApi.getUnreadCount().catch(() => ({ data: { count: 0 } })),
         ]);
         setProfile(pRes.data);
         if (pRes.data) setUser(pRes.data);
@@ -50,6 +53,7 @@ function MyPage() {
         // 이미 인사이트가 생성된 모임 ID 추적
         const existingIds = new Set<string>((insightsRes.data || []).map((i: any) => i.groupId));
         setGeneratedGroups(existingIds);
+        setUnreadNotifications(unreadRes.data.count);
       } finally {
         setLoading(false);
       }
@@ -117,7 +121,13 @@ function MyPage() {
 
   return (
     <div style={s.container}>
-      <Link to="/" style={s.backLink}>← 홈으로</Link>
+      <div style={s.topBar}>
+        <Link to="/" style={s.backLink}>← 홈으로</Link>
+        <button type="button" onClick={() => navigate('/notifications')} style={s.notificationBtn}>
+          <span>🔔 알림 보기</span>
+          {unreadNotifications > 0 && <span style={s.notificationCount}>읽지 않음 {unreadNotifications}</span>}
+        </button>
+      </div>
 
       {/* 프로필 섹션 */}
       {profile && (
@@ -350,7 +360,8 @@ function MyPage() {
 
 const s: Record<string, React.CSSProperties> = {
   container: { maxWidth: 800, margin: '0 auto', padding: '24px 16px' },
-  backLink: { display: 'inline-block', marginBottom: 16, fontSize: 14, color: '#667eea', fontWeight: 500, textDecoration: 'none' },
+  topBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16 },
+  backLink: { display: 'inline-block', fontSize: 14, color: '#667eea', fontWeight: 500, textDecoration: 'none' },
   loading: { textAlign: 'center', padding: '60px 20px', color: '#a0aec0' },
   profileCard: { backgroundColor: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 2px 16px rgba(0,0,0,0.06)', marginBottom: 20, border: '1px solid #f0f0f5' },
   profileTop: { display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 },
@@ -358,6 +369,8 @@ const s: Record<string, React.CSSProperties> = {
   nickname: { fontSize: 20, fontWeight: 800, color: '#1a202c', letterSpacing: '-0.3px' },
   email: { fontSize: 13, color: '#718096', marginTop: 2 },
   logoutBtn: { padding: '8px 16px', background: 'none', color: '#e53e3e', border: '1px solid #fed7d7', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  notificationBtn: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '9px 12px', backgroundColor: '#f7fbff', color: '#2b6cb0', border: '1px solid #bee3f8', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' },
+  notificationCount: { display: 'inline-block', backgroundColor: '#e53e3e', color: '#fff', padding: '2px 8px', borderRadius: 12, fontSize: 12, fontWeight: 700 },
   statRow: { display: 'flex', gap: 0, borderTop: '1px solid #f0f0f5', paddingTop: 16 },
   statItem: { flex: 1, textAlign: 'center' as const },
   statNum: { fontSize: 18, fontWeight: 700, color: '#2d3748' },

@@ -32,6 +32,7 @@ model User {
   bans         GroupBan[]
   tokens       DiscussionToken[]
   insights     DiscussionInsight[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -77,6 +78,7 @@ model Group {
   schedules     DiscussionSchedule[]
   insights      DiscussionInsight[]
   tags          GroupTag[]
+  notifications Notification[]
 
   @@map("groups")
 }
@@ -148,6 +150,7 @@ model Discussion {
   memo     Memo?              @relation(fields: [memoId], references: [id])
   comments Comment[]
   tokens   DiscussionToken[]
+  notifications Notification[]
 
   @@map("discussions")
 }
@@ -205,8 +208,33 @@ model Announcement {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   group  Group @relation(fields: [groupId], references: [id])
+  notifications Notification[]
 
   @@map("announcements")
+}
+
+model Notification {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  groupId        String   @map("group_id")
+  discussionId   String?  @map("discussion_id")
+  announcementId String?  @map("announcement_id")
+  type           String   @db.VarChar(50)
+  message        String   @db.VarChar(500)
+  linkUrl        String   @map("link_url") @db.VarChar(255)
+  dedupeKey      String   @map("dedupe_key") @db.VarChar(120)
+  isRead         Boolean  @default(false) @map("is_read")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group        Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  discussion   Discussion?   @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  announcement Announcement? @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, isRead, createdAt])
+  @@index([groupId])
+  @@map("notifications")
 }
 
 model GroupBan {
