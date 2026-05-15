@@ -156,7 +156,7 @@ function NotificationsPage() {
 
   return (
     <div style={styles.container}>
-      <Link to="/" style={styles.backLink}>← 뒤로</Link>
+      <Link to="/mypage" style={styles.backLink}>← 뒤로</Link>
       <div style={styles.header}>
         <div>
           <div style={styles.title}>알림</div>
