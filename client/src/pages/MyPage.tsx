@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { mypageApi } from '../api/mypage';
 import { aiApi } from '../api/ai';
 import { notificationsApi } from '../api/notifications';
+import { rankingApi } from '../api/ranking';
 import { InsightCard } from '../components/InsightCard';
 import { useAuthStore } from '../stores/authStore';
 import type { GroupCard, Memo, Discussion, User } from '../types';
@@ -30,6 +31,7 @@ function MyPage() {
   const [insightLoading, setInsightLoading] = useState(false);
   const [generatedGroups, setGeneratedGroups] = useState<Set<string>>(new Set());
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [myRank, setMyRank] = useState<number | null>(null);
   const [groupTab, setGroupTab] = useState<'all' | 'joined' | 'owned'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'before' | 'reading' | 'ended'>('all');
   const [sortBy, setSortBy] = useState<'deadline' | 'recent'>('deadline');
@@ -57,6 +59,14 @@ function MyPage() {
         const existingIds = new Set<string>((insightsRes.data || []).map((i: any) => i.groupId));
         setGeneratedGroups(existingIds);
         setUnreadNotifications(unreadRes.data.count);
+
+        // 내 랭킹 조회
+        if (pRes.data) {
+          rankingApi.getAll(50).then(res => {
+            const me = res.data.find((r: any) => r.id === pRes.data!.id);
+            if (me) setMyRank(me.rank);
+          }).catch(() => {});
+        }
       } finally {
         setLoading(false);
       }
@@ -138,11 +148,18 @@ function MyPage() {
       {profile && (
         <div style={s.profileCard}>
           <div style={s.profileTop}>
-            <div style={{ width: 56, height: 56, borderRadius: '50%', overflow: 'hidden', backgroundColor: '#f0f0f5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '3px solid #e2e8f0' }}>
-              {(profile as any).profileImageUrl ? (
-                <img src={(profile as any).profileImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <span style={{ fontSize: 22, color: '#a0aec0', fontWeight: 700 }}>{profile.nickname.charAt(0).toUpperCase()}</span>
+            <div style={{ position: 'relative' as const, flexShrink: 0 }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', overflow: 'hidden', backgroundColor: '#f0f0f5', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `3px solid ${myRank === 1 ? '#FFD700' : myRank === 2 ? '#C0C0C0' : myRank === 3 ? '#CD7F32' : '#e2e8f0'}` }}>
+                {(profile as any).profileImageUrl ? (
+                  <img src={(profile as any).profileImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontSize: 22, color: '#a0aec0', fontWeight: 700 }}>{profile.nickname.charAt(0).toUpperCase()}</span>
+              )}
+              </div>
+              {myRank && myRank <= 3 && (
+                <span style={{ position: 'absolute', bottom: -2, right: -2, fontSize: 16 }}>
+                  {myRank === 1 ? '🥇' : myRank === 2 ? '🥈' : '🥉'}
+                </span>
               )}
             </div>
             <div style={{ flex: 1 }}>
