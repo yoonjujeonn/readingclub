@@ -236,7 +236,7 @@ function CreateGroupPage() {
     if (!maxMembers || parseInt(maxMembers) < 1) errs.maxMembers = '모집 인원은 1명 이상이어야 합니다';
     if (!readingStartDate) errs.readingStartDate = '독서 시작일을 선택해주세요';
     else {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0]!;
       if (readingStartDate < today) errs.readingStartDate = '시작일은 오늘 이후여야 합니다';
     }
     if (!readingEndDate) errs.readingEndDate = '독서 종료일을 선택해주세요';

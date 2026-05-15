@@ -199,8 +199,8 @@ function MemosPage() {
 
   const validateForm = () => {
     const errs: Record<string, string> = {};
-    if (!pageStart || parseInt(pageStart) < 0) errs.pageStart = '시작 페이지를 입력해주세요';
-    if (!pageEnd || parseInt(pageEnd) < 0) errs.pageEnd = '끝 페이지를 입력해주세요';
+    if (!pageStart || parseInt(pageStart) < 0) errs.pageStart = '이 생각이 시작된 페이지를 입력해주세요';
+    if (!pageEnd || parseInt(pageEnd) < 0) errs.pageEnd = '이 생각이 끝난 페이지를 입력해주세요';
     if (pageStart && pageEnd && parseInt(pageEnd) < parseInt(pageStart)) errs.pageEnd = '끝 페이지는 시작 페이지 이상이어야 합니다';
     if (!content.trim()) errs.content = '메모 내용을 입력해주세요';
     return errs;
@@ -348,9 +348,13 @@ function MemosPage() {
     <div key={memo.id} style={styles.memoCard}>
       {editingId === memo.id ? (
         <>
-          <div style={styles.row}>
-            <input type="number" style={styles.input} value={editPageStart} onChange={(e) => setEditPageStart(e.target.value)} placeholder="시작 페이지" />
-            <input type="number" style={styles.input} value={editPageEnd} onChange={(e) => setEditPageEnd(e.target.value)} placeholder="끝 페이지" />
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: '#2d3748', marginBottom: 4, display: 'block' }}>💭 이 생각이 나온 페이지</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input type="number" style={{ ...styles.input, width: 100, textAlign: 'center' as const }} value={editPageStart} onChange={(e) => setEditPageStart(e.target.value)} placeholder="시작 페이지" />
+              <span style={{ fontSize: 16, color: '#a0aec0', fontWeight: 500 }}>~</span>
+              <input type="number" style={{ ...styles.input, width: 100, textAlign: 'center' as const }} value={editPageEnd} onChange={(e) => setEditPageEnd(e.target.value)} placeholder="끝 페이지" />
+            </div>
           </div>
           <textarea style={{ ...styles.textarea, marginTop: 8 }} value={editContent} onChange={(e) => setEditContent(e.target.value)} />
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
@@ -479,17 +483,15 @@ function MemosPage() {
             </div>
             <form onSubmit={handleSubmit} noValidate>
               {serverError && <div style={styles.serverError}>{serverError}</div>}
-              <div style={styles.row}>
-                <div style={styles.field}>
-                  <label style={styles.label}>시작 페이지</label>
-                  <input type="number" min="0" style={{ ...styles.input, ...(formErrors.pageStart ? styles.inputError : {}) }} value={pageStart} onChange={(e) => setPageStart(e.target.value)} placeholder="0" />
-                  {formErrors.pageStart && <div style={styles.errorText}>{formErrors.pageStart}</div>}
+              <div style={styles.field}>
+                <label style={{ ...styles.label, fontSize: 14, fontWeight: 600, color: '#2d3748', marginBottom: 8 }}>💭 이 생각이 나온 페이지</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input type="number" min="0" style={{ ...styles.input, width: 120, textAlign: 'center' as const, ...(formErrors.pageStart ? styles.inputError : {}) }} value={pageStart} onChange={(e) => setPageStart(e.target.value)} placeholder="시작 페이지" />
+                  <span style={{ fontSize: 16, color: '#a0aec0', fontWeight: 500 }}>~</span>
+                  <input type="number" min="0" style={{ ...styles.input, width: 120, textAlign: 'center' as const, ...(formErrors.pageEnd ? styles.inputError : {}) }} value={pageEnd} onChange={(e) => setPageEnd(e.target.value)} placeholder="끝 페이지" />
                 </div>
-                <div style={styles.field}>
-                  <label style={styles.label}>끝 페이지</label>
-                  <input type="number" min="0" style={{ ...styles.input, ...(formErrors.pageEnd ? styles.inputError : {}) }} value={pageEnd} onChange={(e) => setPageEnd(e.target.value)} placeholder="0" />
-                  {formErrors.pageEnd && <div style={styles.errorText}>{formErrors.pageEnd}</div>}
-                </div>
+                {formErrors.pageStart && <div style={styles.errorText}>{formErrors.pageStart}</div>}
+                {formErrors.pageEnd && <div style={styles.errorText}>{formErrors.pageEnd}</div>}
               </div>
               <div style={styles.field}>
                 <label style={styles.label}>내용</label>

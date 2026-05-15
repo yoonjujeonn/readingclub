@@ -95,7 +95,7 @@ function TagInput({ tags, onChange, maxTags = 3, maxLength = 15 }: TagInputProps
           disabled={!canAdd}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
               e.preventDefault();
               addTag();
             }
