@@ -1,6 +1,7 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { AppError } from './auth.service';
 import { CreateGroupInput, UpdateGroupInput } from '../validators';
+import { profanityService } from './profanity.service';
 
 const prisma = new PrismaClient();
 
@@ -17,6 +18,18 @@ const mapTags = (tags?: { name: string }[]) => tags?.map(tag => tag.name) ?? [];
 
 export const groupService = {
   async create(data: CreateGroupInput, userId: string) {
+    // 모임명/설명 욕설 필터링
+    const nameCheck = profanityService.check(data.name);
+    if (!nameCheck.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+    }
+    if (data.description) {
+      const descCheck = profanityService.check(data.description);
+      if (!descCheck.isClean) {
+        throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+      }
+    }
+
     // 날짜 검증: 시작일은 오늘 이후, 종료일은 시작일 이후
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -58,6 +71,17 @@ export const groupService = {
     }
 
     // Create group and owner membership in a transaction
+    // 태그 욕설 필터링
+    if (data.tags) {
+      const tags = normalizeTags(data.tags);
+      for (const tag of tags) {
+        const tagCheck = profanityService.check(tag);
+        if (!tagCheck.isClean) {
+          throw new AppError(400, 'PROFANITY_DETECTED', '태그에 부적절한 표현이 포함되어 있습니다.');
+        }
+      }
+    }
+
     const group = await prisma.$transaction(async (tx: TransactionClient) => {
       const created = await tx.group.create({
         data: {
@@ -338,6 +362,20 @@ export const groupService = {
       throw new AppError(403, 'FORBIDDEN', '방장만 모임을 수정할 수 있습니다');
     }
 
+    // 모임명/설명 욕설 필터링
+    if (data.name) {
+      const nameCheck = profanityService.check(data.name);
+      if (!nameCheck.isClean) {
+        throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+      }
+    }
+    if (data.description) {
+      const descCheck = profanityService.check(data.description);
+      if (!descCheck.isClean) {
+        throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+      }
+    }
+
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description;
@@ -362,6 +400,13 @@ export const groupService = {
       if (data.tags !== undefined) {
         await tx.groupTag.deleteMany({ where: { groupId } });
         const tags = normalizeTags(data.tags);
+        // 태그 욕설 필터링
+        for (const tag of tags) {
+          const tagCheck = profanityService.check(tag);
+          if (!tagCheck.isClean) {
+            throw new AppError(400, 'PROFANITY_DETECTED', '태그에 부적절한 표현이 포함되어 있습니다.');
+          }
+        }
         if (tags.length > 0) {
           await tx.groupTag.createMany({
             data: tags.map(name => ({ groupId, name })),

@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { AppError } from './auth.service';
 import { CreateMemoInput, UpdateMemoInput } from '../validators';
 import { assertReadingPeriodOpen } from './reading-period.service';
+import { profanityService } from './profanity.service';
 
 const prisma = new PrismaClient();
 
@@ -15,6 +16,12 @@ export const memoService = {
       throw new AppError(403, 'FORBIDDEN', '모임 참여자만 메모를 작성할 수 있습니다');
     }
     assertReadingPeriodOpen(member.group.readingStartDate, member.group.readingEndDate);
+
+    // 욕설 필터링
+    const contentCheck = profanityService.check(data.content);
+    if (!contentCheck.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+    }
 
     // visibility에서 isPublic 동기화
     const visibility = data.visibility ?? 'private';
@@ -58,6 +65,14 @@ export const memoService = {
       throw new AppError(403, 'FORBIDDEN', '본인의 메모만 수정할 수 있습니다');
     }
     assertReadingPeriodOpen(memo.group.readingStartDate, memo.group.readingEndDate);
+
+    // 욕설 필터링
+    if (data.content) {
+      const contentCheck = profanityService.check(data.content);
+      if (!contentCheck.isClean) {
+        throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+      }
+    }
 
     const updateData: any = {};
     if (data.pageStart !== undefined) updateData.pageStart = data.pageStart;

@@ -4,6 +4,7 @@ import { CreateDiscussionInput, CreateCommentInput } from '../validators';
 import { tokenService } from './token.service';
 import { generateInsightOnThreadClose } from './insight.service';
 import { assertReadingPeriodOpen } from './reading-period.service';
+import { profanityService } from './profanity.service';
 import { notificationService } from './notification.service';
 
 const prisma = new PrismaClient();
@@ -31,6 +32,13 @@ export const discussionService = {
     const todayCount = await this.getTodayCreateCount(groupId, userId);
     if (todayCount >= 3) {
       throw new AppError(429, 'DAILY_LIMIT_EXCEEDED', '오늘 생성 가능한 횟수를 초과했습니다. 내일 다시 시도해 주세요.');
+    }
+
+    // 욕설 필터링
+    const titleCheck = profanityService.check(data.title);
+    const contentCheck = data.content ? profanityService.check(data.content) : { isClean: true, matched: [] };
+    if (!titleCheck.isClean || !contentCheck.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
     }
 
     // If memoId is provided, verify it exists and belongs to this group
@@ -196,6 +204,12 @@ export const discussionService = {
     // 발언권 차감
     await tokenService.consume(discussionId, userId);
 
+    // 욕설 필터링
+    const commentCheck = profanityService.check(content);
+    if (!commentCheck.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+    }
+
     const comment = await prisma.comment.create({
       data: {
         discussionId,
@@ -242,6 +256,12 @@ export const discussionService = {
     // 발언권 차감
     if (comment.discussion) {
       await tokenService.consume(comment.discussion.id, userId);
+    }
+
+    // 욕설 필터링
+    const replyCheck = profanityService.check(content);
+    if (!replyCheck.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
     }
 
     const reply = await prisma.reply.create({
@@ -458,6 +478,13 @@ export const discussionService = {
     if (discussion.authorId !== userId) throw new AppError(403, 'FORBIDDEN', '작성자만 수정할 수 있습니다');
     assertReadingPeriodOpen(discussion.group.readingStartDate, discussion.group.readingEndDate);
 
+    // 욕설 필터링
+    const titleCheck = profanityService.check(data.title);
+    const contentCheck = data.content ? profanityService.check(data.content) : { isClean: true, matched: [] };
+    if (!titleCheck.isClean || !contentCheck.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+    }
+
     const updateData: any = { title: data.title, content: data.content };
     if (data.endDate) {
       const endDate = new Date(data.endDate);
@@ -511,6 +538,12 @@ export const discussionService = {
     if (comment.discussion.status === 'closed') throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드의 의견은 수정할 수 없습니다');
     assertReadingPeriodOpen(comment.discussion.group.readingStartDate, comment.discussion.group.readingEndDate);
 
+    // 욕설 필터링
+    const check = profanityService.check(content);
+    if (!check.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+    }
+
     return prisma.comment.update({
       where: { id: commentId },
       data: { content },
@@ -528,6 +561,12 @@ export const discussionService = {
     if (reply.authorId !== userId) throw new AppError(403, 'FORBIDDEN', '작성자만 수정할 수 있습니다');
     if (reply.comment.discussion.status === 'closed') throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드의 댓글은 수정할 수 없습니다');
     assertReadingPeriodOpen(reply.comment.discussion.group.readingStartDate, reply.comment.discussion.group.readingEndDate);
+
+    // 욕설 필터링
+    const replyCheck = profanityService.check(content);
+    if (!replyCheck.isClean) {
+      throw new AppError(400, 'PROFANITY_DETECTED', '부적절한 표현이 포함되어 있습니다. 수정 후 다시 시도해주세요.');
+    }
 
     return prisma.reply.update({
       where: { id: replyId },
