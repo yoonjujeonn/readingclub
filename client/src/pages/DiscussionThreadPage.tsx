@@ -352,7 +352,11 @@ function DiscussionThreadPage() {
       setCommentImage(null);
       setCommentImagePreview('');
       fetchData();
-    } catch { /* ignore */ }
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      const msg = axiosErr?.response?.data?.error?.message;
+      if (msg) showToast(msg);
+    }
     finally {
       setSubmittingComment(false);
     }
@@ -370,7 +374,11 @@ function DiscussionThreadPage() {
       setReplyContent('');
       setReplyingTo(null);
       fetchData();
-    } catch { /* ignore */ }
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      const msg = axiosErr?.response?.data?.error?.message;
+      if (msg) showToast(msg);
+    }
     finally {
       setSubmittingReply(false);
     }
@@ -408,8 +416,9 @@ function DiscussionThreadPage() {
       setEditingCommentId(null);
       setEditCommentContent('');
       fetchData();
-    } catch {
-      showToast('수정에 실패했습니다');
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      showToast(axiosErr?.response?.data?.error?.message || '수정에 실패했습니다');
     } finally { setEditSaving(false); }
   };
 
@@ -421,8 +430,9 @@ function DiscussionThreadPage() {
       setEditingReplyId(null);
       setEditReplyContent('');
       fetchData();
-    } catch {
-      showToast('수정에 실패했습니다');
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      showToast(axiosErr?.response?.data?.error?.message || '수정에 실패했습니다');
     } finally { setEditSaving(false); }
   };
 

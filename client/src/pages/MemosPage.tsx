@@ -309,7 +309,11 @@ function MemosPage() {
       });
       setEditingId(null);
       fetchMemos();
-    } catch { /* ignore */ }
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>;
+      const msg = axiosErr?.response?.data?.error?.message;
+      if (msg) showToast(msg);
+    }
   };
 
   const closeModal = () => {

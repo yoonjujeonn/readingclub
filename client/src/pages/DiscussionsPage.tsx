@@ -748,7 +748,6 @@ function DiscussionsPage() {
                 </div>
               )}
               <form onSubmit={handleSubmit} noValidate>
-                {serverError && <div style={styles.serverError}>{serverError}</div>}
 
                 <div style={styles.field}>
                   <label style={styles.label}>제목 *</label>
@@ -875,6 +874,11 @@ function DiscussionsPage() {
                 >
                   {submitting ? '생성 중...' : '스레드 만들기'}
                 </button>
+                {serverError && (
+                  <div style={{ marginTop: 10, padding: '10px 14px', backgroundColor: '#fff5f5', color: '#e53e3e', borderRadius: 6, fontSize: 13 }}>
+                    {serverError}
+                  </div>
+                )}
               </form>
             </div>
 
