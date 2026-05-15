@@ -7,6 +7,7 @@ import { AxiosError } from 'axios';
 import GroupJoinModal from '../components/GroupJoinModal';
 import GroupTags from '../components/GroupTags';
 import NotificationBell from '../components/NotificationBell';
+import RankingBanner from '../components/RankingBanner';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -313,6 +314,8 @@ function HomePage() {
           📖
         </div>
       </div>
+
+      <RankingBanner />
 
       <form onSubmit={handleSearch} style={styles.searchBar}>
         <input

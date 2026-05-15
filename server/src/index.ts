@@ -14,6 +14,7 @@ import aiRouter from './routes/ai.routes';
 import tokenRouter from './routes/token.routes';
 import insightRouter from './routes/insight.routes';
 import notificationRouter from './routes/notification.routes';
+import rankingRouter from './routes/ranking.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
 import { isS3StorageEnabled } from './services/file-storage.service';
 import { notificationService } from './services/notification.service';
@@ -70,6 +71,7 @@ app.use('/api', dashboardRouter);
 app.use('/api', aiRouter);
 app.use('/api', tokenRouter);
 app.use('/api', insightRouter);
+app.use('/api', rankingRouter);
 
 // 글로벌 에러 핸들러 (모든 라우터 뒤에 등록)
 app.use(globalErrorHandler);
