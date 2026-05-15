@@ -30,6 +30,9 @@ function MyPage() {
   const [insightLoading, setInsightLoading] = useState(false);
   const [generatedGroups, setGeneratedGroups] = useState<Set<string>>(new Set());
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [groupTab, setGroupTab] = useState<'all' | 'joined' | 'owned'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'before' | 'reading' | 'ended'>('all');
+  const [sortBy, setSortBy] = useState<'deadline' | 'recent'>('deadline');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -158,9 +161,8 @@ function MyPage() {
             <button onClick={() => navigate('/settings')} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', padding: 4 }} title="설정">⚙️</button>
           </div>
           <div style={s.statRow}>
-            <div style={s.statItem}><div style={s.statNum}>{groups.length}</div><div style={s.statLabel}>참여 모임</div></div>
-            <div style={s.statItem}><div style={s.statNum}>{groups.filter((g: any) => g.role === 'owner').length}</div><div style={s.statLabel}>주관 모임</div></div>
-            <div style={s.statItem}><div style={s.statNum}>{formatDate(profile.createdAt || '')}</div><div style={s.statLabel}>가입일</div></div>
+            <div style={{ ...s.statItem, cursor: 'pointer', borderBottom: groupTab === 'joined' ? '2px solid #667eea' : '2px solid transparent' }} onClick={() => setGroupTab(groupTab === 'joined' ? 'all' : 'joined')}><div style={s.statNum}>{groups.length}</div><div style={s.statLabel}>참여 모임</div></div>
+            <div style={{ ...s.statItem, cursor: 'pointer', borderBottom: groupTab === 'owned' ? '2px solid #667eea' : '2px solid transparent' }} onClick={() => setGroupTab(groupTab === 'owned' ? 'all' : 'owned')}><div style={s.statNum}>{groups.filter((g: any) => g.role === 'owner').length}</div><div style={s.statLabel}>주관 모임</div></div>
           </div>
         </div>
       )}
@@ -214,15 +216,65 @@ function MyPage() {
 
       {/* 내 독서 클럽 */}
       <div>
-        {groups.length === 0 ? (
-          <div style={s.emptyState}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📚</div>
-            <div>참여 중인 모임이 없습니다</div>
-            <Link to="/" style={{ color: '#667eea', marginTop: 8, display: 'inline-block' }}>모임 둘러보기 →</Link>
-          </div>
-        ) : (
-          <div style={s.clubGrid}>
-            {groups.map((g: any) => {
+        {/* 상태 필터 탭 */}
+        <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #e2e8f0', marginBottom: 12 }}>
+          {([['all', '전체'], ['reading', '진행중'], ['before', '시작 전'], ['ended', '종료']] as const).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setStatusFilter(key)}
+              style={{ padding: '8px 16px', fontSize: 13, fontWeight: statusFilter === key ? 600 : 400, cursor: 'pointer', border: 'none', background: 'none', color: statusFilter === key ? '#667eea' : '#718096', borderBottom: statusFilter === key ? '2px solid #667eea' : '2px solid transparent', marginBottom: -2 }}
+            >{label}</button>
+          ))}
+        </div>
+
+        {/* 정렬 */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as 'deadline' | 'recent')}
+            style={{ padding: '4px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4 }}
+          >
+            <option value="deadline">마감기한 순</option>
+            <option value="recent">최근 가입순</option>
+          </select>
+        </div>
+
+        {(() => {
+          let filtered = [...groups] as any[];
+          // 탭 필터
+          if (groupTab === 'owned') filtered = filtered.filter((g: any) => g.role === 'owner');
+          if (groupTab === 'joined') filtered = filtered.filter((g: any) => g.role !== 'owner');
+          // 상태 필터
+          if (statusFilter !== 'all') {
+            filtered = filtered.filter((g: any) => {
+              const now = new Date();
+              const start = new Date(g.readingStartDate);
+              const end = new Date(g.readingEndDate);
+              if (statusFilter === 'before') return now < start;
+              if (statusFilter === 'reading') return now >= start && now <= end;
+              if (statusFilter === 'ended') return now > end;
+              return true;
+            });
+          }
+          // 정렬
+          filtered.sort((a: any, b: any) => {
+            if (sortBy === 'deadline') return new Date(a.readingEndDate).getTime() - new Date(b.readingEndDate).getTime();
+            return new Date(b.joinedAt || b.createdAt).getTime() - new Date(a.joinedAt || a.createdAt).getTime();
+          });
+
+          if (filtered.length === 0) {
+            return (
+              <div style={s.emptyState}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>📚</div>
+                <div>{statusFilter === 'all' && groupTab === 'all' ? '참여 중인 모임이 없습니다' : '해당하는 모임이 없습니다'}</div>
+                <Link to="/" style={{ color: '#667eea', marginTop: 8, display: 'inline-block' }}>모임 둘러보기 →</Link>
+              </div>
+            );
+          }
+
+          return (
+            <div style={s.clubGrid}>
+              {filtered.map((g: any) => {
               const status = getReadingStatus(g);
               return (
                 <div key={g.id}>
@@ -307,7 +359,8 @@ function MyPage() {
               );
             })}
           </div>
-        )}
+        );
+        })()}
       </div>
 
       {/* 추천 모임 */}
