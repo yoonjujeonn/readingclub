@@ -33,6 +33,7 @@ model User {
   tokens       DiscussionToken[]
   insights     DiscussionInsight[]
   notifications Notification[]
+  reports      Report[]
 
   @@map("users")
 }
@@ -282,4 +283,20 @@ model DiscussionInsight {
 
   @@unique([groupId, userId])
   @@map("discussion_insights")
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  reporterId  String   @map("reporter_id")
+  targetType  String   @map("target_type") @db.VarChar(20)
+  targetId    String   @map("target_id")
+  reason      String   @db.VarChar(200)
+  status      String   @default("pending") @db.VarChar(20)
+  aiResult    String?  @map("ai_result") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  resolvedAt  DateTime? @map("resolved_at")
+
+  reporter User @relation(fields: [reporterId], references: [id])
+
+  @@map("reports")
 }

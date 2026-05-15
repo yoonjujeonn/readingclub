@@ -9,6 +9,7 @@ import { showToast } from '../api/client';
 import { Markdown } from '../components/Markdown';
 import { InsightCard } from '../components/InsightCard';
 import PageHeader from '../components/PageHeader';
+import ReportModal from '../components/ReportModal';
 import { timeAgo } from '../utils/timeAgo';
 import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
 import type { Comment as CommentType, Discussion } from '../types';
@@ -295,6 +296,9 @@ function DiscussionThreadPage() {
   // Thread insight (종료 시 자동 생성된 인사이트)
   const [threadInsight, setThreadInsight] = useState<any>(null);
 
+  // 신고 모달
+  const [reportTarget, setReportTarget] = useState<{ type: string; id: string } | null>(null);
+
   const fetchData = async () => {
     if (!discussionId) return;
     setLoading(true);
@@ -491,6 +495,17 @@ function DiscussionThreadPage() {
         {topic?.imageUrl && <img src={topic.imageUrl} alt="" style={styles.attachedImage} />}
         <div style={styles.topicMeta}>
           {topic?.authorNickname || ''} · {topic?.createdAt ? timeAgo(topic.createdAt) : ''}
+          {topic && (topic as any).authorId !== currentUserId && (
+            <>
+              {' · '}
+              <button
+                style={{ background: 'none', border: 'none', color: '#e53e3e', fontSize: 12, cursor: 'pointer', padding: 0 }}
+                onClick={() => setReportTarget({ type: 'discussion', id: topic.id })}
+              >
+                신고
+              </button>
+            </>
+          )}
         </div>
         {(topic as any)?.memo && (
           <div style={styles.memoRef}>
@@ -580,6 +595,12 @@ function DiscussionThreadPage() {
                     <button style={{ ...styles.replyToggle, color: '#e53e3e' }} onClick={() => handleDeleteComment(comment.id)}>삭제</button>
                   </>
                 )}
+                {comment.authorId !== currentUserId && (
+                  <>
+                    {' · '}
+                    <button style={{ ...styles.replyToggle, color: '#e53e3e' }} onClick={() => setReportTarget({ type: 'comment', id: comment.id })}>신고</button>
+                  </>
+                )}
               </div>
 
               {/* Reply Form */}
@@ -638,6 +659,12 @@ function DiscussionThreadPage() {
                           <>
                             {' · '}
                             <button style={{ ...styles.replyToggle, color: '#e53e3e', fontSize: 11 }} onClick={() => handleDeleteReply(reply.id)}>삭제</button>
+                          </>
+                        )}
+                        {reply.authorId !== currentUserId && (
+                          <>
+                            {' · '}
+                            <button style={{ ...styles.replyToggle, color: '#e53e3e', fontSize: 11 }} onClick={() => setReportTarget({ type: 'reply', id: reply.id })}>신고</button>
                           </>
                         )}
                       </div>
@@ -736,6 +763,14 @@ function DiscussionThreadPage() {
         </div>
       )}
 
+      {/* 신고 모달 */}
+      {reportTarget && (
+        <ReportModal
+          targetType={reportTarget.type}
+          targetId={reportTarget.id}
+          onClose={() => setReportTarget(null)}
+        />
+      )}
     </div>
   );
 }
