@@ -85,7 +85,7 @@ export const notificationService = {
       groupId: discussion.groupId,
       excludeUserId: discussion.authorId,
       type: 'thread_created',
-      message: `${discussion.group.name}에 새 스레드 "${discussion.title}"이 열렸습니다.`,
+      message: `${discussion.group.name}에 "${discussion.title}"스레드가 열렸습니다.`,
       linkUrl: `/discussions/${discussion.id}`,
       dedupeKey: `discussion-created:${discussion.id}`,
       discussionId: discussion.id,
@@ -121,7 +121,7 @@ export const notificationService = {
       groupId: announcement.groupId,
       excludeUserId: announcement.authorId,
       type: 'announcement_created',
-      message: `${announcement.group.name}에 새 공지사항 "${announcement.title}"이 등록되었습니다.`,
+      message: `${announcement.group.name}에 새 공지사항 "${announcement.title}"이(가) 등록되었습니다.`,
       linkUrl: `/groups/${announcement.groupId}/dashboard`,
       dedupeKey: `announcement-created:${announcement.id}`,
       announcementId: announcement.id,
@@ -145,7 +145,7 @@ export const notificationService = {
       await this.createForGroupMembers({
         groupId: group.id,
         type: 'group_started',
-        message: `${group.name}이 시작되었습니다.`,
+        message: `"${group.name}"모임이 시작되었습니다.`,
         linkUrl: `/groups/${group.id}`,
         dedupeKey: `group-start:${group.id}`,
       });
@@ -155,7 +155,7 @@ export const notificationService = {
       await this.createForGroupMembers({
         groupId: group.id,
         type: 'group_ended',
-        message: `${group.name}이 종료되었습니다.`,
+        message: `"${group.name}"모임이 종료되었습니다.`,
         linkUrl: `/groups/${group.id}`,
         dedupeKey: `group-end:${group.id}`,
       });
