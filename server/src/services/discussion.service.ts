@@ -132,9 +132,9 @@ export const discussionService = {
       where.status = filter.status;
     }
     if (filter?.participantId) {
-      // 내가 작성했거나, 내가 의견/댓글을 남긴 스레드
+      // 내가 의견/댓글을 남긴 스레드 (작성자 제외)
+      where.authorId = { not: filter.participantId };
       where.OR = [
-        { authorId: filter.participantId },
         { comments: { some: { authorId: filter.participantId } } },
         { comments: { some: { replies: { some: { authorId: filter.participantId } } } } },
       ];

@@ -45,10 +45,32 @@ export const tokenService = {
     if (token.requested) {
       throw new AppError(409, 'ALREADY_REQUESTED', '이미 발언권을 요청했습니다.');
     }
-    return prisma.discussionToken.update({
+    const updated = await prisma.discussionToken.update({
       where: { discussionId_userId: { discussionId, userId } },
       data: { requested: true },
     });
+
+    // 모임장에게 알림 전송
+    const discussion = await prisma.discussion.findUnique({
+      where: { id: discussionId },
+      include: { group: { select: { id: true, name: true, ownerId: true } } },
+    });
+    if (discussion) {
+      const requester = await prisma.user.findUnique({ where: { id: userId }, select: { nickname: true } });
+      await prisma.notification.create({
+        data: {
+          userId: discussion.group.ownerId,
+          groupId: discussion.groupId,
+          discussionId,
+          type: 'token_requested',
+          message: `[${discussion.title}]에서 ${requester?.nickname || '참여자'}님이 발언권을 요청했습니다`,
+          linkUrl: `/groups/${discussion.groupId}/dashboard#tokenRequests`,
+          dedupeKey: `token-request:${discussionId}:${userId}:${Date.now()}`,
+        },
+      }).catch(() => {}); // 중복 시 무시
+    }
+
+    return updated;
   },
 
   // 발언권 지급 (모임장)
@@ -62,10 +84,25 @@ export const tokenService = {
     }
 
     const token = await this.getOrCreate(discussionId, targetUserId);
-    return prisma.discussionToken.update({
+    const updated = await prisma.discussionToken.update({
       where: { discussionId_userId: { discussionId, userId: targetUserId } },
       data: { remaining: token.remaining + amount, requested: false },
     });
+
+    // 지급받은 유저에게 알림 전송
+    await prisma.notification.create({
+      data: {
+        userId: targetUserId,
+        groupId: discussion.groupId,
+        discussionId,
+        type: 'token_granted',
+        message: `[${discussion.title}]에서 발언권 ${amount}개가 지급되었습니다`,
+        linkUrl: `/discussions/${discussionId}`,
+        dedupeKey: `token-grant:${discussionId}:${targetUserId}:${Date.now()}`,
+      },
+    }).catch(() => {});
+
+    return updated;
   },
 
   // 스레드의 발언권 요청 목록 조회 (모임장용)
