@@ -7,6 +7,7 @@ import { AxiosError } from 'axios';
 import GroupTags from '../components/GroupTags';
 import TagInput from '../components/TagInput';
 import PageHeader from '../components/PageHeader';
+import DateRangePicker from '../components/DateRangePicker';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -387,18 +388,30 @@ function GroupDetailPage() {
               <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>태그</label>
               <TagInput tags={editTags} onChange={setEditTags} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginBottom: 10 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>모집 인원</label>
                 <input type="number" min="1" value={editMaxMembers} onChange={(e) => setEditMaxMembers(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>독서 시작일</label>
-                <input type="date" value={editReadingStart} onChange={(e) => setEditReadingStart(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>독서 종료일</label>
-                <input type="date" value={editReadingEnd} onChange={(e) => setEditReadingEnd(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('edit-date-picker');
+                    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, background: 'none', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 12px', cursor: 'pointer', color: '#4a5568', width: '100%' }}
+                >
+                  📅 독서 기간: {editReadingStart && editReadingEnd ? `${editReadingStart} ~ ${editReadingEnd}` : '클릭하여 설정'}
+                </button>
+                <div id="edit-date-picker" style={{ display: 'none', marginTop: 8 }}>
+                  <DateRangePicker
+                    startDate={editReadingStart}
+                    endDate={editReadingEnd}
+                    onChangeStart={setEditReadingStart}
+                    onChangeEnd={setEditReadingEnd}
+                  />
+                </div>
               </div>
             </div>
             <div style={{ marginBottom: 12 }}>
