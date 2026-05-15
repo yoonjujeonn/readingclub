@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/authStore';
 import type { GroupCard, ApiError } from '../types';
 import { AxiosError } from 'axios';
 import GroupJoinModal from '../components/GroupJoinModal';
+import GroupTags from '../components/GroupTags';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -349,6 +350,9 @@ function HomePage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={styles.bookTitle}>{g.book?.title || '제목 없음'}</div>
                   <div style={styles.groupName}>{g.name}</div>
+                  <div style={{ marginBottom: 8 }}>
+                    <GroupTags tags={g.tags} compact />
+                  </div>
                   {g.description && <div style={{ ...styles.summary, marginBottom: 8 }}>{g.description}</div>}
                   <div style={styles.meta}>
                     📅 독서 기간: {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}<br />

@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+const TagsSchema = z.array(
+  z.string()
+    .transform(tag => tag.trim())
+    .pipe(z.string().max(15, '태그는 15자 이하로 입력해주세요')),
+).max(3, '태그는 최대 3개까지 입력할 수 있습니다')
+  .optional()
+  .transform(tags => tags?.filter(Boolean));
+
 // 회원가입
 export const SignupSchema = z.object({
   email: z.string().email('올바른 이메일 형식이 아닙니다'),
@@ -27,6 +35,7 @@ export const CreateGroupSchema = z.object({
   readingEndDate: z.string().date(),
   isPrivate: z.boolean().default(false),
   password: z.string().regex(/^\d{6}$/, '비밀번호는 숫자 6자리여야 합니다').optional(),
+  tags: TagsSchema,
 }).refine(data => {
   if (data.isPrivate && !data.password) return false;
   return true;
@@ -85,6 +94,7 @@ export const UpdateGroupSchema = z.object({
   readingEndDate: z.string().date().optional(),
   isPrivate: z.boolean().optional(),
   password: z.string().regex(/^\d{6}$/, '비밀번호는 숫자 6자리여야 합니다').optional().nullable(),
+  tags: TagsSchema,
 });
 
 // 닉네임 변경
