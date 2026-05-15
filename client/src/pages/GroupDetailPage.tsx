@@ -394,13 +394,24 @@ function GroupDetailPage() {
                 <input type="number" min="1" value={editMaxMembers} onChange={(e) => setEditMaxMembers(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>독서 기간</label>
-                <DateRangePicker
-                  startDate={editReadingStart}
-                  endDate={editReadingEnd}
-                  onChangeStart={setEditReadingStart}
-                  onChangeEnd={setEditReadingEnd}
-                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('edit-date-picker');
+                    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, background: 'none', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 12px', cursor: 'pointer', color: '#4a5568', width: '100%' }}
+                >
+                  📅 독서 기간: {editReadingStart && editReadingEnd ? `${editReadingStart} ~ ${editReadingEnd}` : '클릭하여 설정'}
+                </button>
+                <div id="edit-date-picker" style={{ display: 'none', marginTop: 8 }}>
+                  <DateRangePicker
+                    startDate={editReadingStart}
+                    endDate={editReadingEnd}
+                    onChangeStart={setEditReadingStart}
+                    onChangeEnd={setEditReadingEnd}
+                  />
+                </div>
               </div>
             </div>
             <div style={{ marginBottom: 12 }}>
