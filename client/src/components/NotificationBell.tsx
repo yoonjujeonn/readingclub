@@ -150,7 +150,16 @@ function NotificationBell() {
   const handleToggle = () => {
     const next = !open;
     setOpen(next);
-    if (next) fetchNotifications();
+    if (next) {
+      fetchNotifications();
+      // 패널 열릴 때 모두 읽음 처리
+      if (unreadCount > 0) {
+        notificationsApi.markAllRead().then(() => {
+          setUnreadCount(0);
+          setItems(prev => prev.map(item => ({ ...item, isRead: true })));
+        }).catch(() => {});
+      }
+    }
   };
 
   const handleItemClick = async (item: NotificationItem) => {
