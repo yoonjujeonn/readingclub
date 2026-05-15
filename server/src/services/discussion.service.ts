@@ -500,6 +500,42 @@ export const discussionService = {
     await prisma.discussion.delete({ where: { id: discussionId } });
   },
 
+  // 의견 수정 (작성자)
+  async updateComment(commentId: string, userId: string, content: string) {
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+      include: { discussion: { include: { group: { select: { readingStartDate: true, readingEndDate: true } } } } },
+    });
+    if (!comment) throw new AppError(404, 'NOT_FOUND', '의견을 찾을 수 없습니다');
+    if (comment.authorId !== userId) throw new AppError(403, 'FORBIDDEN', '작성자만 수정할 수 있습니다');
+    if (comment.discussion.status === 'closed') throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드의 의견은 수정할 수 없습니다');
+    assertReadingPeriodOpen(comment.discussion.group.readingStartDate, comment.discussion.group.readingEndDate);
+
+    return prisma.comment.update({
+      where: { id: commentId },
+      data: { content },
+      include: { author: { select: { id: true, nickname: true } } },
+    });
+  },
+
+  // 댓글 수정 (작성자)
+  async updateReply(replyId: string, userId: string, content: string) {
+    const reply = await prisma.reply.findUnique({
+      where: { id: replyId },
+      include: { comment: { include: { discussion: { include: { group: { select: { readingStartDate: true, readingEndDate: true } } } } } } },
+    });
+    if (!reply) throw new AppError(404, 'NOT_FOUND', '댓글을 찾을 수 없습니다');
+    if (reply.authorId !== userId) throw new AppError(403, 'FORBIDDEN', '작성자만 수정할 수 있습니다');
+    if (reply.comment.discussion.status === 'closed') throw new AppError(403, 'THREAD_CLOSED', '종료된 스레드의 댓글은 수정할 수 없습니다');
+    assertReadingPeriodOpen(reply.comment.discussion.group.readingStartDate, reply.comment.discussion.group.readingEndDate);
+
+    return prisma.reply.update({
+      where: { id: replyId },
+      data: { content },
+      include: { author: { select: { id: true, nickname: true } } },
+    });
+  },
+
   // KST 기준 오늘 시작 시각 계산
   _getTodayStartKST(): Date {
     // 서버가 KST 환경이면 로컬 자정이 곧 KST 자정
