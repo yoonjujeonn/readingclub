@@ -17,6 +17,18 @@ const mapTags = (tags?: { name: string }[]) => tags?.map(tag => tag.name) ?? [];
 
 export const groupService = {
   async create(data: CreateGroupInput, userId: string) {
+    // 날짜 검증: 시작일은 오늘 이후, 종료일은 시작일 이후
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(data.readingStartDate);
+    const endDate = new Date(data.readingEndDate);
+    if (startDate < today) {
+      throw new AppError(400, 'VALIDATION_ERROR', '독서 시작일은 오늘 이후여야 합니다');
+    }
+    if (endDate < startDate) {
+      throw new AppError(400, 'VALIDATION_ERROR', '독서 종료일은 시작일 이후여야 합니다');
+    }
+
     // Find or create the Book entity
     let bookId = data.bookId;
 

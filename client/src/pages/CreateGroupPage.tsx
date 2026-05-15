@@ -6,6 +6,7 @@ import type { BookSearchResult, ApiError } from '../types';
 import { AxiosError } from 'axios';
 import TagInput from '../components/TagInput';
 import PageHeader from '../components/PageHeader';
+import DateRangePicker from '../components/DateRangePicker';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -234,7 +235,14 @@ function CreateGroupPage() {
     if (!name.trim()) errs.name = '모임명을 입력해주세요';
     if (!maxMembers || parseInt(maxMembers) < 1) errs.maxMembers = '모집 인원은 1명 이상이어야 합니다';
     if (!readingStartDate) errs.readingStartDate = '독서 시작일을 선택해주세요';
+    else {
+      const today = new Date().toISOString().split('T')[0];
+      if (readingStartDate < today) errs.readingStartDate = '시작일은 오늘 이후여야 합니다';
+    }
     if (!readingEndDate) errs.readingEndDate = '독서 종료일을 선택해주세요';
+    else if (readingStartDate && readingEndDate < readingStartDate) {
+      errs.readingEndDate = '종료일은 시작일 이후여야 합니다';
+    }
     return errs;
   };
 
@@ -423,27 +431,16 @@ function CreateGroupPage() {
             {errors.maxMembers && <div style={styles.errorText}>{errors.maxMembers}</div>}
           </div>
 
-          <div style={styles.row}>
-            <div style={styles.field}>
-              <label style={styles.label}>독서 시작일 *</label>
-              <input
-                type="date"
-                style={{ ...styles.input, ...(errors.readingStartDate ? styles.inputError : {}) }}
-                value={readingStartDate}
-                onChange={(e) => setReadingStartDate(e.target.value)}
-              />
-              {errors.readingStartDate && <div style={styles.errorText}>{errors.readingStartDate}</div>}
-            </div>
-            <div style={styles.field}>
-              <label style={styles.label}>독서 종료일 *</label>
-              <input
-                type="date"
-                style={{ ...styles.input, ...(errors.readingEndDate ? styles.inputError : {}) }}
-                value={readingEndDate}
-                onChange={(e) => setReadingEndDate(e.target.value)}
-              />
-              {errors.readingEndDate && <div style={styles.errorText}>{errors.readingEndDate}</div>}
-            </div>
+          <div style={styles.field}>
+            <label style={styles.label}>독서 기간 *</label>
+            <DateRangePicker
+              startDate={readingStartDate}
+              endDate={readingEndDate}
+              onChangeStart={setReadingStartDate}
+              onChangeEnd={setReadingEndDate}
+              startError={errors.readingStartDate}
+              endError={errors.readingEndDate}
+            />
           </div>
 
           <div style={styles.field}>

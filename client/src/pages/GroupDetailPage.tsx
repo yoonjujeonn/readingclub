@@ -7,6 +7,7 @@ import { AxiosError } from 'axios';
 import GroupTags from '../components/GroupTags';
 import TagInput from '../components/TagInput';
 import PageHeader from '../components/PageHeader';
+import DateRangePicker from '../components/DateRangePicker';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -387,18 +388,19 @@ function GroupDetailPage() {
               <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>태그</label>
               <TagInput tags={editTags} onChange={setEditTags} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginBottom: 10 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>모집 인원</label>
                 <input type="number" min="1" value={editMaxMembers} onChange={(e) => setEditMaxMembers(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>독서 시작일</label>
-                <input type="date" value={editReadingStart} onChange={(e) => setEditReadingStart(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>독서 종료일</label>
-                <input type="date" value={editReadingEnd} onChange={(e) => setEditReadingEnd(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const }} />
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>독서 기간</label>
+                <DateRangePicker
+                  startDate={editReadingStart}
+                  endDate={editReadingEnd}
+                  onChangeStart={setEditReadingStart}
+                  onChangeEnd={setEditReadingEnd}
+                />
               </div>
             </div>
             <div style={{ marginBottom: 12 }}>
