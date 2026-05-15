@@ -100,7 +100,19 @@ function DashboardPage() {
 
   const copyInviteLink = () => {
     if (!inviteCode) return;
-    navigator.clipboard.writeText(`${window.location.origin}/invite/${inviteCode}`);
+    const link = `${window.location.origin}/invite/${inviteCode}`;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(link);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = link;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
