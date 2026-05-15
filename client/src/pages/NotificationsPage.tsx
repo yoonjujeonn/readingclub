@@ -149,8 +149,9 @@ function NotificationsPage() {
 
   const handleItemClick = async (item: NotificationItem) => {
     await notificationsApi.markRead(item.id).catch(() => {});
+    if (!item.linkUrl) return;
     if (item.linkUrl.includes('#tokenRequests')) {
-      const basePath = item.linkUrl.split('#')[0];
+      const basePath = item.linkUrl.split('#')[0] ?? '';
       navigate(basePath, { state: { openTab: 'tokenRequests' } });
     } else {
       navigate(item.linkUrl);
