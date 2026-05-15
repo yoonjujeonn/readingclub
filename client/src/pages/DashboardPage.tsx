@@ -16,7 +16,7 @@ const tabs = [
 type TabId = typeof tabs[number]['id'];
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { maxWidth: 900, margin: '0 auto', padding: '24px 16px' },
+  container: { maxWidth: 800, margin: '0 auto', padding: '24px 16px' },
   backLink: { display: 'inline-block', marginBottom: 16, fontSize: 14, color: '#3182ce' },
   title: { fontSize: 24, fontWeight: 700, marginBottom: 16 },
   tabBar: { display: 'flex', gap: 0, borderBottom: '2px solid #e2e8f0', marginBottom: 20 },

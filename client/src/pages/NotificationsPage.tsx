@@ -6,7 +6,7 @@ import type { NotificationItem } from '../types';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    maxWidth: 760,
+    maxWidth: 800,
     margin: '0 auto',
     padding: '24px 16px',
   },
