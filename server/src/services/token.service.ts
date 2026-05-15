@@ -45,10 +45,32 @@ export const tokenService = {
     if (token.requested) {
       throw new AppError(409, 'ALREADY_REQUESTED', '이미 발언권을 요청했습니다.');
     }
-    return prisma.discussionToken.update({
+    const updated = await prisma.discussionToken.update({
       where: { discussionId_userId: { discussionId, userId } },
       data: { requested: true },
     });
+
+    // 모임장에게 알림 전송
+    const discussion = await prisma.discussion.findUnique({
+      where: { id: discussionId },
+      include: { group: { select: { id: true, name: true, ownerId: true } } },
+    });
+    if (discussion) {
+      const requester = await prisma.user.findUnique({ where: { id: userId }, select: { nickname: true } });
+      await prisma.notification.create({
+        data: {
+          userId: discussion.group.ownerId,
+          groupId: discussion.groupId,
+          discussionId,
+          type: 'token_requested',
+          message: `[${discussion.title}]에서 ${requester?.nickname || '참여자'}님이 발언권을 요청했습니다`,
+          linkUrl: `/groups/${discussion.groupId}/dashboard`,
+          dedupeKey: `token-request:${discussionId}:${userId}`,
+        },
+      }).catch(() => {}); // 중복 시 무시
+    }
+
+    return updated;
   },
 
   // 발언권 지급 (모임장)
