@@ -9,7 +9,7 @@ import GroupTags from '../components/GroupTags';
 import NotificationBell from '../components/NotificationBell';
 import RankingBanner from '../components/RankingBanner';
 
-type SearchType = 'bookTitle' | 'bookAuthor' | 'owner';
+type SearchType = 'bookTitle' | 'bookAuthor' | 'owner' | 'tag';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -359,6 +359,7 @@ function HomePage() {
           <option value="bookTitle">책 제목</option>
           <option value="bookAuthor">글쓴이</option>
           <option value="owner">모임장</option>
+          <option value="tag">태그</option>
         </select>
         <input
           type="text"
