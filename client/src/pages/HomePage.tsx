@@ -215,6 +215,9 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
   const [bannerIndex, setBannerIndex] = useState(0);
+  const [beeFirstLoad, setBeeFirstLoad] = useState(true);
+  const [typedText, setTypedText] = useState('');
+  const fullText = '"기억하는 것 자체가 저항이다"';
 
   // Modal state
   const [selectedGroup, setSelectedGroup] = useState<GroupCard | null>(null);
@@ -248,9 +251,24 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => setBannerIndex(prev => (prev + 1) % 2), 4500);
+    const timer = setInterval(() => {
+      setBannerIndex(prev => (prev + 1) % 2);
+      setBeeFirstLoad(false);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    setTypedText('');
+    if (bannerIndex !== 1) return;
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      setTypedText(fullText.slice(0, i));
+      if (i >= fullText.length) clearInterval(interval);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [bannerIndex]);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -374,15 +392,21 @@ function HomePage() {
                   <div style={{ fontSize: 14, opacity: 0.6, lineHeight: 1.6, maxWidth: 480 }}>메모하고, 모임을 만들고,<br />독서가 더 깊어지는 경험.</div>
                   <Link to="/groups/new" className="hero-btn" style={{ display: 'inline-block', marginTop: 20, padding: '10px 24px', backgroundColor: 'transparent', color: '#fff', borderRadius: 6, fontSize: 14, fontWeight: 600, textDecoration: 'none', border: '1px solid #FDF8F0' }}>모임 시작하기 →</Link>
                 </div>
-                <div style={{ position: 'absolute' as const, right: 30, top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
-                  <svg key={`hex-anim-${bannerIndex}`} width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polygon className="hex-top" points="85,5 115,20 115,50 85,65 55,50 55,20" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-                    <polygon className="hex-right" points="125,35 155,50 155,80 125,95 95,80 95,50" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-                    <polygon className="hex-left" points="45,65 75,80 75,110 45,125 15,110 15,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-                    <polygon className="hex-center" points="85,65 115,80 115,110 85,125 55,110 55,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-                    <polygon className="hex-bottom" points="65,95 95,110 95,140 65,155 35,140 35,110" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-                    <image className="hex-center" href="/favicon.svg" x="58" y="52" width="55" height="55" />
+                <div style={{ position: 'absolute' as const, right: 30, top: '50%', transform: 'translateY(-50%)', opacity: 0.8 }}>
+                  <svg key={`hex-anim-${bannerIndex}`} width="182" height="150" viewBox="0 0 182 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* pointy-top hexagons, side=30, w=52, h=60. 변 맞닿음 */}
+                    {/* 행1: 2개 */}
+                    <polygon className="hex-top" points="52,0 78,15 78,45 52,60 26,45 26,15" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    <polygon className="hex-right" points="104,0 130,15 130,45 104,60 78,45 78,15" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    {/* 행2: 3개 */}
+                    <polygon className="hex-left" points="26,45 52,60 52,90 26,105 0,90 0,60" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    <polygon className="hex-center" points="78,45 104,60 104,90 78,105 52,90 52,60" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    <polygon className="hex-right" points="130,45 156,60 156,90 130,105 104,90 104,60" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    {/* 행3: 2개 */}
+                    <polygon className="hex-bottom" points="52,90 78,105 78,135 52,150 26,135 26,105" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    <polygon className="hex-bottom" points="104,90 130,105 130,135 104,150 78,135 78,105" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
                   </svg>
+                  <img key={`bee-${bannerIndex}`} className="hex-bee-first" src="/favicon.svg" alt="" style={{ position: 'absolute', width: 48, height: 48, top: '50%', left: '50%', marginTop: -24, marginLeft: -24 }} />
                 </div>
               </div>
 
@@ -408,10 +432,10 @@ function HomePage() {
                   <div style={{ position: 'relative' }}>
                     <div style={{ fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: 2, opacity: 0.5, marginBottom: 6 }}>READING INSIGHT</div>
                     <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>소년이 온다</div>
-                    <div style={{ fontSize: 12, lineHeight: 1.6, padding: '8px 12px', background: 'rgba(255,255,255,0.08)', borderRadius: 8, borderLeft: '3px solid #C8962E', marginBottom: 12 }}>
-                      "기억하는 것 자체가 저항이다"
+                    <div style={{ fontSize: 12, lineHeight: 1.6, padding: '8px 12px', background: 'rgba(255,255,255,0.08)', borderRadius: 8, borderLeft: '3px solid #C8962E', marginBottom: 12, width: '100%', boxSizing: 'border-box' as const, minHeight: 36 }}>
+                      {typedText}<span className="typing-caret" />
                     </div>
-                    <div style={{ fontSize: 11, opacity: 0.8, lineHeight: 1.6, marginBottom: 10 }}>
+                    <div key={`pop-${bannerIndex}`} className="summary-pop" style={{ fontSize: 11, lineHeight: 1.6, marginBottom: 10 }}>
                       폭력 앞의 침묵과 저항에 대해 깊이 논의함
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 4, marginBottom: 10 }}>
