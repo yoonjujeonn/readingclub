@@ -36,24 +36,24 @@ const styles: Record<string, React.CSSProperties> = {
   },
   navLink: {
     padding: '9px 20px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundColor: '#4E342E',
     color: '#fff',
     borderRadius: 8,
     fontSize: 14,
     fontWeight: 600,
     textDecoration: 'none',
-    boxShadow: '0 2px 8px rgba(102,126,234,0.3)',
+    boxShadow: '0 2px 8px rgba(78,52,46,0.3)',
     transition: 'transform 0.15s, box-shadow 0.15s',
   },
   navLinkSecondary: {
     padding: '9px 20px',
-    backgroundColor: '#f7f8fc',
-    color: '#4a5568',
+    backgroundColor: '#FDF8F0',
+    color: '#4E342E',
     borderRadius: 8,
     fontSize: 14,
     fontWeight: 600,
     textDecoration: 'none',
-    border: '1px solid #e2e8f0',
+    border: '1px solid #E8DFD3',
     transition: 'background-color 0.15s',
   },
   searchBar: {
@@ -62,10 +62,10 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 28,
   },
   searchInput: {
-    flex: 1,
+    width: '100%',
     padding: '12px 16px',
     fontSize: 14,
-    border: '2px solid #e2e8f0',
+    border: '2px solid #E8DFD3',
     borderRadius: 10,
     boxSizing: 'border-box' as const,
     outline: 'none',
@@ -75,24 +75,25 @@ const styles: Record<string, React.CSSProperties> = {
     width: 120,
     padding: '12px 14px',
     fontSize: 14,
-    border: '2px solid #e2e8f0',
+    border: '2px solid #E8DFD3',
     borderRadius: 10,
     backgroundColor: '#fff',
-    color: '#2d3748',
+    color: '#3D2E1E',
     boxSizing: 'border-box' as const,
     outline: 'none',
     cursor: 'pointer',
+    height: 46,
   },
   searchButton: {
     padding: '12px 24px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundColor: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 10,
     fontSize: 14,
     fontWeight: 600,
     cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(102,126,234,0.25)',
+    boxShadow: '0 2px 8px rgba(78,52,46,0.25)',
     transition: 'transform 0.15s',
   },
   sortBar: {
@@ -106,19 +107,20 @@ const styles: Record<string, React.CSSProperties> = {
   sortLabel: {
     fontSize: 13,
     fontWeight: 600,
-    color: '#718096',
+    color: '#8B7355',
   },
   sortSelect: {
     width: 176,
-    padding: '10px 12px',
+    padding: '12px 12px',
     fontSize: 13,
-    border: '1px solid #e2e8f0',
-    borderRadius: 8,
+    border: '2px solid #E8DFD3',
+    borderRadius: 10,
     backgroundColor: '#fff',
-    color: '#2d3748',
+    color: '#3D2E1E',
     boxSizing: 'border-box' as const,
     outline: 'none',
     cursor: 'pointer',
+    height: 46,
   },
   grid: {
     display: 'grid',
@@ -132,7 +134,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
     cursor: 'pointer',
     transition: 'transform 0.2s, box-shadow 0.2s',
-    border: '1px solid #f0f0f5',
+    border: '1px solid #E8DFD3',
     display: 'flex',
     flexDirection: 'column' as const,
   },
@@ -140,18 +142,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 17,
     fontWeight: 700,
     marginBottom: 4,
-    color: '#1a202c',
+    color: '#3D2E1E',
     letterSpacing: '-0.3px',
   },
   groupName: {
     fontSize: 13,
     fontWeight: 600,
-    color: '#667eea',
+    color: '#C8962E',
     marginBottom: 8,
   },
   summary: {
     fontSize: 13,
-    color: '#718096',
+    color: '#8B7355',
     marginBottom: 12,
     lineHeight: 1.5,
     display: '-webkit-box',
@@ -161,13 +163,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   meta: {
     fontSize: 12,
-    color: '#a0aec0',
+    color: '#8B7355',
     lineHeight: 1.6,
   },
   members: {
     display: 'inline-block',
-    background: 'linear-gradient(135deg, #ebf4ff 0%, #e8e0ff 100%)',
-    color: '#5a67d8',
+    backgroundColor: '#FFF8E7',
+    color: '#C8962E',
     padding: '3px 10px',
     borderRadius: 12,
     fontSize: 12,
@@ -176,13 +178,13 @@ const styles: Record<string, React.CSSProperties> = {
   emptyState: {
     textAlign: 'center' as const,
     padding: '60px 20px',
-    color: '#a0aec0',
+    color: '#8B7355',
     fontSize: 15,
   },
   loading: {
     textAlign: 'center' as const,
     padding: '60px 20px',
-    color: '#a0aec0',
+    color: '#8B7355',
     fontSize: 15,
   },
 };
@@ -326,7 +328,7 @@ function HomePage() {
     <div style={styles.container}>
       <div style={styles.header}>
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => { setSearch(''); setSearchType('bookTitle'); setSort('createdDesc'); setSearched(false); fetchGroups(undefined, 'bookTitle', 'createdDesc'); }}>
-          <h1 style={styles.title}>📚 버지페이지</h1>
+          <h1 style={styles.title}><img src="/favicon.svg" alt="" style={{ width: 28, height: 28, verticalAlign: 'middle', marginRight: 6 }} />버지페이지</h1>
         </Link>
         <div style={styles.nav}>
           {isLoggedIn ? (
@@ -342,7 +344,7 @@ function HomePage() {
 
       {/* Hero Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundColor: '#2C2016',
         borderRadius: 12,
         padding: '32px 28px',
         marginBottom: 24,
@@ -351,44 +353,57 @@ function HomePage() {
         overflow: 'hidden',
       }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-            함께 읽고, 함께 나누는 독서 모임
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <svg width="42" height="12" viewBox="0 0 42 12"><polygon points="6,0 12,3 12,9 6,12 0,9 0,3" fill="#C8962E"/><polygon points="20,0 26,3 26,9 20,12 14,9 14,3" fill="#C8962E"/><polygon points="34,0 40,3 40,9 34,12 28,9 28,3" fill="#C8962E"/></svg>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>독서 모임 플랫폼</span>
           </div>
-          <div style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.6, maxWidth: 480 }}>
-            책을 읽으며 메모를 남기고, 다른 독서가들과 생각을 나눠보세요.
-            기록이 스레드로 이어지는 새로운 독서 경험을 시작하세요.
+          <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>
+            같은 책,
           </div>
-          <Link to="/groups/new" style={{
+          <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 12, lineHeight: 1.3 }}>
+            <span style={{ color: '#C8962E' }}>다른 생각</span>을 나누다
+          </div>
+          <div style={{ fontSize: 14, opacity: 0.6, lineHeight: 1.6, maxWidth: 480 }}>
+            메모하고, 모임을 만들고,<br />독서가 더 깊어지는 경험.
+          </div>
+          <Link to="/groups/new" className="hero-btn" style={{
             display: 'inline-block',
-            marginTop: 16,
+            marginTop: 20,
             padding: '10px 24px',
-            backgroundColor: 'rgba(255,255,255,0.2)',
+            backgroundColor: 'transparent',
             color: '#fff',
             borderRadius: 6,
             fontSize: 14,
             fontWeight: 600,
             textDecoration: 'none',
-            backdropFilter: 'blur(4px)',
-            border: '1px solid rgba(255,255,255,0.3)',
+            border: '1px solid #FDF8F0',
           }}>
             모임 시작하기 →
           </Link>
         </div>
         <div style={{
           position: 'absolute' as const,
-          right: 20,
+          right: 30,
           top: '50%',
           transform: 'translateY(-50%)',
-          fontSize: 80,
-          opacity: 0.15,
+          opacity: 0.4,
         }}>
-          📖
+          <svg width="150" height="160" viewBox="0 0 150 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* 벌집 - flat-top hexagons */}
+            <polygon points="75,5 105,20 105,50 75,65 45,50 45,20" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon points="115,35 145,50 145,80 115,95 85,80 85,50" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon points="35,65 65,80 65,110 35,125 5,110 5,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon points="75,65 105,80 105,110 75,125 45,110 45,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon points="55,125 85,140 85,170 55,185 25,170 25,140" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            {/* 벌 */}
+            <image href="/favicon.svg" x="50" y="55" width="55" height="55" />
+          </svg>
         </div>
       </div>
 
       <RankingBanner />
 
-      <form onSubmit={handleSearch} style={styles.searchBar}>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, marginBottom: 28, alignItems: 'center' }}>
         <select
           value={searchType}
           onChange={(e) => handleSearchTypeChange(e.target.value as SearchType)}
@@ -401,37 +416,37 @@ function HomePage() {
           <option value="owner">모임장</option>
           <option value="bookAuthor">글쓴이</option>
         </select>
-        <input
-          type="text"
-          style={styles.searchInput}
-          value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="검색어를 입력하세요..."
-        />
-        <button type="submit" style={styles.searchButton}>검색</button>
-      </form>
-
-      <div style={styles.sortBar}>
-        <span style={styles.sortLabel}>정렬</span>
+        <div style={{ flex: 1, position: 'relative' as const }}>
+          <input
+            type="text"
+            style={{ ...styles.searchInput, paddingRight: 36 }}
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="검색어를 입력하세요..."
+          />
+          <button type="submit" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} aria-label="검색">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7355" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+        </div>
         <select
           value={sort}
           onChange={(e) => handleSortChange(e.target.value as SortOption)}
           style={styles.sortSelect}
           aria-label="모임 정렬"
         >
-          <option value="createdDesc">새로 만든 모임순</option>
-          <option value="createdAsc">먼저 만든 모임순</option>
+          <option value="createdDesc">새로 만든 순</option>
+          <option value="createdAsc">먼저 만든 순</option>
           <option value="startAsc">시작일 빠른순</option>
           <option value="startDesc">시작일 늦은순</option>
           <option value="endAsc">마감일 빠른순</option>
           <option value="endDesc">마감일 늦은순</option>
         </select>
-      </div>
+      </form>
 
       {/* 내 모임 — 가로 스크롤 */}
       {isLoggedIn && !searched && groups.filter(g => g.isMember || g.ownerId === currentUserId).length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#2d3748', marginBottom: 12 }}>📖 내 모임</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#3D2E1E', marginBottom: 12 }}>📖 내 모임</div>
           <div style={{
             display: 'flex',
             gap: 14,
@@ -449,7 +464,7 @@ function HomePage() {
                   borderRadius: 12,
                   padding: 16,
                   boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-                  border: '2px solid #667eea',
+                  border: '2px solid #C8962E',
                   cursor: 'pointer',
                   flexShrink: 0,
                   display: 'flex',
@@ -462,11 +477,11 @@ function HomePage() {
                   <img src={g.book.coverImageUrl} alt="" style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} />
                 )}
                 <div style={{ overflow: 'hidden' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1a202c', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#3D2E1E', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
                     {g.book?.title || '제목 없음'}
                   </div>
-                  <div style={{ fontSize: 12, color: '#667eea', fontWeight: 600, marginBottom: 4 }}>{g.name}</div>
-                  <div style={{ fontSize: 11, color: '#a0aec0' }}>
+                  <div style={{ fontSize: 12, color: '#C8962E', fontWeight: 600, marginBottom: 4 }}>{g.name}</div>
+                  <div style={{ fontSize: 11, color: '#8B7355' }}>
                     👥 {g.currentMembers}/{g.maxMembers}명
                   </div>
                 </div>
@@ -478,7 +493,7 @@ function HomePage() {
 
       {/* 전체 모임 */}
       {!searched && isLoggedIn && groups.filter(g => !(g.isMember || g.ownerId === currentUserId)).length > 0 && (
-        <div style={{ fontSize: 16, fontWeight: 700, color: '#2d3748', marginBottom: 12 }}>🌐 전체 모임</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#3D2E1E', marginBottom: 12 }}>🌐 전체 모임</div>
       )}
 
       {loading ? (
@@ -493,6 +508,7 @@ function HomePage() {
           {(isLoggedIn && !searched ? groups.filter(g => !(g.isMember || g.ownerId === currentUserId)) : groups)?.map((g) => (
             <div
               key={g.id}
+              className="group-card"
               style={styles.card}
               onClick={() => handleCardClick(g)}
               role="button"
@@ -513,14 +529,14 @@ function HomePage() {
                   <div style={{ height: 20, overflow: 'hidden', marginBottom: 2 }}>
                     {g.tags && g.tags.length > 0 && <GroupTags tags={g.tags} compact />}
                   </div>
-                  <div style={{ height: 34, overflow: 'hidden', marginBottom: 4, fontSize: 13, color: '#718096', lineHeight: '17px' }}>
+                  <div style={{ height: 34, overflow: 'hidden', marginBottom: 4, fontSize: 13, color: '#8B7355', lineHeight: '17px' }}>
                     {g.description || '\u00A0'}
                   </div>
                   <div>
                   <div style={styles.meta}>
                     <div style={{ marginBottom: 6 }}>📅 독서 기간: {formatDate(g.readingStartDate)} ~ {formatDate(g.readingEndDate)}</div>
                     <div>
-                    {g.ownerNickname && <span style={{ display: 'inline-block', background: '#edf2ff', color: '#4c51bf', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginRight: 6 }}>👤 {g.ownerNickname}</span>}
+                    {g.ownerNickname && <span style={{ display: 'inline-block', background: '#FFF8E7', color: '#C8962E', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginRight: 6 }}>👤 {g.ownerNickname}</span>}
                     <span style={styles.members}>👥 {g.currentMembers}/{g.maxMembers}명</span>
                     {(g as any).isPrivate && <span style={{ display: 'inline-block', background: '#fefcbf', color: '#975a16', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, marginLeft: 6 }}>🔒 비공개</span>}
                     </div>
