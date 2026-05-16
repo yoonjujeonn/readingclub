@@ -16,7 +16,7 @@ const normalizeTags = (tags?: string[]) =>
 
 const mapTags = (tags?: { name: string }[]) => tags?.map(tag => tag.name) ?? [];
 
-type GroupSearchType = 'bookTitle' | 'bookAuthor' | 'owner' | 'tag';
+type GroupSearchType = 'bookTitle' | 'groupName' | 'owner' | 'tag' | 'bookAuthor';
 
 export const groupService = {
   async create(data: CreateGroupInput, userId: string) {
@@ -131,12 +131,17 @@ export const groupService = {
     const search = query?.search?.trim();
     if (search) {
       const searchType: GroupSearchType =
-        query?.searchType === 'bookAuthor' || query?.searchType === 'owner' || query?.searchType === 'tag'
+        query?.searchType === 'bookAuthor' ||
+        query?.searchType === 'groupName' ||
+        query?.searchType === 'owner' ||
+        query?.searchType === 'tag'
           ? query.searchType
           : 'bookTitle';
 
       if (searchType === 'bookAuthor') {
         where.book = { author: { contains: search } };
+      } else if (searchType === 'groupName') {
+        where.name = { contains: search };
       } else if (searchType === 'owner') {
         where.owner = { nickname: { contains: search } };
       } else if (searchType === 'tag') {

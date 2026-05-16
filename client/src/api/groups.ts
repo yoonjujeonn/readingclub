@@ -2,7 +2,7 @@ import apiClient from './client';
 import type { CreateGroupRequest, GroupDetail } from '../types';
 
 export const groupsApi = {
-  list: async (params?: { search?: string; searchType?: 'bookTitle' | 'bookAuthor' | 'owner' | 'tag'; page?: number }) => {
+  list: async (params?: { search?: string; searchType?: 'bookTitle' | 'groupName' | 'owner' | 'tag' | 'bookAuthor'; page?: number }) => {
     const res = await apiClient.get('/groups', { params });
     // 서버 응답: { items, total, page, limit, totalPages }
     const d = res.data;
