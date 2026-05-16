@@ -9,7 +9,7 @@ import GroupTags from '../components/GroupTags';
 import NotificationBell from '../components/NotificationBell';
 import RankingBanner from '../components/RankingBanner';
 
-type SearchType = 'bookTitle' | 'bookAuthor' | 'owner';
+type SearchType = 'bookTitle' | 'groupName' | 'owner' | 'tag' | 'bookAuthor';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -357,8 +357,10 @@ function HomePage() {
           aria-label="검색 기준"
         >
           <option value="bookTitle">책 제목</option>
-          <option value="bookAuthor">글쓴이</option>
+          <option value="groupName">모임명</option>
+          <option value="tag">태그</option>
           <option value="owner">모임장</option>
+          <option value="bookAuthor">글쓴이</option>
         </select>
         <input
           type="text"
