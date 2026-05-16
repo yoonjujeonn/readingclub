@@ -62,7 +62,7 @@ const styles: Record<string, React.CSSProperties> = {
   button: {
     width: '100%',
     padding: '12px 0',
-    backgroundColor: '#3182ce',
+    backgroundColor: '#C8962E',
     color: '#fff',
     border: 'none',
     borderRadius: 4,
@@ -80,7 +80,7 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center' as const,
     marginTop: 16,
     fontSize: 14,
-    color: '#3182ce',
+    color: '#C8962E',
   },
 };
 
@@ -223,7 +223,7 @@ function SignupPage() {
                   fontSize: 13,
                   fontWeight: 600,
                   color: '#fff',
-                  backgroundColor: nicknameChecking ? '#a0aec0' : '#667eea',
+                  backgroundColor: nicknameChecking ? '#a0aec0' : '#C8962E',
                   border: 'none',
                   borderRadius: 4,
                   cursor: nicknameChecking ? 'default' : 'pointer',

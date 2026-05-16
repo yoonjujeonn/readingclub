@@ -133,7 +133,7 @@ function SettingsPage() {
       <div style={st.section}>
         <div style={st.groupTitle}>프로필 이미지</div>
         <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 16, padding: '12px 0' }}>
-          <div style={{ width: 96, height: 96, borderRadius: '50%', overflow: 'hidden', backgroundColor: '#f0f0f5', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #e2e8f0' }}>
+          <div style={{ width: 96, height: 96, borderRadius: '50%', overflow: 'hidden', backgroundColor: '#E8DFD3', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #E8DFD3' }}>
             {imagePreview ? (
               <img src={imagePreview} alt="프로필" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
@@ -141,7 +141,7 @@ function SettingsPage() {
             )}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <label style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#667eea', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 8, cursor: 'pointer' }}>
+            <label style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#C8962E', background: '#FFF8E7', border: '1px solid #E8DFD3', borderRadius: 8, cursor: 'pointer' }}>
               {imageFile ? '다른 파일 선택' : '이미지 변경'}
               <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleFileChange} style={{ display: 'none' }} />
             </label>
@@ -173,7 +173,7 @@ function SettingsPage() {
               <button onClick={handleSaveImage} disabled={imageSaving} style={{ ...st.saveBtn, padding: '6px 14px', fontSize: 12 }}>
                 {imageSaving ? '업로드 중...' : '저장'}
               </button>
-              <button onClick={() => { setImageFile(null); setImagePreview((profile as any)?.profileImageUrl || ''); }} style={{ padding: '6px 14px', fontSize: 12, color: '#718096', background: '#f7fafc', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer' }}>
+              <button onClick={() => { setImageFile(null); setImagePreview((profile as any)?.profileImageUrl || ''); }} style={{ padding: '6px 14px', fontSize: 12, color: '#718096', background: '#f7fafc', border: '1px solid #E8DFD3', borderRadius: 6, cursor: 'pointer' }}>
                 취소
               </button>
             </div>
@@ -243,14 +243,14 @@ function SettingsPage() {
 
 const st: Record<string, React.CSSProperties> = {
   container: { maxWidth: 800, margin: '0 auto', padding: '24px 16px' },
-  backLink: { display: 'inline-block', marginBottom: 16, fontSize: 14, color: '#667eea', fontWeight: 500, textDecoration: 'none' },
-  title: { fontSize: 22, fontWeight: 800, marginBottom: 24, color: '#1a202c', letterSpacing: '-0.3px' },
-  section: { backgroundColor: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid #f0f0f5', marginBottom: 16 },
+  backLink: { display: 'inline-block', marginBottom: 16, fontSize: 14, color: '#C8962E', fontWeight: 500, textDecoration: 'none' },
+  title: { fontSize: 22, fontWeight: 800, marginBottom: 24, color: '#3D2E1E', letterSpacing: '-0.3px' },
+  section: { backgroundColor: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid #E8DFD3', marginBottom: 16 },
   groupTitle: { fontSize: 13, fontWeight: 700, color: '#a0aec0', textTransform: 'uppercase' as const, letterSpacing: '0.5px', marginBottom: 12 },
-  item: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid #f7f8fc', fontSize: 14, color: '#2d3748' },
-  input: { padding: '8px 12px', fontSize: 14, border: '1px solid #e2e8f0', borderRadius: 8, outline: 'none', width: '100%', boxSizing: 'border-box' as const },
-  saveBtn: { padding: '8px 16px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' as const },
-  editBtn: { padding: '4px 10px', fontSize: 12, color: '#667eea', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 6, cursor: 'pointer', fontWeight: 500 },
+  item: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid #FDF8F0', fontSize: 14, color: '#3D2E1E' },
+  input: { padding: '8px 12px', fontSize: 14, border: '1px solid #E8DFD3', borderRadius: 8, outline: 'none', width: '100%', boxSizing: 'border-box' as const },
+  saveBtn: { padding: '8px 16px', background: '#C8962E', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' as const },
+  editBtn: { padding: '4px 10px', fontSize: 12, color: '#C8962E', background: '#FFF8E7', border: '1px solid #E8DFD3', borderRadius: 6, cursor: 'pointer', fontWeight: 500 },
   helpText: { fontSize: 12, color: '#718096', textAlign: 'center' as const },
 };
 

@@ -73,3 +73,23 @@ a {
   transform: scale(1.02);
   box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
 }
+
+/* 공통 버튼 호버 */
+.btn-primary {
+  transition: background-color 0.2s, transform 0.2s;
+}
+.btn-primary:hover {
+  background-color: #A07824 !important;
+  transform: scale(1.03);
+}
+
+/* 골드 배경 버튼 자동 호버 */
+button[style*="background-color: rgb(200, 150, 46)"],
+button[style*="background: rgb(200, 150, 46)"] {
+  transition: background-color 0.2s, transform 0.2s;
+}
+button[style*="background-color: rgb(200, 150, 46)"]:hover,
+button[style*="background: rgb(200, 150, 46)"]:hover {
+  background-color: #D4A843 !important;
+  transform: scale(1.02);
+}

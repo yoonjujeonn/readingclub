@@ -12,8 +12,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tag: {
     display: 'inline-block',
-    backgroundColor: '#eef2ff',
-    color: '#4c51bf',
+    backgroundColor: '#FFF8E7',
+    color: '#4E342E',
     padding: '3px 9px',
     borderRadius: 12,
     fontSize: 12,

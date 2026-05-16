@@ -28,7 +28,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-block',
     marginBottom: 16,
     fontSize: 14,
-    color: '#3182ce',
+    color: '#C8962E',
   },
   topicSection: {
     backgroundColor: '#fff',
@@ -41,11 +41,11 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 22,
     fontWeight: 700,
     marginBottom: 8,
-    color: '#2d3748',
+    color: '#3D2E1E',
   },
   topicContent: {
     fontSize: 14,
-    color: '#4a5568',
+    color: '#5C4A32',
     lineHeight: 1.6,
     marginBottom: 12,
   },
@@ -55,7 +55,7 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: 420,
     objectFit: 'contain' as const,
     borderRadius: 8,
-    border: '1px solid #e2e8f0',
+    border: '1px solid #E8DFD3',
     marginTop: 12,
     marginBottom: 12,
   },
@@ -64,11 +64,11 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#a0aec0',
   },
   memoRef: {
-    backgroundColor: '#ebf8ff',
+    backgroundColor: '#FFF8E7',
     padding: '10px 14px',
     borderRadius: 6,
     fontSize: 13,
-    color: '#2b6cb0',
+    color: '#C8962E',
     marginTop: 12,
   },
   section: {
@@ -82,21 +82,21 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
     fontWeight: 600,
     marginBottom: 12,
-    color: '#2d3748',
+    color: '#3D2E1E',
   },
   commentCard: {
     padding: '16px 0',
-    borderBottom: '1px solid #e2e8f0',
+    borderBottom: '1px solid #E8DFD3',
   },
   commentAuthor: {
     fontSize: 14,
     fontWeight: 600,
-    color: '#1a202c',
+    color: '#3D2E1E',
     marginBottom: 6,
   },
   commentContent: {
     fontSize: 14,
-    color: '#4a5568',
+    color: '#5C4A32',
     lineHeight: 1.7,
     marginBottom: 8,
     whiteSpace: 'pre-wrap' as const,
@@ -107,7 +107,7 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: 320,
     objectFit: 'contain' as const,
     borderRadius: 8,
-    border: '1px solid #e2e8f0',
+    border: '1px solid #E8DFD3',
     marginBottom: 8,
   },
   commentMeta: {
@@ -118,7 +118,7 @@ const styles: Record<string, React.CSSProperties> = {
   replySection: {
     marginLeft: 24,
     paddingLeft: 12,
-    borderLeft: '2px solid #e2e8f0',
+    borderLeft: '2px solid #E8DFD3',
   },
   replyCard: {
     padding: '8px 0',
@@ -126,12 +126,12 @@ const styles: Record<string, React.CSSProperties> = {
   replyAuthor: {
     fontSize: 13,
     fontWeight: 600,
-    color: '#4a5568',
+    color: '#5C4A32',
     marginBottom: 2,
   },
   replyContent: {
     fontSize: 13,
-    color: '#4a5568',
+    color: '#5C4A32',
     lineHeight: 1.5,
   },
   replyMeta: {
@@ -166,7 +166,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   submitBtn: {
     padding: '8px 16px',
-    backgroundColor: '#3182ce',
+    backgroundColor: '#C8962E',
     color: '#fff',
     border: 'none',
     borderRadius: 4,
@@ -177,7 +177,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   replyToggle: {
     fontSize: 12,
-    color: '#3182ce',
+    color: '#C8962E',
     cursor: 'pointer',
     background: 'none',
     border: 'none',
@@ -188,9 +188,9 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '7px 12px',
     fontSize: 12,
     fontWeight: 600,
-    color: '#3182ce',
-    backgroundColor: '#ebf8ff',
-    border: '1px solid #bee3f8',
+    color: '#C8962E',
+    backgroundColor: '#FFF8E7',
+    border: '1px solid #E8DFD3',
     borderRadius: 6,
     cursor: 'pointer',
   },
@@ -204,7 +204,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: 80,
     objectFit: 'cover' as const,
     borderRadius: 6,
-    border: '1px solid #e2e8f0',
+    border: '1px solid #E8DFD3',
   },
   loading: {
     textAlign: 'center' as const,
@@ -228,17 +228,17 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 500,
     cursor: 'pointer',
-    backgroundColor: '#805ad5',
+    backgroundColor: '#90bce0',
     color: '#fff',
     border: 'none',
     borderRadius: 4,
   },
   aiSummaryResult: {
-    backgroundColor: '#faf5ff',
+    backgroundColor: '#FFF8E7',
     padding: '12px 16px',
     borderRadius: 6,
     marginBottom: 16,
-    borderLeft: '3px solid #805ad5',
+    borderLeft: '3px solid #C8962E',
   },
   recommendedBadge: {
     display: 'inline-block',
@@ -679,8 +679,8 @@ function DiscussionThreadPage() {
 
       {/* Add Comment */}
       {isReadOnly ? (
-        <div style={{ ...styles.section, backgroundColor: '#f7f8fc', textAlign: 'center' as const }}>
-          <div style={{ color: '#4a5568', fontSize: 14, fontWeight: 500 }}>{readOnlyMessage || '독서기간 중에만 작성할 수 있습니다'}</div>
+        <div style={{ ...styles.section, backgroundColor: '#FDF8F0', textAlign: 'center' as const }}>
+          <div style={{ color: '#5C4A32', fontSize: 14, fontWeight: 500 }}>{readOnlyMessage || '독서기간 중에만 작성할 수 있습니다'}</div>
         </div>
       ) : (topic as any)?.status === 'closed' ? (
         <div style={{ ...styles.section, backgroundColor: '#fff5f5', textAlign: 'center' as const }}>
@@ -697,14 +697,14 @@ function DiscussionThreadPage() {
                   onMouseEnter={e => { const tip = e.currentTarget.querySelector('[data-tip]') as HTMLElement; if (tip) tip.style.display = 'block'; }}
                   onMouseLeave={e => { const tip = e.currentTarget.querySelector('[data-tip]') as HTMLElement; if (tip) tip.style.display = 'none'; }}
                 >
-                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', backgroundColor: '#e2e8f0', color: '#4a5568', fontSize: 11, fontWeight: 700 }}>?</span>
-                  <span data-tip="" style={{ display: 'none', position: 'absolute', bottom: '130%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#2d3748', color: '#fff', padding: '8px 12px', borderRadius: 8, fontSize: 12, lineHeight: 1.5, whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', backgroundColor: '#E8DFD3', color: '#5C4A32', fontSize: 11, fontWeight: 700 }}>?</span>
+                  <span data-tip="" style={{ display: 'none', position: 'absolute', bottom: '130%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#3D2E1E', color: '#fff', padding: '8px 12px', borderRadius: 8, fontSize: 12, lineHeight: 1.5, whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10 }}>
                     의견/댓글 작성 시 발언권이 차감되며,<br/>삭제해도 돌려받을 수 없으니 신중하게 작성해주세요!
                   </span>
                 </span>
                 {tokenRemaining !== null && tokenRemaining <= 0 && !tokenRequested && (
                   <button
-                    style={{ marginLeft: 6, padding: '2px 8px', fontSize: 11, border: '1px solid #3182ce', borderRadius: 4, backgroundColor: '#fff', color: '#3182ce', cursor: 'pointer' }}
+                    style={{ marginLeft: 6, padding: '2px 8px', fontSize: 11, border: '1px solid #C8962E', borderRadius: 4, backgroundColor: '#fff', color: '#C8962E', cursor: 'pointer' }}
                     onClick={async () => {
                       try {
                         await discussionsApi.requestTokens(discussionId!);
@@ -743,7 +743,7 @@ function DiscussionThreadPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
                     {commentImagePreview && <img src={commentImagePreview} alt="" style={styles.imagePreview} />}
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 12, color: '#4a5568', wordBreak: 'break-all' }}>{commentImage.name}</div>
+                      <div style={{ fontSize: 12, color: '#5C4A32', wordBreak: 'break-all' }}>{commentImage.name}</div>
                       <button type="button" onClick={clearCommentImage} style={{ ...styles.replyToggle, color: '#e53e3e', marginTop: 4 }}>삭제</button>
                     </div>
                   </div>

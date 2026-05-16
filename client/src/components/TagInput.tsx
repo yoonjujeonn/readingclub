@@ -24,7 +24,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   button: {
     padding: '10px 14px',
-    backgroundColor: '#3182ce',
+    backgroundColor: '#C8962E',
     color: '#fff',
     border: 'none',
     borderRadius: 4,
@@ -46,8 +46,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#eef2ff',
-    color: '#4c51bf',
+    backgroundColor: '#FFF8E7',
+    color: '#4E342E',
     padding: '4px 8px',
     borderRadius: 12,
     fontSize: 12,
@@ -57,7 +57,7 @@ const styles: Record<string, React.CSSProperties> = {
   remove: {
     border: 'none',
     background: 'transparent',
-    color: '#4c51bf',
+    color: '#4E342E',
     cursor: 'pointer',
     fontSize: 14,
     lineHeight: 1,

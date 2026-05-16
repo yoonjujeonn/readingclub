@@ -37,8 +37,8 @@ function ReportModal({ targetType, targetId, onClose }: ReportModalProps) {
 
         {result ? (
           <>
-            <div style={{ fontSize: 14, color: '#4a5568', marginBottom: 16 }}>{result}</div>
-            <button onClick={onClose} style={{ width: '100%', padding: '10px 0', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>
+            <div style={{ fontSize: 14, color: '#5C4A32', marginBottom: 16 }}>{result}</div>
+            <button onClick={onClose} style={{ width: '100%', padding: '10px 0', backgroundColor: '#C8962E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>
               확인
             </button>
           </>
@@ -55,9 +55,9 @@ function ReportModal({ targetType, targetId, onClose }: ReportModalProps) {
                   onClick={() => setReason(r)}
                   style={{
                     padding: '6px 12px', fontSize: 12, borderRadius: 16, cursor: 'pointer',
-                    border: reason === r ? '2px solid #3182ce' : '1px solid #e2e8f0',
-                    backgroundColor: reason === r ? '#ebf8ff' : '#fff',
-                    color: reason === r ? '#2b6cb0' : '#4a5568',
+                    border: reason === r ? '2px solid #C8962E' : '1px solid #E8DFD3',
+                    backgroundColor: reason === r ? '#FFF8E7' : '#fff',
+                    color: reason === r ? '#C8962E' : '#5C4A32',
                   }}
                 >
                   {r}

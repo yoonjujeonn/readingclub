@@ -19,7 +19,7 @@ function PageHeader({ hideMypage, hideNotification }: PageHeaderProps) {
       marginBottom: 20,
     }}>
       <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#1a202c' }}>📚 버지페이지</span>
+        <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#3D2E1E' }}><img src="/favicon.svg" alt="" style={{ width: 24, height: 24, verticalAlign: 'middle', marginRight: 6 }} />버지페이지</span>
       </Link>
       {isLoggedIn && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -27,13 +27,13 @@ function PageHeader({ hideMypage, hideNotification }: PageHeaderProps) {
           {!hideMypage && (
             <Link to="/mypage" style={{
               padding: '7px 16px',
-              backgroundColor: '#f7f8fc',
-              color: '#4a5568',
+              backgroundColor: '#FDF8F0',
+              color: '#5C4A32',
               borderRadius: 8,
               fontSize: 13,
               fontWeight: 600,
               textDecoration: 'none',
-              border: '1px solid #e2e8f0',
+              border: '1px solid #E8DFD3',
             }}>
               마이페이지
             </Link>

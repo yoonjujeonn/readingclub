@@ -12,7 +12,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #f5f7fa 0%, #e8e0ff 100%)',
+    background: '#FDF8F0',
   },
   card: {
     backgroundColor: '#fff',
@@ -20,7 +20,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 36,
     width: 400,
     boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-    border: '1px solid #f0f0f5',
+    border: '1px solid #E8DFD3',
   },
   title: {
     fontSize: 24,
@@ -28,7 +28,7 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center' as const,
     marginBottom: 28,
     letterSpacing: '-0.5px',
-    color: '#1a202c',
+    color: '#3D2E1E',
   },
   field: {
     marginBottom: 18,
@@ -38,13 +38,13 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 6,
     fontSize: 13,
     fontWeight: 600,
-    color: '#4a5568',
+    color: '#5C4A32',
   },
   input: {
     width: '100%',
     padding: '12px 14px',
     fontSize: 14,
-    border: '2px solid #e2e8f0',
+    border: '2px solid #E8DFD3',
     borderRadius: 10,
     boxSizing: 'border-box' as const,
     outline: 'none',
@@ -70,7 +70,7 @@ const styles: Record<string, React.CSSProperties> = {
   button: {
     width: '100%',
     padding: '13px 0',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: '#C8962E',
     color: '#fff',
     border: 'none',
     borderRadius: 10,
@@ -91,7 +91,7 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center' as const,
     marginTop: 18,
     fontSize: 14,
-    color: '#667eea',
+    color: '#C8962E',
     fontWeight: 500,
   },
 };

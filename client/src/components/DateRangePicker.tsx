@@ -109,7 +109,7 @@ function DateRangePicker({ startDate, endDate, onChangeStart, onChangeEnd, minDa
 
       <div style={styles.legend}>
         <div style={styles.legendItem}>
-          <span style={{ ...styles.legendDot, backgroundColor: '#3182ce' }} />
+          <span style={{ ...styles.legendDot, backgroundColor: '#C8962E' }} />
           <span>시작일: {startDate || '선택해주세요'}</span>
         </div>
         <div style={styles.legendItem}>
@@ -127,19 +127,19 @@ function DateRangePicker({ startDate, endDate, onChangeStart, onChangeEnd, minDa
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, backgroundColor: '#fff', maxWidth: 320 },
+  wrapper: { border: '1px solid #E8DFD3', borderRadius: 8, padding: 12, backgroundColor: '#fff', maxWidth: 320 },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  navBtn: { background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', padding: '2px 6px', color: '#4a5568' },
-  monthLabel: { fontSize: 13, fontWeight: 600, color: '#2d3748' },
+  navBtn: { background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', padding: '2px 6px', color: '#5C4A32' },
+  monthLabel: { fontSize: 13, fontWeight: 600, color: '#3D2E1E' },
   weekRow: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, marginBottom: 2 },
   weekCell: { textAlign: 'center' as const, fontSize: 11, color: '#a0aec0', fontWeight: 600, padding: '2px 0' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 },
   emptyCell: { padding: 6 },
   dayCell: { textAlign: 'center' as const, padding: '6px 2px', fontSize: 12, borderRadius: 4, cursor: 'pointer', transition: 'background 0.15s' },
   pastDay: { color: '#cbd5e0', cursor: 'default' },
-  selectedDay: { backgroundColor: '#3182ce', color: '#fff', fontWeight: 700 },
-  rangeDay: { backgroundColor: '#bee3f8', color: '#2b6cb0' },
-  legend: { display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8, fontSize: 12, color: '#4a5568' },
+  selectedDay: { backgroundColor: '#C8962E', color: '#fff', fontWeight: 700 },
+  rangeDay: { backgroundColor: '#E8DFD3', color: '#C8962E' },
+  legend: { display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8, fontSize: 12, color: '#5C4A32' },
   legendItem: { display: 'flex', alignItems: 'center', gap: 4 },
   legendDot: { width: 8, height: 8, borderRadius: '50%', display: 'inline-block' },
   error: { color: '#e53e3e', fontSize: 11, marginTop: 4, textAlign: 'center' as const },

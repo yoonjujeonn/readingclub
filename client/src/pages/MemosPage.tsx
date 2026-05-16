@@ -15,17 +15,17 @@ const MEMO_IMAGE_HELP_TEXT = '제한 용량: 5MB 지원 형식: JPG, PNG, GIF, W
 
 const styles: Record<string, React.CSSProperties> = {
   container: { maxWidth: 800, margin: '0 auto', padding: '24px 16px' },
-  backLink: { display: 'inline-block', marginBottom: 16, fontSize: 14, color: '#3182ce' },
+  backLink: { display: 'inline-block', marginBottom: 16, fontSize: 14, color: '#C8962E' },
   title: { fontSize: 24, fontWeight: 700, marginBottom: 24 },
   // 버튼 그리드
   buttonGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 },
   menuCard: {
     display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center',
-    padding: '28px 16px', borderRadius: 12, cursor: 'pointer', border: '1px solid #e2e8f0',
+    padding: '28px 16px', borderRadius: 12, cursor: 'pointer', border: '1px solid #E8DFD3',
     backgroundColor: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'transform 0.15s, box-shadow 0.15s',
   },
   menuIcon: { fontSize: 32, marginBottom: 8 },
-  menuLabel: { fontSize: 15, fontWeight: 600, color: '#2d3748' },
+  menuLabel: { fontSize: 15, fontWeight: 600, color: '#3D2E1E' },
   menuCount: { fontSize: 12, color: '#a0aec0', marginTop: 4 },
   // 모달
   overlay: {
@@ -38,7 +38,7 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: '80vh', overflowY: 'auto' as const, boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
   },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 18, fontWeight: 700, color: '#1a202c' },
+  modalTitle: { fontSize: 18, fontWeight: 700, color: '#3D2E1E' },
   closeBtn: {
     padding: '6px 12px', fontSize: 20, background: 'none', border: 'none', cursor: 'pointer',
     color: '#718096', lineHeight: 1,
@@ -52,12 +52,12 @@ const styles: Record<string, React.CSSProperties> = {
   helpText: { color: '#718096', fontSize: 12, marginTop: 6 },
   textarea: { width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const, minHeight: 100, resize: 'vertical' as const, fontFamily: 'inherit' },
   row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
-  button: { width: '100%', padding: '10px 0', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
+  button: { width: '100%', padding: '10px 0', backgroundColor: '#C8962E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
   buttonDisabled: { opacity: 0.6, cursor: 'not-allowed' },
-  memoCard: { backgroundColor: '#f9fafb', borderRadius: 8, padding: 16, marginBottom: 12, border: '1px solid #f0f0f5' },
+  memoCard: { backgroundColor: '#f9fafb', borderRadius: 8, padding: 16, marginBottom: 12, border: '1px solid #E8DFD3' },
   memoHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  memoRange: { fontSize: 13, fontWeight: 600, color: '#3182ce' },
-  memoContent: { fontSize: 14, color: '#4a5568', lineHeight: 1.6, marginBottom: 8 },
+  memoRange: { fontSize: 13, fontWeight: 600, color: '#C8962E' },
+  memoContent: { fontSize: 14, color: '#5C4A32', lineHeight: 1.6, marginBottom: 8 },
   memoMeta: { fontSize: 12, color: '#a0aec0' },
   actionBtn: { padding: '4px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4, backgroundColor: '#fff', cursor: 'pointer', marginLeft: 4 },
   deleteBtn: { padding: '4px 10px', fontSize: 12, border: '1px solid #e53e3e', borderRadius: 4, backgroundColor: '#fff', color: '#e53e3e', cursor: 'pointer', marginLeft: 4 },
@@ -65,9 +65,9 @@ const styles: Record<string, React.CSSProperties> = {
   serverError: { backgroundColor: '#fff5f5', color: '#e53e3e', padding: '10px 12px', borderRadius: 4, fontSize: 14, marginBottom: 16, textAlign: 'center' as const },
   emptyState: { textAlign: 'center' as const, padding: '30px 20px', color: '#a0aec0', fontSize: 14 },
   visSelect: { padding: '6px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4, backgroundColor: '#fff', cursor: 'pointer', marginLeft: 4 },
-  fileButton: { display: 'inline-block', padding: '8px 14px', fontSize: 13, fontWeight: 600, color: '#3182ce', backgroundColor: '#ebf8ff', border: '1px solid #bee3f8', borderRadius: 6, cursor: 'pointer' },
-  imagePreview: { width: 120, height: 80, objectFit: 'cover' as const, borderRadius: 6, border: '1px solid #e2e8f0' },
-  memoImage: { display: 'block', maxWidth: '100%', maxHeight: 280, objectFit: 'contain' as const, borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: 8 },
+  fileButton: { display: 'inline-block', padding: '8px 14px', fontSize: 13, fontWeight: 600, color: '#C8962E', backgroundColor: '#FFF8E7', border: '1px solid #E8DFD3', borderRadius: 6, cursor: 'pointer' },
+  imagePreview: { width: 120, height: 80, objectFit: 'cover' as const, borderRadius: 6, border: '1px solid #E8DFD3' },
+  memoImage: { display: 'block', maxWidth: '100%', maxHeight: 280, objectFit: 'contain' as const, borderRadius: 8, border: '1px solid #E8DFD3', marginBottom: 8 },
 };
 
 type ModalType = 'create' | 'my' | 'public' | 'spoiler' | null;
@@ -353,7 +353,7 @@ function MemosPage() {
       {editingId === memo.id ? (
         <>
           <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: '#2d3748', marginBottom: 4, display: 'block' }}>💭 이 생각이 나온 페이지</label>
+            <label style={{ fontSize: 13, fontWeight: 600, color: '#3D2E1E', marginBottom: 4, display: 'block' }}>💭 이 생각이 나온 페이지</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input type="number" style={{ ...styles.input, width: 100, textAlign: 'center' as const }} value={editPageStart} onChange={(e) => setEditPageStart(e.target.value)} placeholder="시작 페이지" />
               <span style={{ fontSize: 16, color: '#a0aec0', fontWeight: 500 }}>~</span>
@@ -412,7 +412,7 @@ function MemosPage() {
             <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 500, backgroundColor: vc.bg, color: vc.color }}>
               {visibilityLabel(memo.visibility || 'public')}
             </span>
-            <span style={{ fontSize: 13, color: isOwn ? '#3182ce' : '#718096', fontWeight: isOwn ? 600 : 400 }}>
+            <span style={{ fontSize: 13, color: isOwn ? '#C8962E' : '#718096', fontWeight: isOwn ? 600 : 400 }}>
               {memo.authorNickname}{isOwn && ' (나)'}
             </span>
           </div>
@@ -434,7 +434,7 @@ function MemosPage() {
           {!memo.isContentHidden && memo.content.length > 80 && (
             <button
               onClick={() => setDetailMemo(memo)}
-              style={{ ...styles.actionBtn, fontSize: 11, color: '#3182ce', borderColor: '#bee3f8' }}
+              style={{ ...styles.actionBtn, fontSize: 11, color: '#C8962E', borderColor: '#E8DFD3' }}
             >
               자세히
             </button>
@@ -455,9 +455,9 @@ function MemosPage() {
               <button style={styles.closeBtn} onClick={closeModal} aria-label="닫기">×</button>
             </div>
             {/* 현재 읽은 페이지 업데이트 */}
-            <div style={{ backgroundColor: '#f7f8fc', borderRadius: 8, padding: '12px 16px', marginBottom: 16, border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 8 }}>
-                📖 현재 읽은 페이지: <span style={{ color: '#3182ce' }}>{currentProgress}p</span>
+            <div style={{ backgroundColor: '#FDF8F0', borderRadius: 8, padding: '12px 16px', marginBottom: 16, border: '1px solid #E8DFD3' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#5C4A32', marginBottom: 8 }}>
+                📖 현재 읽은 페이지: <span style={{ color: '#C8962E' }}>{currentProgress}p</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input
@@ -488,7 +488,7 @@ function MemosPage() {
             <form onSubmit={handleSubmit} noValidate>
               {serverError && <div style={styles.serverError}>{serverError}</div>}
               <div style={styles.field}>
-                <label style={{ ...styles.label, fontSize: 14, fontWeight: 600, color: '#2d3748', marginBottom: 8 }}>💭 이 생각이 나온 페이지</label>
+                <label style={{ ...styles.label, fontSize: 14, fontWeight: 600, color: '#3D2E1E', marginBottom: 8 }}>💭 이 생각이 나온 페이지</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input type="number" min="0" style={{ ...styles.input, width: 120, textAlign: 'center' as const, ...(formErrors.pageStart ? styles.inputError : {}) }} value={pageStart} onChange={(e) => setPageStart(e.target.value)} placeholder="시작 페이지" />
                   <span style={{ fontSize: 16, color: '#a0aec0', fontWeight: 500 }}>~</span>
@@ -513,7 +513,7 @@ function MemosPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
                     {memoImagePreview && <img src={memoImagePreview} alt="" style={styles.imagePreview} />}
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 12, color: '#4a5568', wordBreak: 'break-all' }}>{memoImage.name}</div>
+                      <div style={{ fontSize: 12, color: '#5C4A32', wordBreak: 'break-all' }}>{memoImage.name}</div>
                       <button type="button" onClick={clearMemoImage} style={{ ...styles.actionBtn, color: '#e53e3e', marginTop: 4 }}>삭제</button>
                     </div>
                   </div>
@@ -549,7 +549,7 @@ function MemosPage() {
             </div>
             {myMemos.length > 0 && (
               <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <label style={{ fontSize: 13, fontWeight: 500, color: '#4a5568' }}>정렬:</label>
+                <label style={{ fontSize: 13, fontWeight: 500, color: '#5C4A32' }}>정렬:</label>
                 <select
                   value={memoSort}
                   onChange={(e) => setMemoSort(e.target.value as SortOption)}
@@ -560,16 +560,16 @@ function MemosPage() {
                   <option value="pageAsc">앞 페이지</option>
                   <option value="pageDesc">뒷 페이지</option>
                 </select>
-                <span style={{ width: 1, height: 20, backgroundColor: '#e2e8f0', margin: '0 4px' }} />
+                <span style={{ width: 1, height: 20, backgroundColor: '#E8DFD3', margin: '0 4px' }} />
                 {([['all', '전체'], ['private', '🔒 비공개'], ['public', '🔓 공개'], ['spoiler', '⚠️ 스포일러']] as [FilterOption, string][]).map(([value, label]) => (
                   <button
                     key={value}
                     onClick={() => setMemoFilter(value)}
                     style={{
                       padding: '4px 10px', fontSize: 12, fontWeight: 500, borderRadius: 14, cursor: 'pointer',
-                      border: memoFilter === value ? '1px solid #3182ce' : '1px solid #e2e8f0',
+                      border: memoFilter === value ? '1px solid #C8962E' : '1px solid #E8DFD3',
                       backgroundColor: memoFilter === value ? '#ebf4ff' : '#fff',
-                      color: memoFilter === value ? '#3182ce' : '#718096',
+                      color: memoFilter === value ? '#C8962E' : '#718096',
                     }}
                   >
                     {label}
@@ -592,7 +592,7 @@ function MemosPage() {
             </div>
             {publicMemos.length > 0 && (
               <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <label style={{ fontSize: 13, fontWeight: 500, color: '#4a5568' }}>정렬:</label>
+                <label style={{ fontSize: 13, fontWeight: 500, color: '#5C4A32' }}>정렬:</label>
                 <select
                   value={publicSort}
                   onChange={(e) => setPublicSort(e.target.value as SortOption)}
@@ -623,7 +623,7 @@ function MemosPage() {
             </div>
             {spoilerMemos.length > 0 && (
               <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <label style={{ fontSize: 13, fontWeight: 500, color: '#4a5568' }}>정렬:</label>
+                <label style={{ fontSize: 13, fontWeight: 500, color: '#5C4A32' }}>정렬:</label>
                 <select
                   value={spoilerSort}
                   onChange={(e) => setSpoilerSort(e.target.value as SortOption)}
@@ -656,12 +656,12 @@ function MemosPage() {
       <h1 style={styles.title}>📝 메모</h1>
 
       {groupInfo && (
-        <div style={{ backgroundColor: '#f7f8fc', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ backgroundColor: '#FDF8F0', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
           {groupInfo.book?.coverImageUrl && (
             <img src={groupInfo.book.coverImageUrl} alt="" style={{ width: 40, height: 56, objectFit: 'contain', borderRadius: 4, flexShrink: 0 }} />
           )}
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#1a202c' }}>{groupInfo.book?.title}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#3D2E1E' }}>{groupInfo.book?.title}</div>
             <div style={{ fontSize: 13, color: '#718096' }}>{groupInfo.name}</div>
           </div>
         </div>
@@ -670,7 +670,7 @@ function MemosPage() {
       {/* 4개 메뉴 버튼 */}
       <div style={styles.buttonGrid}>
         <div
-          style={{ ...styles.menuCard, borderColor: isReadOnly ? '#e2e8f0' : '#3182ce', ...(isReadOnly ? styles.buttonDisabled : {}) }}
+          style={{ ...styles.menuCard, borderColor: isReadOnly ? '#E8DFD3' : '#C8962E', ...(isReadOnly ? styles.buttonDisabled : {}) }}
           onClick={() => {
             if (isReadOnly) {
               showToast(readOnlyMessage || '독서기간 중에만 메모를 작성할 수 있습니다');
@@ -753,7 +753,7 @@ function MemosPage() {
                 {visibilityLabel(detailMemo.visibility || 'private')}
               </span>
             </div>
-            <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+            <div style={{ fontSize: 14, color: '#5C4A32', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
               {detailMemo.content}
             </div>
             {detailMemo.imageUrl && <img src={detailMemo.imageUrl} alt="" style={{ ...styles.memoImage, marginTop: 12 }} />}
