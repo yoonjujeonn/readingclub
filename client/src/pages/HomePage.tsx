@@ -9,6 +9,8 @@ import GroupTags from '../components/GroupTags';
 import NotificationBell from '../components/NotificationBell';
 import RankingBanner from '../components/RankingBanner';
 
+type SearchType = 'bookTitle' | 'bookAuthor' | 'owner';
+
 const styles: Record<string, React.CSSProperties> = {
   container: {
     maxWidth: 960,
@@ -67,6 +69,18 @@ const styles: Record<string, React.CSSProperties> = {
     boxSizing: 'border-box' as const,
     outline: 'none',
     transition: 'border-color 0.2s',
+  },
+  searchSelect: {
+    width: 120,
+    padding: '12px 14px',
+    fontSize: 14,
+    border: '2px solid #e2e8f0',
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    color: '#2d3748',
+    boxSizing: 'border-box' as const,
+    outline: 'none',
+    cursor: 'pointer',
   },
   searchButton: {
     padding: '12px 24px',
@@ -164,6 +178,7 @@ function HomePage() {
   // 초기값을 반드시 빈 배열 []로 설정하여 map 에러 방지
   const [groups, setGroups] = useState<GroupCard[]>([]);
   const [search, setSearch] = useState('');
+  const [searchType, setSearchType] = useState<SearchType>('bookTitle');
   const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
 
@@ -172,10 +187,10 @@ function HomePage() {
   const [joining, setJoining] = useState(false);
   const [joinMsg, setJoinMsg] = useState('');
 
-  const fetchGroups = async (query?: string) => {
+  const fetchGroups = async (query?: string, type: SearchType = searchType) => {
     setLoading(true);
     try {
-      const params = query ? { search: query } : undefined;
+      const params = query ? { search: query, searchType: type } : undefined;
       const response = await groupsApi.list(params);
       // API 응답 구조에 따라 데이터가 없을 경우 빈 배열을 기본값으로 사용
       setGroups(response.data?.data || []);
@@ -194,7 +209,22 @@ function HomePage() {
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     setSearched(!!search.trim());
-    fetchGroups(search.trim() || undefined);
+    fetchGroups(search.trim() || undefined, searchType);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    if (!value.trim() && searched) {
+      setSearched(false);
+      fetchGroups();
+    }
+  };
+
+  const handleSearchTypeChange = (type: SearchType) => {
+    setSearchType(type);
+    if (searched && search.trim()) {
+      fetchGroups(search.trim(), type);
+    }
   };
 
   const handleCardClick = (group: GroupCard) => {
@@ -256,7 +286,7 @@ function HomePage() {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => { setSearch(''); setSearched(false); fetchGroups(); }}>
+        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => { setSearch(''); setSearchType('bookTitle'); setSearched(false); fetchGroups(undefined, 'bookTitle'); }}>
           <h1 style={styles.title}>📚 버지페이지</h1>
         </Link>
         <div style={styles.nav}>
@@ -320,12 +350,22 @@ function HomePage() {
       <RankingBanner />
 
       <form onSubmit={handleSearch} style={styles.searchBar}>
+        <select
+          value={searchType}
+          onChange={(e) => handleSearchTypeChange(e.target.value as SearchType)}
+          style={styles.searchSelect}
+          aria-label="검색 기준"
+        >
+          <option value="bookTitle">책 제목</option>
+          <option value="bookAuthor">글쓴이</option>
+          <option value="owner">모임장</option>
+        </select>
         <input
           type="text"
           style={styles.searchInput}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="책 제목으로 검색..."
+          onChange={(e) => handleSearchChange(e.target.value)}
+          placeholder="검색어를 입력하세요..."
         />
         <button type="submit" style={styles.searchButton}>검색</button>
       </form>

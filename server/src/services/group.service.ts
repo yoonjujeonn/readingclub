@@ -16,6 +16,8 @@ const normalizeTags = (tags?: string[]) =>
 
 const mapTags = (tags?: { name: string }[]) => tags?.map(tag => tag.name) ?? [];
 
+type GroupSearchType = 'bookTitle' | 'bookAuthor' | 'owner';
+
 export const groupService = {
   async create(data: CreateGroupInput, userId: string) {
     // 모임명/설명 욕설 필터링
@@ -116,7 +118,7 @@ export const groupService = {
     return { ...group, tags: mapTags(group.tags) };
   },
 
-  async list(query?: { search?: string; page?: number; limit?: number }, userId?: string) {
+  async list(query?: { search?: string; searchType?: string; page?: number; limit?: number }, userId?: string) {
     const page = query?.page ?? 1;
     const limit = query?.limit ?? 10;
     const skip = (page - 1) * limit;
@@ -126,10 +128,20 @@ export const groupService = {
     const where: any = {
       readingEndDate: { gte: todayStart },
     };
-    if (query?.search) {
-      where.book = {
-        title: { contains: query.search },
-      };
+    const search = query?.search?.trim();
+    if (search) {
+      const searchType: GroupSearchType =
+        query?.searchType === 'bookAuthor' || query?.searchType === 'owner'
+          ? query.searchType
+          : 'bookTitle';
+
+      if (searchType === 'bookAuthor') {
+        where.book = { author: { contains: search } };
+      } else if (searchType === 'owner') {
+        where.owner = { nickname: { contains: search } };
+      } else {
+        where.book = { title: { contains: search } };
+      }
     }
 
     const [groups, total] = await Promise.all([
