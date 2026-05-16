@@ -24,6 +24,17 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 Get-Content -Raw -Encoding UTF8 .\path\to\file.md
 ```
 
+When using `functions.shell_command` in this repository, prefer `login: false` for PowerShell commands, especially when reading files, listing filenames, or printing Korean text.
+
+Reason: the user's PowerShell profile may fail to load due to execution policy and can emit mojibake/noisy Korean output before the command runs.
+
+For Korean or UTF-8 sensitive reads, use both:
+
+- `login: false`
+- UTF-8 initialization inside the command
+
+If output still appears broken, do not assume file corruption. Retry with `login: false` and UTF-8 initialization before interpreting content.
+
 For Markdown, `.env`, `.env.example`, JSON, JavaScript, TypeScript, SQL, and config files, assume UTF-8 unless the file clearly indicates otherwise.
 
 When editing files:
