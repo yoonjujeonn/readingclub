@@ -19,7 +19,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-block',
     marginBottom: 16,
     fontSize: 14,
-    color: '#3182ce',
+    color: '#C8962E',
   },
   bookSection: {
     backgroundColor: '#fff',
@@ -40,7 +40,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   bookSummary: {
     fontSize: 14,
-    color: '#4a5568',
+    color: '#5C4A32',
     lineHeight: 1.6,
     maxHeight: 220,
     overflowY: 'auto' as const,
@@ -59,12 +59,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
     fontWeight: 600,
     marginBottom: 12,
-    color: '#2d3748',
+    color: '#3D2E1E',
   },
   groupName: {
     fontSize: 18,
     fontWeight: 600,
-    color: '#3182ce',
+    color: '#C8962E',
     marginBottom: 8,
   },
   meta: {
@@ -83,7 +83,7 @@ const styles: Record<string, React.CSSProperties> = {
   progressBar: {
     width: 100,
     height: 8,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#E8DFD3',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -133,8 +133,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'block',
     textAlign: 'center' as const,
     padding: '10px 0',
-    backgroundColor: '#ebf8ff',
-    color: '#3182ce',
+    backgroundColor: '#FFF8E7',
+    color: '#C8962E',
     borderRadius: 6,
     fontSize: 14,
     fontWeight: 500,
@@ -143,7 +143,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '8px 0',
     borderBottom: '1px solid #f0f0f0',
     fontSize: 13,
-    color: '#4a5568',
+    color: '#5C4A32',
   },
   loading: {
     textAlign: 'center' as const,
@@ -340,9 +340,9 @@ function GroupDetailPage() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     onClick={startEditing}
-                    style={{ padding: '6px 14px', fontSize: 13, border: '1px solid #3182ce', borderRadius: 4, backgroundColor: '#fff', color: '#3182ce', cursor: 'pointer' }}
+                    style={{ padding: '6px 14px', fontSize: 13, border: '1px solid #C8962E', borderRadius: 4, backgroundColor: '#fff', color: '#C8962E', cursor: 'pointer' }}
                   >
-                    ✏️ 수정
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: 4, marginBottom: 1 }}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>수정
                   </button>
                   {(group.currentMembers || group.memberCount || group.members?.length || 0) <= 1 && (
                     <button
@@ -358,13 +358,13 @@ function GroupDetailPage() {
                       }}
                       style={{ padding: '6px 14px', fontSize: 13, border: '1px solid #e53e3e', borderRadius: 4, backgroundColor: '#fff', color: '#e53e3e', cursor: 'pointer' }}
                     >
-                      🗑️ 삭제
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: 4, marginBottom: 1 }}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>삭제
                     </button>
                   )}
                 </div>
               )}
             </div>
-            {group.description && <p style={{ fontSize: 14, color: '#4a5568', marginBottom: 12 }}>{group.description}</p>}
+            {group.description && <p style={{ fontSize: 14, color: '#5C4A32', marginBottom: 12 }}>{group.description}</p>}
             <div style={{ marginBottom: group.tags?.length ? 12 : 0 }}>
               <GroupTags tags={group.tags} />
             </div>
@@ -400,7 +400,7 @@ function GroupDetailPage() {
                     const el = document.getElementById('edit-date-picker');
                     if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
                   }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, background: 'none', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 12px', cursor: 'pointer', color: '#4a5568', width: '100%' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, background: 'none', border: '1px solid #E8DFD3', borderRadius: 6, padding: '8px 12px', cursor: 'pointer', color: '#5C4A32', width: '100%' }}
                 >
                   📅 독서 기간: {editReadingStart && editReadingEnd ? `${editReadingStart} ~ ${editReadingEnd}` : '클릭하여 설정'}
                 </button>
@@ -437,7 +437,7 @@ function GroupDetailPage() {
               )}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleSaveEdit} disabled={saving} style={{ padding: '8px 20px', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={handleSaveEdit} disabled={saving} style={{ padding: '8px 20px', backgroundColor: '#4E342E', color: '#fff', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer' }}>
                 {saving ? '저장 중...' : '저장'}
               </button>
               <button onClick={() => setEditing(false)} style={{ padding: '8px 20px', backgroundColor: '#edf2f7', color: '#333', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer' }}>
@@ -517,7 +517,7 @@ function GroupDetailPage() {
               <button
                 onClick={() => handleJoin(joinPassword)}
                 disabled={joining || !joinPassword}
-                style={{ flex: 1, padding: '10px 0', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                style={{ flex: 1, padding: '10px 0', backgroundColor: '#4E342E', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
               >
                 {joining ? '확인 중...' : '참여하기'}
               </button>
@@ -539,7 +539,7 @@ function GroupDetailPage() {
           {(group as any).announcements.map((ann: any) => (
             <div key={ann.id} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
               <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{ann.title}</div>
-              <div style={{ fontSize: 13, color: '#4a5568', lineHeight: 1.5 }}>{ann.content}</div>
+              <div style={{ fontSize: 13, color: '#5C4A32', lineHeight: 1.5 }}>{ann.content}</div>
               <div style={{ fontSize: 11, color: '#a0aec0', marginTop: 4 }}>{new Date(ann.createdAt).toLocaleDateString()}</div>
             </div>
           ))}
@@ -562,7 +562,7 @@ function GroupDetailPage() {
               </div>
               {m.userId === currentUserId ? (
                 <button
-                  style={{ padding: '2px 8px', fontSize: 11, border: '1px solid #3182ce', borderRadius: 4, backgroundColor: '#fff', color: '#3182ce', cursor: 'pointer', whiteSpace: 'nowrap' as const }}
+                  style={{ padding: '2px 8px', fontSize: 11, border: '1px solid #C8962E', borderRadius: 4, backgroundColor: '#fff', color: '#C8962E', cursor: 'pointer', whiteSpace: 'nowrap' as const }}
                   onClick={() => {
                     const input = prompt('현재 읽은 페이지를 입력해주세요', String(m.readingProgress));
                     if (input !== null && !isNaN(Number(input)) && Number(input) >= 0) {

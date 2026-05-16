@@ -46,7 +46,7 @@ function InvitePage() {
         <>
           <h2 style={{ color: '#48bb78', marginBottom: 12 }}>✅ {message}</h2>
           {groupId && (
-            <button onClick={() => navigate(`/groups/${groupId}`)} style={{ padding: '10px 24px', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>
+            <button onClick={() => navigate(`/groups/${groupId}`)} style={{ padding: '10px 24px', backgroundColor: '#4E342E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>
               모임으로 이동
             </button>
           )}

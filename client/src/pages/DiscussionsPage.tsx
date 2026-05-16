@@ -25,7 +25,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-block',
     marginBottom: 16,
     fontSize: 14,
-    color: '#3182ce',
+    color: '#C8962E',
   },
   title: {
     fontSize: 24,
@@ -43,7 +43,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
     fontWeight: 600,
     marginBottom: 12,
-    color: '#2d3748',
+    color: '#3D2E1E',
   },
   field: {
     marginBottom: 14,
@@ -97,7 +97,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   button: {
     padding: '10px 24px',
-    backgroundColor: '#3182ce',
+    backgroundColor: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 6,
@@ -117,7 +117,7 @@ const styles: Record<string, React.CSSProperties> = {
   discussionTitle: {
     fontSize: 15,
     fontWeight: 600,
-    color: '#2d3748',
+    color: '#3D2E1E',
     marginBottom: 4,
   },
   discussionMeta: {
@@ -136,21 +136,21 @@ const styles: Record<string, React.CSSProperties> = {
   },
   recCard: {
     padding: '12px 16px',
-    border: '1px dashed #3182ce',
+    border: '1px dashed #C8962E',
     borderRadius: 6,
     marginBottom: 8,
     cursor: 'pointer',
-    backgroundColor: '#ebf8ff',
+    backgroundColor: '#FFF8E7',
   },
   recTitle: {
     fontSize: 14,
     fontWeight: 600,
-    color: '#2b6cb0',
+    color: '#C8962E',
     marginBottom: 4,
   },
   recContent: {
     fontSize: 13,
-    color: '#4a5568',
+    color: '#5C4A32',
   },
   filterRow: {
     display: 'flex',
@@ -166,9 +166,9 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   filterBtnActive: {
-    backgroundColor: '#3182ce',
+    backgroundColor: '#4E342E',
     color: '#fff',
-    borderColor: '#3182ce',
+    borderColor: '#C8962E',
   },
   emptyState: {
     textAlign: 'center' as const,
@@ -217,7 +217,7 @@ const styles: Record<string, React.CSSProperties> = {
   modalTitle: {
     fontSize: 18,
     fontWeight: 700,
-    color: '#1a202c',
+    color: '#3D2E1E',
   },
   closeBtn: {
     padding: '6px 12px',
@@ -230,7 +230,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   createBtn: {
     padding: '10px 20px',
-    backgroundColor: '#3182ce',
+    backgroundColor: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 6,
@@ -249,9 +249,9 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '8px 14px',
     fontSize: 13,
     fontWeight: 600,
-    color: '#3182ce',
-    backgroundColor: '#ebf8ff',
-    border: '1px solid #bee3f8',
+    color: '#C8962E',
+    backgroundColor: '#FFF8E7',
+    border: '1px solid #E8DFD3',
     borderRadius: 6,
     cursor: 'pointer',
   },
@@ -260,7 +260,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: 80,
     objectFit: 'cover' as const,
     borderRadius: 6,
-    border: '1px solid #e2e8f0',
+    border: '1px solid #E8DFD3',
   },
 };
 
@@ -591,7 +591,7 @@ function DiscussionsPage() {
 
       {/* 📌 대표 스레드 (고정) — 전체 필터에서만 표시 */}
       {filterMode === 'all' && !loading && discussions.filter((d: any) => d.isPinned).length > 0 && (
-        <div style={{ ...styles.section, borderLeft: '4px solid #3182ce' }}>
+        <div style={{ ...styles.section, borderLeft: '4px solid #C8962E' }}>
           <div style={styles.sectionTitle}>📌 대표 스레드</div>
           {discussions.filter((d: any) => d.isPinned).map((d) => (
             <div
@@ -607,7 +607,7 @@ function DiscussionsPage() {
                 {(d as any).status === 'closed' && <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 8px', borderRadius: 12, marginLeft: 8 }}>종료</span>}
               </div>
               {d.content && (
-                <div style={{ fontSize: 13, color: '#4a5568', marginTop: 4, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                <div style={{ fontSize: 13, color: '#5C4A32', marginTop: 4, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {d.content}
                 </div>
               )}
@@ -626,9 +626,9 @@ function DiscussionsPage() {
             {filterMode === 'authored' ? '📝 내가 작성한 스레드만 표시됩니다' : '💬 내가 의견이나 댓글을 남긴 스레드가 표시됩니다'}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #e2e8f0', marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #E8DFD3', marginBottom: 16 }}>
           <button
-            style={{ padding: '8px 16px', fontSize: 14, fontWeight: threadTab === 'active' ? 600 : 400, cursor: 'pointer', border: 'none', background: 'none', color: threadTab === 'active' ? '#3182ce' : '#718096', borderBottom: threadTab === 'active' ? '2px solid #3182ce' : '2px solid transparent', marginBottom: -2 }}
+            style={{ padding: '8px 16px', fontSize: 14, fontWeight: threadTab === 'active' ? 600 : 400, cursor: 'pointer', border: 'none', background: 'none', color: threadTab === 'active' ? '#C8962E' : '#718096', borderBottom: threadTab === 'active' ? '2px solid #C8962E' : '2px solid transparent', marginBottom: -2 }}
             onClick={() => { setThreadTab('active'); setActivePage(1); }}
           >🟢 진행중</button>
           <button
@@ -692,8 +692,8 @@ function DiscussionsPage() {
                     <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                       <button
                         onClick={(e) => { e.stopPropagation(); setEditingDiscussion(d); }}
-                        style={{ padding: '3px 10px', fontSize: 11, color: '#667eea', background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 4, cursor: 'pointer' }}
-                      >수정</button>
+                        style={{ padding: '3px 10px', fontSize: 11, color: '#C8962E', background: 'none', border: '1px solid #E8DFD3', borderRadius: 4, cursor: 'pointer' }}
+                      ><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: 3 }}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>수정</button>
                       <button
                         onClick={async (e) => {
                           e.stopPropagation();
@@ -706,8 +706,8 @@ function DiscussionsPage() {
                             showToast(axiosErr.response?.data?.error?.message || '삭제에 실패했습니다');
                           }
                         }}
-                        style={{ padding: '3px 10px', fontSize: 11, color: '#e53e3e', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 4, cursor: 'pointer' }}
-                      >삭제</button>
+                        style={{ padding: '3px 10px', fontSize: 11, color: '#e53e3e', background: 'none', border: '1px solid #fed7d7', borderRadius: 4, cursor: 'pointer' }}
+                      ><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: 3 }}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>삭제</button>
                     </div>
                   )}
                 </div>
@@ -719,7 +719,7 @@ function DiscussionsPage() {
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                     <button
                       key={p}
-                      style={{ padding: '4px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4, backgroundColor: p === currentPage ? '#3182ce' : '#fff', color: p === currentPage ? '#fff' : '#333', cursor: 'pointer' }}
+                      style={{ padding: '4px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4, backgroundColor: p === currentPage ? '#C8962E' : '#fff', color: p === currentPage ? '#fff' : '#333', cursor: 'pointer' }}
                       onClick={() => isActive ? setActivePage(p) : setClosedPage(p)}
                     >{p}</button>
                   ))}
@@ -741,7 +741,7 @@ function DiscussionsPage() {
 
             {/* 직접 작성 폼 */}
             <div style={{ marginBottom: 24 }}>
-              <div style={{ ...styles.sectionTitle, marginBottom: 12 }}>✏️ 직접 작성</div>
+              <div style={{ ...styles.sectionTitle, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4E342E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>직접 작성</div>
               {remainingCount && (
                 <div style={{ fontSize: 13, marginBottom: 12, padding: '8px 12px', borderRadius: 6, backgroundColor: remainingCount.remaining > 0 ? '#f0fff4' : '#fff5f5', color: remainingCount.remaining > 0 ? '#38a169' : '#e53e3e' }}>
                   오늘 남은 생성 횟수: {remainingCount.remaining}/{remainingCount.limit}회
@@ -778,23 +778,23 @@ function DiscussionsPage() {
                     type="button"
                     onClick={handleFindSimilar}
                     disabled={similarLoading || !formTitle.trim()}
-                    style={{ padding: '8px 14px', backgroundColor: '#edf2f7', color: '#4a5568', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+                    style={{ padding: '8px 14px', backgroundColor: '#edf2f7', color: '#5C4A32', border: '1px solid #E8DFD3', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
                   >
                     {similarLoading ? '검색 중...' : '🔍 유사한 스레드 확인하기'}
                   </button>
 
                   {similarThreads.length > 0 && (
-                    <div style={{ marginTop: 10, border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, backgroundColor: '#f7fafc' }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 8 }}>
+                    <div style={{ marginTop: 10, border: '1px solid #E8DFD3', borderRadius: 8, padding: 12, backgroundColor: '#f7fafc' }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#5C4A32', marginBottom: 8 }}>
                         🔍 유사한 스레드가 {similarThreads.length}개 있습니다
                       </div>
                       {similarThreads.map((t: any) => (
                         <div
                           key={t.id}
-                          style={{ padding: '8px 0', borderBottom: '1px solid #e2e8f0', cursor: 'pointer' }}
+                          style={{ padding: '8px 0', borderBottom: '1px solid #E8DFD3', cursor: 'pointer' }}
                           onClick={() => navigate(`/discussions/${t.id}`)}
                         >
-                          <div style={{ fontSize: 14, fontWeight: 500, color: '#2d3748' }}>
+                          <div style={{ fontSize: 14, fontWeight: 500, color: '#3D2E1E' }}>
                             {t.title}
                             <span style={{ marginLeft: 6, fontSize: 11, color: t.status === 'active' ? '#38a169' : '#718096' }}>
                               {t.status === 'active' ? '진행 중' : '종료'}
@@ -828,7 +828,7 @@ function DiscussionsPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
                       {formImagePreview && <img src={formImagePreview} alt="" style={styles.imagePreview} />}
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 12, color: '#4a5568', wordBreak: 'break-all' }}>{formImage.name}</div>
+                        <div style={{ fontSize: 12, color: '#5C4A32', wordBreak: 'break-all' }}>{formImage.name}</div>
                         <button type="button" onClick={clearThreadImage} style={{ ...styles.closeBtn, padding: '4px 0', fontSize: 12, color: '#e53e3e' }}>삭제</button>
                       </div>
                     </div>
@@ -882,7 +882,7 @@ function DiscussionsPage() {
               </form>
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '20px 0' }} />
+            <hr style={{ border: 'none', borderTop: '1px solid #E8DFD3', margin: '20px 0' }} />
 
             {/* AI 스레드 주제 제안 */}
             <div style={{ marginBottom: 20 }}>
@@ -891,7 +891,7 @@ function DiscussionsPage() {
                 <button
                   onClick={handleAiSuggest}
                   disabled={aiLoading}
-                  style={{ ...styles.button, padding: '8px 16px', fontSize: 13, ...(aiLoading ? styles.buttonDisabled : {}) }}
+                  style={{ ...styles.button, padding: '8px 16px', fontSize: 13, backgroundColor: '#90bce0', color: '#fff', ...(aiLoading ? styles.buttonDisabled : {}) }}
                 >
                   {aiLoading ? '생성 중...' : '🤖 AI 주제 생성'}
                 </button>
@@ -899,13 +899,13 @@ function DiscussionsPage() {
               {aiTopics.length > 0 && aiTopics.map((topic, i) => (
                 <div
                   key={i}
-                  style={{ ...styles.recCard, borderColor: '#805ad5', backgroundColor: '#faf5ff' }}
+                  style={{ ...styles.recCard, borderColor: '#C8962E', backgroundColor: '#FFF8E7' }}
                   onClick={() => handleSelectAiTopic(topic)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => e.key === 'Enter' && handleSelectAiTopic(topic)}
                 >
-                  <div style={{ ...styles.recTitle, color: '#6b46c1' }}>🤖 {topic.title}</div>
+                  <div style={{ ...styles.recTitle, color: '#4E342E' }}>🤖 {topic.title}</div>
                   <div style={styles.recContent}>{topic.content}</div>
                 </div>
               ))}
@@ -919,7 +919,7 @@ function DiscussionsPage() {
             {/* 추천 주제 */}
             {recommendations.length > 0 && (
               <div>
-                <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '20px 0' }} />
+                <hr style={{ border: 'none', borderTop: '1px solid #E8DFD3', margin: '20px 0' }} />
                 <div style={styles.sectionTitle}>✨ 추천 주제</div>
                 {recommendations.map((rec, i) => (
                   <div
@@ -945,7 +945,7 @@ function DiscussionsPage() {
         <div style={styles.overlay} onClick={() => setEditingDiscussion(null)}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <div style={styles.modalTitle}>✏️ 스레드 수정</div>
+              <div style={{ ...styles.modalTitle, display: 'flex', alignItems: 'center', gap: 6 }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4E342E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>스레드 수정</div>
               <button style={styles.closeBtn} onClick={() => setEditingDiscussion(null)} aria-label="닫기">×</button>
             </div>
             <div style={{ padding: 20 }}>

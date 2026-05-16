@@ -9,7 +9,7 @@ export function Markdown({ content }: MarkdownProps) {
   return (
     <div
       className="markdown-content"
-      style={{ fontSize: 14, color: '#4a5568', lineHeight: 1.8 }}
+      style={{ fontSize: 14, color: '#5C4A32', lineHeight: 1.8 }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

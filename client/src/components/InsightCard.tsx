@@ -92,7 +92,7 @@ export function InsightCard({ insight }: InsightCardProps) {
             padding: '12px 16px',
             background: 'rgba(255,255,255,0.08)',
             borderRadius: 10,
-            borderLeft: '3px solid #667eea',
+            borderLeft: '3px solid #C8962E',
           }}>
             "{insight.takeaway}"
           </div>
@@ -139,7 +139,7 @@ export function InsightCard({ insight }: InsightCardProps) {
 
       {/* Action Buttons */}
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-        <button onClick={handleExportImage} style={{ padding: '8px 16px', backgroundColor: '#2d3748', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+        <button onClick={handleExportImage} style={{ padding: '8px 16px', backgroundColor: '#3D2E1E', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
           📷 저장
         </button>
         <button onClick={handleCopyForKakao} style={{ padding: '8px 16px', backgroundColor: '#FEE500', color: '#3C1E1E', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>

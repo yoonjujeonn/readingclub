@@ -18,7 +18,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-block',
     marginBottom: 16,
     fontSize: 14,
-    color: '#3182ce',
+    color: '#C8962E',
   },
   title: {
     fontSize: 24,
@@ -36,7 +36,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
     fontWeight: 600,
     marginBottom: 12,
-    color: '#2d3748',
+    color: '#3D2E1E',
   },
   searchRow: {
     display: 'flex',
@@ -61,7 +61,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   searchBtn: {
     padding: '10px 16px',
-    backgroundColor: '#3182ce',
+    backgroundColor: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 4,
@@ -72,7 +72,7 @@ const styles: Record<string, React.CSSProperties> = {
   bookList: {
     maxHeight: 200,
     overflowY: 'auto' as const,
-    border: '1px solid #e2e8f0',
+    border: '1px solid #E8DFD3',
     borderRadius: 4,
     marginBottom: 8,
   },
@@ -83,10 +83,10 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
   },
   bookItemHover: {
-    backgroundColor: '#ebf8ff',
+    backgroundColor: '#FFF8E7',
   },
   selectedBook: {
-    backgroundColor: '#ebf8ff',
+    backgroundColor: '#FFF8E7',
     padding: '10px 12px',
     borderRadius: 4,
     fontSize: 13,
@@ -97,7 +97,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   manualToggle: {
     fontSize: 13,
-    color: '#3182ce',
+    color: '#C8962E',
     cursor: 'pointer',
     background: 'none',
     border: 'none',
@@ -132,7 +132,7 @@ const styles: Record<string, React.CSSProperties> = {
   button: {
     width: '100%',
     padding: '12px 0',
-    backgroundColor: '#3182ce',
+    backgroundColor: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 6,
@@ -316,7 +316,7 @@ function CreateGroupPage() {
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => e.key === 'Enter' && handleSelectBook(b)}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#ebf8ff')}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF8E7')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '')}
                     >
                       {b.coverImageUrl && (
@@ -339,7 +339,7 @@ function CreateGroupPage() {
 
           {selectedBook && (
             <div style={styles.selectedBook}>
-              <span>✅ {selectedBook.title} — {selectedBook.author}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>✅ {selectedBook.title} — {selectedBook.author}</span>
               <button type="button" style={styles.manualToggle} onClick={handleClearBook}>변경</button>
             </div>
           )}

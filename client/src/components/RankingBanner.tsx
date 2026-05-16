@@ -67,10 +67,10 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     overflow: 'hidden',
   },
-  label: { fontSize: 13, fontWeight: 700, color: '#975a16', flexShrink: 0 },
+  label: { fontSize: 13, fontWeight: 700, color: '#4E342E', flexShrink: 0 },
   roller: { flex: 1, height: 20, overflow: 'hidden' },
-  entry: { fontSize: 13, fontWeight: 600, color: '#2d3748', height: 20, lineHeight: '20px' },
-  arrow: { fontSize: 12, color: '#975a16', flexShrink: 0, fontWeight: 600 },
+  entry: { fontSize: 13, fontWeight: 600, color: '#3D2E1E', height: 20, lineHeight: '20px' },
+  arrow: { fontSize: 14, color: '#4E342E', flexShrink: 0, fontWeight: 600 },
 };
 
 export default RankingBanner;

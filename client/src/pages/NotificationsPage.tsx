@@ -14,7 +14,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-block',
     marginBottom: 16,
     fontSize: 14,
-    color: '#667eea',
+    color: '#C8962E',
     fontWeight: 500,
     textDecoration: 'none',
   },
@@ -27,13 +27,13 @@ const styles: Record<string, React.CSSProperties> = {
   title: {
     fontSize: 24,
     fontWeight: 800,
-    color: '#1a202c',
+    color: '#3D2E1E',
   },
   readAll: {
     padding: '8px 14px',
     border: '1px solid #c3dafe',
     backgroundColor: '#fff',
-    color: '#4c51bf',
+    color: '#4E342E',
     borderRadius: 8,
     fontSize: 13,
     fontWeight: 600,
@@ -41,7 +41,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   list: {
     backgroundColor: '#fff',
-    border: '1px solid #f0f0f5',
+    border: '1px solid #E8DFD3',
     borderRadius: 12,
     boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
     overflow: 'hidden',
@@ -51,7 +51,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'block',
     textAlign: 'left',
     border: 'none',
-    borderBottom: '1px solid #f0f0f5',
+    borderBottom: '1px solid #E8DFD3',
     backgroundColor: '#fff',
     padding: '16px 18px',
     cursor: 'pointer',
@@ -69,7 +69,7 @@ const styles: Record<string, React.CSSProperties> = {
   group: {
     fontSize: 13,
     fontWeight: 700,
-    color: '#667eea',
+    color: '#C8962E',
   },
   unreadDot: {
     width: 8,
@@ -80,7 +80,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   message: {
     fontSize: 14,
-    color: '#2d3748',
+    color: '#3D2E1E',
     lineHeight: 1.55,
     wordBreak: 'break-word',
   },
@@ -96,7 +96,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     backgroundColor: '#fff',
     borderRadius: 12,
-    border: '1px solid #f0f0f5',
+    border: '1px solid #E8DFD3',
   },
   loading: {
     textAlign: 'center',

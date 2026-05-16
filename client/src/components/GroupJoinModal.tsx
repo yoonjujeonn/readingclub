@@ -72,7 +72,7 @@ const styles: Record<string, React.CSSProperties> = {
   bookTitle: {
     fontSize: 18,
     fontWeight: 700,
-    color: '#1a202c',
+    color: '#3D2E1E',
     marginBottom: 4,
     letterSpacing: '-0.3px',
   },
@@ -84,12 +84,12 @@ const styles: Record<string, React.CSSProperties> = {
   groupName: {
     fontSize: 14,
     fontWeight: 600,
-    color: '#667eea',
+    color: '#C8962E',
     marginBottom: 6,
   },
   description: {
     fontSize: 14,
-    color: '#4a5568',
+    color: '#5C4A32',
     lineHeight: 1.6,
     marginBottom: 16,
   },
@@ -109,13 +109,13 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.9,
     marginBottom: 16,
     padding: '12px 14px',
-    backgroundColor: '#f7f8fc',
+    backgroundColor: '#FDF8F0',
     borderRadius: 8,
   },
   members: {
     display: 'inline-block',
-    background: 'linear-gradient(135deg, #ebf4ff 0%, #e8e0ff 100%)',
-    color: '#5a67d8',
+    background: '#FFF8E7',
+    color: '#4E342E',
     padding: '3px 10px',
     borderRadius: 12,
     fontSize: 12,
@@ -127,7 +127,7 @@ const styles: Record<string, React.CSSProperties> = {
   joinBtn: {
     width: '100%',
     padding: '14px 0',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 10,
@@ -151,7 +151,7 @@ const styles: Record<string, React.CSSProperties> = {
     flex: 1,
     padding: '12px 14px',
     fontSize: 14,
-    border: '2px solid #e2e8f0',
+    border: '2px solid #E8DFD3',
     borderRadius: 10,
     outline: 'none',
     boxSizing: 'border-box' as const,
@@ -159,7 +159,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   privateJoinBtn: {
     padding: '12px 20px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 10,
@@ -225,7 +225,7 @@ function GroupJoinModal({ group, onClose, onJoin, joining, joinMsg }: GroupJoinM
       <div style={styles.modal}>
         {/* Header */}
         <div style={styles.header}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#2d3748' }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#3D2E1E' }}>
             모임 소개
             {group.isPrivate && <span style={styles.privateBadge}>🔒 비공개</span>}
           </div>
@@ -270,7 +270,7 @@ function GroupJoinModal({ group, onClose, onJoin, joining, joinMsg }: GroupJoinM
             📅 독서 기간: {formatDate(group.readingStartDate)} ~ {formatDate(group.readingEndDate)}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10, alignItems: 'center' }}>
               {group.ownerNickname && (
-                <span style={{ display: 'inline-block', background: '#edf2ff', color: '#4c51bf', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
+                <span style={{ display: 'inline-block', background: '#FFF8E7', color: '#4E342E', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
                   👤 {group.ownerNickname}
                 </span>
               )}

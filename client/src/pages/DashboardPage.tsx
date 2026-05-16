@@ -17,15 +17,15 @@ type TabId = typeof tabs[number]['id'];
 
 const styles: Record<string, React.CSSProperties> = {
   container: { maxWidth: 800, margin: '0 auto', padding: '24px 16px' },
-  backLink: { display: 'inline-block', marginBottom: 16, fontSize: 14, color: '#3182ce' },
+  backLink: { display: 'inline-block', marginBottom: 16, fontSize: 14, color: '#C8962E' },
   title: { fontSize: 24, fontWeight: 700, marginBottom: 16 },
-  tabBar: { display: 'flex', gap: 0, borderBottom: '2px solid #e2e8f0', marginBottom: 20 },
+  tabBar: { display: 'flex', gap: 0, borderBottom: '2px solid #E8DFD3', marginBottom: 20 },
   tab: { padding: '10px 18px', fontSize: 14, fontWeight: 500, cursor: 'pointer', border: 'none', background: 'none', color: '#718096', borderBottom: '2px solid transparent', marginBottom: -2 },
-  tabActive: { color: '#3182ce', borderBottomColor: '#3182ce', fontWeight: 600 },
+  tabActive: { color: '#C8962E', borderBottomColor: '#C8962E', fontWeight: 600 },
   section: { backgroundColor: '#fff', borderRadius: 8, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' },
-  sectionTitle: { fontSize: 16, fontWeight: 600, marginBottom: 12, color: '#2d3748' },
+  sectionTitle: { fontSize: 16, fontWeight: 600, marginBottom: 12, color: '#3D2E1E' },
   btn: { padding: '8px 16px', fontSize: 13, border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 500 },
-  btnPrimary: { backgroundColor: '#3182ce', color: '#fff' },
+  btnPrimary: { backgroundColor: '#4E342E', color: '#fff' },
   btnDanger: { backgroundColor: '#e53e3e', color: '#fff' },
   btnSecondary: { backgroundColor: '#edf2f7', color: '#333' },
   input: { width: '100%', padding: '8px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const, marginBottom: 8 },
@@ -254,7 +254,7 @@ function DashboardPage() {
                     <strong style={{ fontSize: 14 }}>{ann.title}</strong>
                     <button style={{ ...styles.btn, ...styles.btnDanger, padding: '4px 10px', fontSize: 11 }} onClick={() => handleDeleteAnnouncement(ann.id)}>삭제</button>
                   </div>
-                  <div style={{ fontSize: 13, color: '#4a5568', marginTop: 4 }}>{ann.content}</div>
+                  <div style={{ fontSize: 13, color: '#5C4A32', marginTop: 4 }}>{ann.content}</div>
                   <div style={{ fontSize: 11, color: '#a0aec0', marginTop: 4 }}>{new Date(ann.createdAt).toLocaleDateString()}</div>
                 </div>
               ))}
@@ -294,9 +294,9 @@ function DashboardPage() {
             <div style={{ fontSize: 13, color: '#718096', marginBottom: 16 }}>스레드 종료일 수정, 대표 스레드 설정/해제, 발언권 관리를 합니다.</div>
 
             {/* 진행중/종료/발언권 요청 탭 */}
-            <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #e2e8f0', marginBottom: 12 }}>
+            <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #E8DFD3', marginBottom: 12 }}>
               <button
-                style={{ padding: '8px 16px', fontSize: 13, fontWeight: threadMgmtTab === 'active' ? 600 : 400, cursor: 'pointer', border: 'none', background: 'none', color: threadMgmtTab === 'active' ? '#3182ce' : '#718096', borderBottom: threadMgmtTab === 'active' ? '2px solid #3182ce' : '2px solid transparent', marginBottom: -2 }}
+                style={{ padding: '8px 16px', fontSize: 13, fontWeight: threadMgmtTab === 'active' ? 600 : 400, cursor: 'pointer', border: 'none', background: 'none', color: threadMgmtTab === 'active' ? '#C8962E' : '#718096', borderBottom: threadMgmtTab === 'active' ? '2px solid #C8962E' : '2px solid transparent', marginBottom: -2 }}
                 onClick={() => { setThreadMgmtTab('active'); setThreadMgmtPage(1); }}
               >🟢 진행중</button>
               <button
@@ -316,7 +316,7 @@ function DashboardPage() {
                   <div style={{ color: '#a0aec0', fontSize: 13 }}>발언권 요청이 없습니다</div>
                 ) : requestedThreads.map((item: any) => (
                   <div key={item.discussion.id} style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: '#2d3748', marginBottom: 8 }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: '#3D2E1E', marginBottom: 8 }}>
                       {item.discussion.title}
                       {item.discussion.status === 'closed' && <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 6px', borderRadius: 10, marginLeft: 6 }}>종료</span>}
                     </div>
@@ -357,9 +357,9 @@ function DashboardPage() {
                   <div key={d.id} style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 500, color: '#2d3748' }}>
+                        <div style={{ fontSize: 14, fontWeight: 500, color: '#3D2E1E' }}>
                           {d.title}
-                          {d.isPinned && <span style={{ fontSize: 11, backgroundColor: '#ebf8ff', color: '#3182ce', padding: '2px 6px', borderRadius: 10, marginLeft: 6 }}>대표</span>}
+                          {d.isPinned && <span style={{ fontSize: 11, backgroundColor: '#FFF8E7', color: '#C8962E', padding: '2px 6px', borderRadius: 10, marginLeft: 6 }}>대표</span>}
                           {d.status === 'closed' && <span style={{ fontSize: 11, backgroundColor: '#fed7d7', color: '#c53030', padding: '2px 6px', borderRadius: 10, marginLeft: 6 }}>종료</span>}
                           {d.commentCount > 0 && <span style={{ fontSize: 11, color: '#a0aec0', marginLeft: 6 }}>💬 {d.commentCount}</span>}
                         </div>
@@ -393,7 +393,7 @@ function DashboardPage() {
                     {Array.from({ length: mgmtTotalPages }, (_, i) => i + 1).map(p => (
                       <button
                         key={p}
-                        style={{ padding: '4px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4, backgroundColor: p === threadMgmtPage ? '#3182ce' : '#fff', color: p === threadMgmtPage ? '#fff' : '#333', cursor: 'pointer' }}
+                        style={{ padding: '4px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 4, backgroundColor: p === threadMgmtPage ? '#C8962E' : '#fff', color: p === threadMgmtPage ? '#fff' : '#333', cursor: 'pointer' }}
                         onClick={() => setThreadMgmtPage(p)}
                       >{p}</button>
                     ))}
@@ -434,7 +434,7 @@ function DashboardPage() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setKickTarget(null)}>
           <div style={{ backgroundColor: '#fff', borderRadius: 12, padding: 28, width: 400, maxWidth: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: 18, fontWeight: 700, color: '#e53e3e', marginBottom: 12 }}>⚠️ 멤버 강제 퇴장</div>
-            <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 1.6, marginBottom: 16 }}>
+            <div style={{ fontSize: 14, color: '#5C4A32', lineHeight: 1.6, marginBottom: 16 }}>
               퇴장된 멤버는 모임 재참여가 불가능합니다.<br/>
               정말로 <strong>{kickTarget.nickname}</strong>님을 강제 퇴장시키겠습니까?
             </div>
@@ -460,7 +460,7 @@ function DashboardPage() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setAlertMessage(null)}>
           <div style={{ backgroundColor: '#fff', borderRadius: 12, padding: 28, width: 380, maxWidth: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
-            <div style={{ fontSize: 15, color: '#2d3748', lineHeight: 1.6, marginBottom: 20 }}>{alertMessage}</div>
+            <div style={{ fontSize: 15, color: '#3D2E1E', lineHeight: 1.6, marginBottom: 20 }}>{alertMessage}</div>
             <button style={{ ...styles.btn, ...styles.btnPrimary, padding: '8px 24px' }} onClick={() => setAlertMessage(null)}>확인</button>
           </div>
         </div>
