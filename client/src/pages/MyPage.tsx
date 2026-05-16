@@ -137,7 +137,7 @@ function MyPage() {
     <div style={s.container}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#1a202c' }}>📚 독서 모임</span>
+          <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#1a202c' }}>📚 버지페이지</span>
         </Link>
         <button type="button" onClick={() => navigate('/notifications')} style={s.notificationBtn}>
           <span>🔔 알림 보기</span>
