@@ -13,9 +13,9 @@ const styles: Record<string, React.CSSProperties> = {
     height: 40,
     borderRadius: 10,
     border: '1px solid #E8DFD3',
-    backgroundColor: '#fff',
+    backgroundColor: '#FDF8F0',
     cursor: 'pointer',
-    fontSize: 19,
+    fontSize: 16,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -171,7 +171,7 @@ function NotificationBell() {
   return (
     <div style={styles.wrap} ref={ref}>
       <button type="button" style={styles.button} onClick={handleToggle} aria-label="알림">
-        {'\u{1F514}'}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4E342E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         {unreadCount > 0 && <span style={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>}
       </button>
       {open && (

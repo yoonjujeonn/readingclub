@@ -46,15 +46,19 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'transform 0.15s, box-shadow 0.15s',
   },
   navLinkSecondary: {
-    padding: '9px 20px',
+    padding: '9px 12px',
     backgroundColor: '#FDF8F0',
     color: '#4E342E',
-    borderRadius: 8,
+    borderRadius: 10,
     fontSize: 14,
     fontWeight: 600,
     textDecoration: 'none',
     border: '1px solid #E8DFD3',
     transition: 'background-color 0.15s',
+    display: 'inline-flex',
+    alignItems: 'center',
+    height: 40,
+    boxSizing: 'border-box' as const,
   },
   searchBar: {
     display: 'flex',
@@ -334,7 +338,7 @@ function HomePage() {
           {isLoggedIn ? (
             <>
               <NotificationBell />
-              <Link to="/mypage" style={styles.navLinkSecondary}>마이페이지</Link>
+              <Link to="/mypage" style={styles.navLinkSecondary}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4E342E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: 6 }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>마이페이지</Link>
             </>
           ) : (
             <Link to="/login" style={styles.navLink}>로그인</Link>

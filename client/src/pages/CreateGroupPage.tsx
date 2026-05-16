@@ -339,7 +339,7 @@ function CreateGroupPage() {
 
           {selectedBook && (
             <div style={styles.selectedBook}>
-              <span>✅ {selectedBook.title} — {selectedBook.author}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>✅ {selectedBook.title} — {selectedBook.author}</span>
               <button type="button" style={styles.manualToggle} onClick={handleClearBook}>변경</button>
             </div>
           )}
