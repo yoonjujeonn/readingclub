@@ -855,7 +855,7 @@ function DiscussionsPage() {
                   <label style={styles.label}>종료일 *</label>
                   <input
                     type="date"
-                    min={new Date().toISOString().split('T')[0]}
+                    min={(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()}
                     max={groupInfo?.readingEndDate ? new Date(groupInfo.readingEndDate).toISOString().split('T')[0] : undefined}
                     style={{ ...styles.input, ...(formErrors.endDate ? styles.inputError : {}) }}
                     value={formEndDate}
@@ -959,7 +959,7 @@ function DiscussionsPage() {
               </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>종료일</label>
-                <input type="date" min={new Date().toISOString().split('T')[0]} max={groupInfo?.readingEndDate ? new Date(groupInfo.readingEndDate).toISOString().split('T')[0] : undefined} value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} style={styles.input} />
+                <input type="date" min={(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()} max={groupInfo?.readingEndDate ? new Date(groupInfo.readingEndDate).toISOString().split('T')[0] : undefined} value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} style={styles.input} />
                 {groupInfo?.readingEndDate && (
                   <div style={styles.helpText}>독서기간 종료일({new Date(groupInfo.readingEndDate).toLocaleDateString()})까지 설정 가능</div>
                 )}

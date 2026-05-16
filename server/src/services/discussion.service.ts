@@ -56,6 +56,11 @@ export const discussionService = {
     if (data.endDate) {
       const endDate = new Date(data.endDate);
       endDate.setHours(23, 59, 59, 999);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (endDate <= today) {
+        throw new AppError(400, 'END_DATE_TOO_EARLY', '스레드 종료일은 내일 이후로 설정해야 합니다');
+      }
       const readingEnd = new Date(member.group.readingEndDate);
       readingEnd.setHours(23, 59, 59, 999);
       if (endDate > readingEnd) {
