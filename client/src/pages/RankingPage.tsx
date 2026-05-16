@@ -85,7 +85,7 @@ const styles: Record<string, React.CSSProperties> = {
   info: { flex: 1 },
   nickname: { fontSize: 14, fontWeight: 600, color: '#3D2E1E' },
   score: { fontSize: 14, fontWeight: 700, color: '#C8962E', flexShrink: 0 },
-  myRank: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', backgroundColor: '#FFF8E7', border: '1px solid #E8DFD3', borderRadius: 10, marginBottom: 20 },
+  myRank: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', marginBottom: 20 },
   myRankLabel: { fontSize: 12, fontWeight: 700, color: '#C8962E', flexShrink: 0 },
   myRankInfo: { fontSize: 14, fontWeight: 600, color: '#3D2E1E' },
 };

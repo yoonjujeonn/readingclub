@@ -350,7 +350,7 @@ function HomePage() {
       <div style={{
         backgroundColor: '#2C2016',
         borderRadius: 12,
-        padding: '32px 28px',
+        padding: '32px 70px 32px 50px',
         marginBottom: 24,
         color: '#fff',
         position: 'relative' as const,
@@ -394,13 +394,13 @@ function HomePage() {
         }}>
           <svg width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg">
             {/* 벌집 - flat-top hexagons */}
-            <polygon points="85,5 115,20 115,50 85,65 55,50 55,20" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon points="125,35 155,50 155,80 125,95 95,80 95,50" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon points="45,65 75,80 75,110 45,125 15,110 15,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon points="85,65 115,80 115,110 85,125 55,110 55,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon points="65,95 95,110 95,140 65,155 35,140 35,110" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon className="hex-top" points="85,5 115,20 115,50 85,65 55,50 55,20" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon className="hex-right" points="125,35 155,50 155,80 125,95 95,80 95,50" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon className="hex-left" points="45,65 75,80 75,110 45,125 15,110 15,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon className="hex-center" points="85,65 115,80 115,110 85,125 55,110 55,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon className="hex-bottom" points="65,95 95,110 95,140 65,155 35,140 35,110" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
             {/* 벌 */}
-            <image href="/favicon.svg" x="58" y="52" width="55" height="55" />
+            <image className="hex-center" href="/favicon.svg" x="58" y="52" width="55" height="55" />
           </svg>
         </div>
       </div>

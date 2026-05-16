@@ -94,3 +94,30 @@ button[style*="background: rgb(78, 52, 46)"]:hover {
   background-color: #6B4C3B !important;
   transform: scale(1.02);
 }
+
+/* 배너 벌집 모여드는 애니메이션 */
+@keyframes hexGatherTop {
+  from { transform: translateY(-40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes hexGatherRight {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes hexGatherLeft {
+  from { transform: translateX(-40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes hexGatherBottom {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes hexGatherCenter {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.hex-top { animation: hexGatherTop 0.8s 0.5s ease-out forwards; opacity: 0; }
+.hex-right { animation: hexGatherRight 0.8s 0.6s ease-out forwards; opacity: 0; }
+.hex-left { animation: hexGatherLeft 0.8s 0.7s ease-out forwards; opacity: 0; }
+.hex-center { animation: hexGatherCenter 0.8s 0.8s ease-out forwards; opacity: 0; }
+.hex-bottom { animation: hexGatherBottom 0.8s 0.9s ease-out forwards; opacity: 0; }
