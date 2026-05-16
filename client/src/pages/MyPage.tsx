@@ -137,7 +137,7 @@ function MyPage() {
     <div style={s.container}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#3D2E1E' }}><img src="/favicon.svg" alt="" style={{ width: 24, height: 24, verticalAlign: 'middle', marginRight: 6 }} />버지페이지</span>
+          <span className="site-title" style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#3D2E1E' }}><img src="/favicon.svg" alt="" style={{ width: 24, height: 24, verticalAlign: 'middle', marginRight: 6 }} />버지페이지</span>
         </Link>
         <button type="button" onClick={() => navigate('/notifications')} style={s.notificationBtn}>
           <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4E342E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: 4 }}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>알림 보기</span>

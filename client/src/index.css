@@ -121,3 +121,34 @@ button[style*="background: rgb(78, 52, 46)"]:hover {
 .hex-left { animation: hexGatherLeft 0.8s 0.7s ease-out forwards; opacity: 0; }
 .hex-center { animation: hexGatherCenter 0.8s 0.8s ease-out forwards; opacity: 0; }
 .hex-bottom { animation: hexGatherBottom 0.8s 0.9s ease-out forwards; opacity: 0; }
+
+/* 사이트 제목 폰트 */
+@font-face {
+  font-family: 'GyeonggiMillenniumTitle';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2410-3@1.0/Title_Light.woff') format('woff');
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GyeonggiMillenniumTitle';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2410-3@1.0/Title_Medium.woff') format('woff');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GyeonggiMillenniumTitle';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2410-3@1.0/Title_Bold.woff') format('woff');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GyeonggiMillenniumTitle';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2410-3@1.0/TitleV.woff') format('woff');
+  font-weight: 800;
+  font-display: swap;
+}
+
+.site-title {
+  font-family: 'GyeonggiMillenniumTitle', sans-serif;
+  font-weight: 700;
+}

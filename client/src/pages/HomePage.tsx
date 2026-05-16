@@ -214,6 +214,7 @@ function HomePage() {
   const [sort, setSort] = useState<SortOption>('createdDesc');
   const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
+  const [bannerIndex, setBannerIndex] = useState(0);
 
   // Modal state
   const [selectedGroup, setSelectedGroup] = useState<GroupCard | null>(null);
@@ -244,6 +245,11 @@ function HomePage() {
 
   useEffect(() => {
     fetchGroups();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setBannerIndex(prev => (prev + 1) % 2), 4500);
+    return () => clearInterval(timer);
   }, []);
 
   const handleSearch = (e: FormEvent) => {
@@ -332,7 +338,7 @@ function HomePage() {
     <div style={styles.container}>
       <div style={styles.header}>
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => { setSearch(''); setSearchType('bookTitle'); setSort('createdDesc'); setSearched(false); fetchGroups(undefined, 'bookTitle', 'createdDesc'); }}>
-          <h1 style={styles.title}><img src="/favicon.svg" alt="" style={{ width: 28, height: 28, verticalAlign: 'middle', marginRight: 6 }} />버지페이지</h1>
+          <h1 className="site-title" style={styles.title}><img src="/favicon.svg" alt="" style={{ width: 28, height: 28, verticalAlign: 'middle', marginRight: 6 }} />버지페이지</h1>
         </Link>
         <div style={styles.nav}>
           {isLoggedIn ? (
@@ -346,65 +352,93 @@ function HomePage() {
         </div>
       </div>
 
-      {/* Hero Banner */}
-      <div style={{
-        backgroundColor: '#2C2016',
-        borderRadius: 12,
-        padding: '32px 70px 32px 50px',
-        marginBottom: 24,
-        color: '#fff',
-        position: 'relative' as const,
-        overflow: 'hidden',
-      }}>
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <svg width="42" height="12" viewBox="0 0 42 12"><polygon points="6,0 12,3 12,9 6,12 0,9 0,3" fill="#C8962E"/><polygon points="20,0 26,3 26,9 20,12 14,9 14,3" fill="#C8962E"/><polygon points="34,0 40,3 40,9 34,12 28,9 28,3" fill="#C8962E"/></svg>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>독서 모임 플랫폼</span>
-          </div>
-          <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>
-            같은 책,
-          </div>
-          <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 12, lineHeight: 1.3 }}>
-            <span style={{ color: '#C8962E' }}>다른 생각</span>을 나누다
-          </div>
-          <div style={{ fontSize: 14, opacity: 0.6, lineHeight: 1.6, maxWidth: 480 }}>
-            메모하고, 모임을 만들고,<br />독서가 더 깊어지는 경험.
-          </div>
-          <Link to="/groups/new" className="hero-btn" style={{
-            display: 'inline-block',
-            marginTop: 20,
-            padding: '10px 24px',
-            backgroundColor: 'transparent',
-            color: '#fff',
-            borderRadius: 6,
-            fontSize: 14,
-            fontWeight: 600,
-            textDecoration: 'none',
-            border: '1px solid #FDF8F0',
-          }}>
-            모임 시작하기 →
-          </Link>
-        </div>
-        <div style={{
-          position: 'absolute' as const,
-          right: 30,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          opacity: 0.4,
-        }}>
-          <svg width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* 벌집 - flat-top hexagons */}
-            <polygon className="hex-top" points="85,5 115,20 115,50 85,65 55,50 55,20" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon className="hex-right" points="125,35 155,50 155,80 125,95 95,80 95,50" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon className="hex-left" points="45,65 75,80 75,110 45,125 15,110 15,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon className="hex-center" points="85,65 115,80 115,110 85,125 55,110 55,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon className="hex-bottom" points="65,95 95,110 95,140 65,155 35,140 35,110" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            {/* 벌 */}
-            <image className="hex-center" href="/favicon.svg" x="58" y="52" width="55" height="55" />
-          </svg>
-        </div>
-      </div>
+      {/* Hero Banner Slider */}
+      <div style={{ borderRadius: 12, marginBottom: 24, overflow: 'hidden', position: 'relative' as const }}>
+            <div style={{ display: 'flex', transition: 'transform 0.6s ease', transform: `translateX(-${bannerIndex * 100}%)` }}>
+              {/* 배너 1: 메인 */}
+              <div style={{
+                minWidth: '100%',
+                backgroundColor: '#2C2016',
+                padding: '32px 70px 32px 50px',
+                color: '#fff',
+                position: 'relative' as const,
+                boxSizing: 'border-box' as const,
+              }}>
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <svg width="42" height="12" viewBox="0 0 42 12"><polygon points="6,0 12,3 12,9 6,12 0,9 0,3" fill="#C8962E"/><polygon points="20,0 26,3 26,9 20,12 14,9 14,3" fill="#C8962E"/><polygon points="34,0 40,3 40,9 34,12 28,9 28,3" fill="#C8962E"/></svg>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>독서 모임 플랫폼</span>
+                  </div>
+                  <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>같은 책,</div>
+                  <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 12, lineHeight: 1.3 }}><span style={{ color: '#C8962E' }}>다른 생각</span>을 나누다</div>
+                  <div style={{ fontSize: 14, opacity: 0.6, lineHeight: 1.6, maxWidth: 480 }}>메모하고, 모임을 만들고,<br />독서가 더 깊어지는 경험.</div>
+                  <Link to="/groups/new" className="hero-btn" style={{ display: 'inline-block', marginTop: 20, padding: '10px 24px', backgroundColor: 'transparent', color: '#fff', borderRadius: 6, fontSize: 14, fontWeight: 600, textDecoration: 'none', border: '1px solid #FDF8F0' }}>모임 시작하기 →</Link>
+                </div>
+                <div style={{ position: 'absolute' as const, right: 30, top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+                  <svg key={`hex-anim-${bannerIndex}`} width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon className="hex-top" points="85,5 115,20 115,50 85,65 55,50 55,20" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    <polygon className="hex-right" points="125,35 155,50 155,80 125,95 95,80 95,50" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    <polygon className="hex-left" points="45,65 75,80 75,110 45,125 15,110 15,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    <polygon className="hex-center" points="85,65 115,80 115,110 85,125 55,110 55,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    <polygon className="hex-bottom" points="65,95 95,110 95,140 65,155 35,140 35,110" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+                    <image className="hex-center" href="/favicon.svg" x="58" y="52" width="55" height="55" />
+                  </svg>
+                </div>
+              </div>
 
+              {/* 배너 2: AI 회고 광고 */}
+              <div style={{
+                minWidth: '100%',
+                backgroundColor: '#1a1a2e',
+                padding: '32px 50px',
+                color: '#fff',
+                position: 'relative' as const,
+                boxSizing: 'border-box' as const,
+                display: 'flex',
+                gap: 40,
+                alignItems: 'center',
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.2)', fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 16 }}>● AI 회고 기능</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.4, marginBottom: 8 }}>나눈 대화,<br /><span style={{ color: '#ffd54f' }}>사라지지 않게</span> 정리해드려요</div>
+                  <div style={{ fontSize: 14, opacity: 0.5, lineHeight: 1.6 }}>모임이 끝나도 괜찮아요.<br />AI가 대화를 읽고 핵심만 꼭 붙잡아 둘게요.</div>
+                </div>
+                <div style={{ width: 260, background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', borderRadius: 16, padding: '20px 18px', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: 'rgba(102,126,234,0.15)' }} />
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: 2, opacity: 0.5, marginBottom: 6 }}>READING INSIGHT</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>소년이 온다</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.6, padding: '8px 12px', background: 'rgba(255,255,255,0.08)', borderRadius: 8, borderLeft: '3px solid #C8962E', marginBottom: 12 }}>
+                      "기억하는 것 자체가 저항이다"
+                    </div>
+                    <div style={{ fontSize: 11, opacity: 0.8, lineHeight: 1.6, marginBottom: 10 }}>
+                      폭력 앞의 침묵과 저항에 대해 깊이 논의함
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 4, marginBottom: 10 }}>
+                      {['침묵', '저항', '기억', '생존'].map(kw => (
+                        <span key={kw} style={{ padding: '2px 8px', background: 'rgba(102,126,234,0.25)', borderRadius: 12, fontSize: 10, fontWeight: 500 }}>#{kw}</span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, fontSize: 10, opacity: 0.5, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                      <span>📝 5개</span>
+                      <span>💬 3개</span>
+                      <span>🗨️ 12개</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 슬라이드 화살표 */}
+            <button onClick={() => setBannerIndex(prev => (prev - 1 + 2) % 2)} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14 }} aria-label="이전">‹</button>
+            <button onClick={() => setBannerIndex(prev => (prev + 1) % 2)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14 }} aria-label="다음">›</button>
+
+            {/* 슬라이드 인디케이터 */}
+            <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: bannerIndex === 0 ? '#fff' : 'rgba(255,255,255,0.3)', transition: 'background-color 0.3s' }} />
+              <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: bannerIndex === 1 ? '#fff' : 'rgba(255,255,255,0.3)', transition: 'background-color 0.3s' }} />
+            </div>
+      </div>
       <RankingBanner />
 
       <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, marginBottom: 28, alignItems: 'center' }}>
