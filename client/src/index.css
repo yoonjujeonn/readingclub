@@ -12,7 +12,7 @@ body {
   line-height: 1.6;
   color: #3D2E1E;
   background-color: #FDF8F0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cpath d='M28,0 L56,16.2 L56,48.5 L28,64.7 L0,48.5 L0,16.2 Z' fill='none' stroke='%23E8DFD3' stroke-width='0.5' transform='translate(0,0)'/%3E%3Cpath d='M28,0 L56,16.2 L56,48.5 L28,64.7 L0,48.5 L0,16.2 Z' fill='none' stroke='%23E8DFD3' stroke-width='0.5' transform='translate(28,48.5)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cpath d='M28,0 L56,16.2 L56,48.5 L28,64.7 L0,48.5 L0,16.2 Z' fill='none' stroke='%23C4B08A' stroke-width='0.7' transform='translate(0,0)'/%3E%3Cpath d='M28,0 L56,16.2 L56,48.5 L28,64.7 L0,48.5 L0,16.2 Z' fill='none' stroke='%23C4B08A' stroke-width='0.7' transform='translate(28,48.5)'/%3E%3C/svg%3E");
   background-size: 56px 97px;
 }
 
@@ -152,3 +152,43 @@ button[style*="background: rgb(78, 52, 46)"]:hover {
   font-family: 'GyeonggiMillenniumTitle', sans-serif;
   font-weight: 700;
 }
+
+/* AI 배너 타이핑 효과 */
+@keyframes blink-caret {
+  from, to { opacity: 0; }
+  50% { opacity: 1; }
+}
+.typing-caret {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background-color: #C8962E;
+  margin-left: 2px;
+  vertical-align: middle;
+  animation: blink-caret 0.8s step-end infinite;
+}
+
+/* AI 배너 요약 텍스트 뿅 나타남 */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+.summary-pop {
+  opacity: 0;
+  animation: popIn 0.4s ease-out 2.5s forwards;
+  color: #7edccc;
+}
+
+/* 꿀벌 날아오는 애니메이션 - 페이지 로드 시 한번만 (화면 밖 우측 하단에서) */
+@keyframes flyInFirst {
+  from { transform: translate(300px, 200px) scale(0.3); opacity: 0; }
+  70% { transform: translate(-5px, 5px) scale(1.05); opacity: 1; }
+  to { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+/* 배너 전환 시 작은 등장 */
+@keyframes flyInSmall {
+  from { transform: translate(30px, -20px) scale(0.7); opacity: 0; }
+  to { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+.hex-bee-first { opacity: 0; animation: flyInFirst 1.4s 1s ease-out forwards; }
+.hex-bee-repeat { opacity: 0; animation: flyInSmall 0.6s 0.5s ease-out forwards; }
