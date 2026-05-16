@@ -24,7 +24,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   button: {
     padding: '10px 14px',
-    backgroundColor: '#C8962E',
+    backgroundColor: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 4,

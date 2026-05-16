@@ -249,7 +249,7 @@ const st: Record<string, React.CSSProperties> = {
   groupTitle: { fontSize: 13, fontWeight: 700, color: '#a0aec0', textTransform: 'uppercase' as const, letterSpacing: '0.5px', marginBottom: 12 },
   item: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid #FDF8F0', fontSize: 14, color: '#3D2E1E' },
   input: { padding: '8px 12px', fontSize: 14, border: '1px solid #E8DFD3', borderRadius: 8, outline: 'none', width: '100%', boxSizing: 'border-box' as const },
-  saveBtn: { padding: '8px 16px', background: '#C8962E', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' as const },
+  saveBtn: { padding: '8px 16px', background: '#4E342E', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' as const },
   editBtn: { padding: '4px 10px', fontSize: 12, color: '#C8962E', background: '#FFF8E7', border: '1px solid #E8DFD3', borderRadius: 6, cursor: 'pointer', fontWeight: 500 },
   helpText: { fontSize: 12, color: '#718096', textAlign: 'center' as const },
 };

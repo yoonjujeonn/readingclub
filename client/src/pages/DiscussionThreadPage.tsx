@@ -166,7 +166,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   submitBtn: {
     padding: '8px 16px',
-    backgroundColor: '#C8962E',
+    backgroundColor: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 4,

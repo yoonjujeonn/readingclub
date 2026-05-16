@@ -97,7 +97,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   button: {
     padding: '10px 24px',
-    backgroundColor: '#C8962E',
+    backgroundColor: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 6,
@@ -166,7 +166,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   filterBtnActive: {
-    backgroundColor: '#C8962E',
+    backgroundColor: '#4E342E',
     color: '#fff',
     borderColor: '#C8962E',
   },
@@ -230,7 +230,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   createBtn: {
     padding: '10px 20px',
-    backgroundColor: '#C8962E',
+    backgroundColor: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 6,

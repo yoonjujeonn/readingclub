@@ -109,7 +109,7 @@ function DateRangePicker({ startDate, endDate, onChangeStart, onChangeEnd, minDa
 
       <div style={styles.legend}>
         <div style={styles.legendItem}>
-          <span style={{ ...styles.legendDot, backgroundColor: '#C8962E' }} />
+          <span style={{ ...styles.legendDot, backgroundColor: '#4E342E' }} />
           <span>시작일: {startDate || '선택해주세요'}</span>
         </div>
         <div style={styles.legendItem}>
@@ -137,7 +137,7 @@ const styles: Record<string, React.CSSProperties> = {
   emptyCell: { padding: 6 },
   dayCell: { textAlign: 'center' as const, padding: '6px 2px', fontSize: 12, borderRadius: 4, cursor: 'pointer', transition: 'background 0.15s' },
   pastDay: { color: '#cbd5e0', cursor: 'default' },
-  selectedDay: { backgroundColor: '#C8962E', color: '#fff', fontWeight: 700 },
+  selectedDay: { backgroundColor: '#4E342E', color: '#fff', fontWeight: 700 },
   rangeDay: { backgroundColor: '#E8DFD3', color: '#C8962E' },
   legend: { display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8, fontSize: 12, color: '#5C4A32' },
   legendItem: { display: 'flex', alignItems: 'center', gap: 4 },

@@ -52,7 +52,7 @@ const styles: Record<string, React.CSSProperties> = {
   helpText: { color: '#718096', fontSize: 12, marginTop: 6 },
   textarea: { width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const, minHeight: 100, resize: 'vertical' as const, fontFamily: 'inherit' },
   row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
-  button: { width: '100%', padding: '10px 0', backgroundColor: '#C8962E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
+  button: { width: '100%', padding: '10px 0', backgroundColor: '#4E342E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
   buttonDisabled: { opacity: 0.6, cursor: 'not-allowed' },
   memoCard: { backgroundColor: '#f9fafb', borderRadius: 8, padding: 16, marginBottom: 12, border: '1px solid #E8DFD3' },
   memoHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },

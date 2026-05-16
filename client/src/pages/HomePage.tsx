@@ -388,15 +388,15 @@ function HomePage() {
           transform: 'translateY(-50%)',
           opacity: 0.4,
         }}>
-          <svg width="150" height="160" viewBox="0 0 150 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg">
             {/* 벌집 - flat-top hexagons */}
-            <polygon points="75,5 105,20 105,50 75,65 45,50 45,20" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon points="115,35 145,50 145,80 115,95 85,80 85,50" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon points="35,65 65,80 65,110 35,125 5,110 5,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon points="75,65 105,80 105,110 75,125 45,110 45,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
-            <polygon points="55,125 85,140 85,170 55,185 25,170 25,140" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon points="85,5 115,20 115,50 85,65 55,50 55,20" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon points="125,35 155,50 155,80 125,95 95,80 95,50" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon points="45,65 75,80 75,110 45,125 15,110 15,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon points="85,65 115,80 115,110 85,125 55,110 55,80" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
+            <polygon points="65,95 95,110 95,140 65,155 35,140 35,110" fill="rgba(200,150,46,0.15)" stroke="rgba(200,150,46,0.5)" strokeWidth="1.5"/>
             {/* 벌 */}
-            <image href="/favicon.svg" x="50" y="55" width="55" height="55" />
+            <image href="/favicon.svg" x="58" y="52" width="55" height="55" />
           </svg>
         </div>
       </div>

@@ -25,7 +25,7 @@ const styles: Record<string, React.CSSProperties> = {
   section: { backgroundColor: '#fff', borderRadius: 8, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' },
   sectionTitle: { fontSize: 16, fontWeight: 600, marginBottom: 12, color: '#3D2E1E' },
   btn: { padding: '8px 16px', fontSize: 13, border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 500 },
-  btnPrimary: { backgroundColor: '#C8962E', color: '#fff' },
+  btnPrimary: { backgroundColor: '#4E342E', color: '#fff' },
   btnDanger: { backgroundColor: '#e53e3e', color: '#fff' },
   btnSecondary: { backgroundColor: '#edf2f7', color: '#333' },
   input: { width: '100%', padding: '8px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' as const, marginBottom: 8 },

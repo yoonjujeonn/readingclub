@@ -437,7 +437,7 @@ function GroupDetailPage() {
               )}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleSaveEdit} disabled={saving} style={{ padding: '8px 20px', backgroundColor: '#C8962E', color: '#fff', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={handleSaveEdit} disabled={saving} style={{ padding: '8px 20px', backgroundColor: '#4E342E', color: '#fff', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer' }}>
                 {saving ? '저장 중...' : '저장'}
               </button>
               <button onClick={() => setEditing(false)} style={{ padding: '8px 20px', backgroundColor: '#edf2f7', color: '#333', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer' }}>
@@ -517,7 +517,7 @@ function GroupDetailPage() {
               <button
                 onClick={() => handleJoin(joinPassword)}
                 disabled={joining || !joinPassword}
-                style={{ flex: 1, padding: '10px 0', backgroundColor: '#C8962E', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                style={{ flex: 1, padding: '10px 0', backgroundColor: '#4E342E', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
               >
                 {joining ? '확인 중...' : '참여하기'}
               </button>

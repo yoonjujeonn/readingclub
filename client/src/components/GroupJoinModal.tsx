@@ -127,7 +127,7 @@ const styles: Record<string, React.CSSProperties> = {
   joinBtn: {
     width: '100%',
     padding: '14px 0',
-    background: '#C8962E',
+    background: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 10,
@@ -159,7 +159,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   privateJoinBtn: {
     padding: '12px 20px',
-    background: '#C8962E',
+    background: '#4E342E',
     color: '#fff',
     border: 'none',
     borderRadius: 10,

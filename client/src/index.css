@@ -84,12 +84,12 @@ a {
 }
 
 /* 골드 배경 버튼 자동 호버 */
-button[style*="background-color: rgb(200, 150, 46)"],
-button[style*="background: rgb(200, 150, 46)"] {
+button[style*="background-color: rgb(78, 52, 46)"],
+button[style*="background: rgb(78, 52, 46)"] {
   transition: background-color 0.2s, transform 0.2s;
 }
-button[style*="background-color: rgb(200, 150, 46)"]:hover,
-button[style*="background: rgb(200, 150, 46)"]:hover {
-  background-color: #D4A843 !important;
+button[style*="background-color: rgb(78, 52, 46)"]:hover,
+button[style*="background: rgb(78, 52, 46)"]:hover {
+  background-color: #6B4C3B !important;
   transform: scale(1.02);
 }

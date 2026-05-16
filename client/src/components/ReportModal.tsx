@@ -38,7 +38,7 @@ function ReportModal({ targetType, targetId, onClose }: ReportModalProps) {
         {result ? (
           <>
             <div style={{ fontSize: 14, color: '#5C4A32', marginBottom: 16 }}>{result}</div>
-            <button onClick={onClose} style={{ width: '100%', padding: '10px 0', backgroundColor: '#C8962E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>
+            <button onClick={onClose} style={{ width: '100%', padding: '10px 0', backgroundColor: '#4E342E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>
               확인
             </button>
           </>
