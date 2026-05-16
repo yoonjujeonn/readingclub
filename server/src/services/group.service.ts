@@ -17,6 +17,25 @@ const normalizeTags = (tags?: string[]) =>
 const mapTags = (tags?: { name: string }[]) => tags?.map(tag => tag.name) ?? [];
 
 type GroupSearchType = 'bookTitle' | 'groupName' | 'owner' | 'tag' | 'bookAuthor';
+type GroupSort = 'createdDesc' | 'createdAsc' | 'startDesc' | 'startAsc' | 'endDesc' | 'endAsc';
+
+const getGroupOrderBy = (sort?: string): Prisma.GroupOrderByWithRelationInput => {
+  const normalizedSort: GroupSort =
+    sort === 'createdAsc' ||
+    sort === 'startDesc' ||
+    sort === 'startAsc' ||
+    sort === 'endDesc' ||
+    sort === 'endAsc'
+      ? sort
+      : 'createdDesc';
+
+  if (normalizedSort === 'createdAsc') return { createdAt: 'asc' };
+  if (normalizedSort === 'startDesc') return { readingStartDate: 'desc' };
+  if (normalizedSort === 'startAsc') return { readingStartDate: 'asc' };
+  if (normalizedSort === 'endDesc') return { readingEndDate: 'desc' };
+  if (normalizedSort === 'endAsc') return { readingEndDate: 'asc' };
+  return { createdAt: 'desc' };
+};
 
 export const groupService = {
   async create(data: CreateGroupInput, userId: string) {
@@ -118,7 +137,7 @@ export const groupService = {
     return { ...group, tags: mapTags(group.tags) };
   },
 
-  async list(query?: { search?: string; searchType?: string; page?: number; limit?: number }, userId?: string) {
+  async list(query?: { search?: string; searchType?: string; sort?: string; page?: number; limit?: number }, userId?: string) {
     const page = query?.page ?? 1;
     const limit = query?.limit ?? 10;
     const skip = (page - 1) * limit;
@@ -156,7 +175,7 @@ export const groupService = {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: getGroupOrderBy(query?.sort),
         include: {
           book: true,
           owner: { select: { id: true, nickname: true } },

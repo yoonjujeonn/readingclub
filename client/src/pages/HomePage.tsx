@@ -10,6 +10,7 @@ import NotificationBell from '../components/NotificationBell';
 import RankingBanner from '../components/RankingBanner';
 
 type SearchType = 'bookTitle' | 'groupName' | 'owner' | 'tag' | 'bookAuthor';
+type SortOption = 'createdDesc' | 'createdAsc' | 'startDesc' | 'startAsc' | 'endDesc' | 'endAsc';
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -93,6 +94,31 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     boxShadow: '0 2px 8px rgba(102,126,234,0.25)',
     transition: 'transform 0.15s',
+  },
+  sortBar: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: -16,
+    marginBottom: 24,
+  },
+  sortLabel: {
+    fontSize: 13,
+    fontWeight: 600,
+    color: '#718096',
+  },
+  sortSelect: {
+    width: 176,
+    padding: '10px 12px',
+    fontSize: 13,
+    border: '1px solid #e2e8f0',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    color: '#2d3748',
+    boxSizing: 'border-box' as const,
+    outline: 'none',
+    cursor: 'pointer',
   },
   grid: {
     display: 'grid',
@@ -179,6 +205,7 @@ function HomePage() {
   const [groups, setGroups] = useState<GroupCard[]>([]);
   const [search, setSearch] = useState('');
   const [searchType, setSearchType] = useState<SearchType>('bookTitle');
+  const [sort, setSort] = useState<SortOption>('createdDesc');
   const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
 
@@ -187,10 +214,17 @@ function HomePage() {
   const [joining, setJoining] = useState(false);
   const [joinMsg, setJoinMsg] = useState('');
 
-  const fetchGroups = async (query?: string, type: SearchType = searchType) => {
+  const fetchGroups = async (
+    query?: string,
+    type: SearchType = searchType,
+    sortOption: SortOption = sort,
+  ) => {
     setLoading(true);
     try {
-      const params = query ? { search: query, searchType: type } : undefined;
+      const params = {
+        ...(query ? { search: query, searchType: type } : {}),
+        sort: sortOption,
+      };
       const response = await groupsApi.list(params);
       // API 응답 구조에 따라 데이터가 없을 경우 빈 배열을 기본값으로 사용
       setGroups(response.data?.data || []);
@@ -209,22 +243,27 @@ function HomePage() {
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     setSearched(!!search.trim());
-    fetchGroups(search.trim() || undefined, searchType);
+    fetchGroups(search.trim() || undefined, searchType, sort);
   };
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
     if (!value.trim() && searched) {
       setSearched(false);
-      fetchGroups();
+      fetchGroups(undefined, searchType, sort);
     }
   };
 
   const handleSearchTypeChange = (type: SearchType) => {
     setSearchType(type);
     if (searched && search.trim()) {
-      fetchGroups(search.trim(), type);
+      fetchGroups(search.trim(), type, sort);
     }
+  };
+
+  const handleSortChange = (value: SortOption) => {
+    setSort(value);
+    fetchGroups(search.trim() || undefined, searchType, value);
   };
 
   const handleCardClick = (group: GroupCard) => {
@@ -286,7 +325,7 @@ function HomePage() {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => { setSearch(''); setSearchType('bookTitle'); setSearched(false); fetchGroups(undefined, 'bookTitle'); }}>
+        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => { setSearch(''); setSearchType('bookTitle'); setSort('createdDesc'); setSearched(false); fetchGroups(undefined, 'bookTitle', 'createdDesc'); }}>
           <h1 style={styles.title}>📚 버지페이지</h1>
         </Link>
         <div style={styles.nav}>
@@ -371,6 +410,23 @@ function HomePage() {
         />
         <button type="submit" style={styles.searchButton}>검색</button>
       </form>
+
+      <div style={styles.sortBar}>
+        <span style={styles.sortLabel}>정렬</span>
+        <select
+          value={sort}
+          onChange={(e) => handleSortChange(e.target.value as SortOption)}
+          style={styles.sortSelect}
+          aria-label="모임 정렬"
+        >
+          <option value="createdDesc">새로 만든 모임순</option>
+          <option value="createdAsc">먼저 만든 모임순</option>
+          <option value="startAsc">시작일 빠른순</option>
+          <option value="startDesc">시작일 늦은순</option>
+          <option value="endAsc">마감일 빠른순</option>
+          <option value="endDesc">마감일 늦은순</option>
+        </select>
+      </div>
 
       {/* 내 모임 — 가로 스크롤 */}
       {isLoggedIn && !searched && groups.filter(g => g.isMember || g.ownerId === currentUserId).length > 0 && (
