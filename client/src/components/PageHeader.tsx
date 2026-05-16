@@ -19,7 +19,7 @@ function PageHeader({ hideMypage, hideNotification }: PageHeaderProps) {
       marginBottom: 20,
     }}>
       <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#1a202c' }}>📚 독서 모임</span>
+        <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#1a202c' }}>📚 버지페이지</span>
       </Link>
       {isLoggedIn && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

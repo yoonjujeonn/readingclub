@@ -257,7 +257,7 @@ function HomePage() {
     <div style={styles.container}>
       <div style={styles.header}>
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => { setSearch(''); setSearched(false); fetchGroups(); }}>
-          <h1 style={styles.title}>📚 독서 모임</h1>
+          <h1 style={styles.title}>📚 버지페이지</h1>
         </Link>
         <div style={styles.nav}>
           {isLoggedIn ? (
