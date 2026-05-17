@@ -215,7 +215,7 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
   const [bannerIndex, setBannerIndex] = useState(0);
-  const [beeFirstLoad, setBeeFirstLoad] = useState(true);
+  const [, setBeeFirstLoad] = useState(true);
   const [typedText, setTypedText] = useState('');
   const fullText = '"기억하는 것 자체가 저항이다"';
 

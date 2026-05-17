@@ -12,7 +12,8 @@ import PageHeader from '../components/PageHeader';
 import ReportModal from '../components/ReportModal';
 import { timeAgo } from '../utils/timeAgo';
 import { getReadingPeriodWriteBlockMessage, isOutsideReadingPeriod } from '../utils/readingPeriod';
-import type { Comment as CommentType, Discussion } from '../types';
+import type { Comment as CommentType, Discussion, ApiError } from '../types';
+import { AxiosError } from 'axios';
 
 const MAX_COMMENT_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_COMMENT_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
