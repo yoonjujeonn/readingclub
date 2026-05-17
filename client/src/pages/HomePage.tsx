@@ -351,6 +351,9 @@ function HomePage() {
   };
 
   const formatDate = (d: string) => d?.slice(0, 10) || '';
+  const visibleGroups = isLoggedIn && !searched
+    ? groups.filter(g => !(g.isMember || g.ownerId === currentUserId) && g.currentMembers < g.maxMembers)
+    : groups;
 
   return (
     <div style={styles.container}>
@@ -554,7 +557,7 @@ function HomePage() {
       )}
 
       {/* 전체 모임 */}
-      {!searched && isLoggedIn && groups.filter(g => !(g.isMember || g.ownerId === currentUserId)).length > 0 && (
+      {!searched && isLoggedIn && visibleGroups.length > 0 && (
         <div style={{ fontSize: 16, fontWeight: 700, color: '#3D2E1E', marginBottom: 12 }}>🌐 전체 모임</div>
       )}
 
@@ -567,7 +570,7 @@ function HomePage() {
       ) : (
         <div style={styles.grid}>
           {/* 옵셔널 체이닝 ?. 을 추가하여 안전하게 렌더링 */}
-          {(isLoggedIn && !searched ? groups.filter(g => !(g.isMember || g.ownerId === currentUserId)) : groups)?.map((g) => (
+          {visibleGroups?.map((g) => (
             <div
               key={g.id}
               className="group-card"
