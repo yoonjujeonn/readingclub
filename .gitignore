@@ -22,9 +22,6 @@ server/.env.local
 .DS_Store
 Thumbs.db
 
-# Prisma
-server/prisma/migrations/
-
 # Logs
 *.log
 
