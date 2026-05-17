@@ -171,6 +171,7 @@ function CreateGroupPage() {
   const [bookQuery, setBookQuery] = useState('');
   const [bookResults, setBookResults] = useState<BookSearchResult[]>([]);
   const [selectedBook, setSelectedBook] = useState<BookSearchResult | null>(null);
+  const [existingGroups, setExistingGroups] = useState<any[]>([]);
   const [manualMode, setManualMode] = useState(false);
   const [searching, setSearching] = useState(false);
 
@@ -208,16 +209,25 @@ function CreateGroupPage() {
     }
   };
 
-  const handleSelectBook = (book: BookSearchResult) => {
+  const handleSelectBook = async (book: BookSearchResult) => {
     setSelectedBook(book);
     setBookTitle(book.title);
     setBookAuthor(book.author);
     setBookSummary(book.summary || '');
     setBookResults([]);
+
+    // 동일 책 사용 모임 조회
+    try {
+      const res = await groupsApi.list({ search: book.title });
+      setExistingGroups(res.data.data || []);
+    } catch {
+      setExistingGroups([]);
+    }
   };
 
   const handleClearBook = () => {
     setSelectedBook(null);
+    setExistingGroups([]);
     setBookTitle('');
     setBookAuthor('');
     setBookSummary('');
@@ -341,6 +351,20 @@ function CreateGroupPage() {
             <div style={styles.selectedBook}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>✅ {selectedBook.title} — {selectedBook.author}</span>
               <button type="button" style={styles.manualToggle} onClick={handleClearBook}>변경</button>
+            </div>
+          )}
+
+          {/* 동일 책 사용 모임 안내 */}
+          {existingGroups.length > 0 && selectedBook && (
+            <div style={{ backgroundColor: '#fffbeb', border: '1px solid #f6e05e', borderRadius: 8, padding: '12px 16px', marginTop: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#975a16', marginBottom: 8 }}>📢 이 책으로 진행 중인 모임이 있습니다</div>
+              {existingGroups.slice(0, 3).map((g: any) => (
+                <div key={g.id} style={{ fontSize: 12, color: '#744210', padding: '4px 0', borderBottom: '1px solid #fefcbf' }}>
+                  <strong>{g.name}</strong> — {g.currentMembers}/{g.maxMembers}명 · {new Date(g.readingStartDate).toLocaleDateString()} ~ {new Date(g.readingEndDate).toLocaleDateString()}
+                </div>
+              ))}
+              {existingGroups.length > 3 && <div style={{ fontSize: 11, color: '#975a16', marginTop: 4 }}>외 {existingGroups.length - 3}개 모임</div>}
+              <div style={{ fontSize: 11, color: '#975a16', marginTop: 8 }}>기존 모임에 참여하거나, 새 모임을 만들 수 있습니다.</div>
             </div>
           )}
 
